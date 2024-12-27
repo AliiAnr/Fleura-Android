@@ -53,7 +53,7 @@ fun FleuraApp() {
             ) {
                 NavHost(
                     navController = fleuraNavController.navController,
-                    startDestination = MainDestinations.WELCOME_ROUTE,
+                    startDestination = MainDestinations.DASHBOARD_ROUTE,
                     contentAlignment = Alignment.Center
                 ) {
                     composableWithCompositionLocal(

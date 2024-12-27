@@ -53,12 +53,12 @@ fun rememberFleuraScaffoldState(
     snackbarManager: SnackbarManager = SnackbarManager,
     resources: Resources = resources(),
     coroutineScope: CoroutineScope = rememberCoroutineScope()
-): JetsnackScaffoldState = remember(snackBarHostState, snackbarManager, resources, coroutineScope) {
-    JetsnackScaffoldState(snackBarHostState, snackbarManager, resources, coroutineScope)
+): FleuraScaffoldState = remember(snackBarHostState, snackbarManager, resources, coroutineScope) {
+    FleuraScaffoldState(snackBarHostState, snackbarManager, resources, coroutineScope)
 }
 
 @Stable
-class JetsnackScaffoldState(
+class FleuraScaffoldState(
     val snackBarHostState: SnackbarHostState,
     private val snackbarManager: SnackbarManager,
     private val resources: Resources,
