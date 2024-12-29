@@ -7,6 +7,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.view.WindowCompat
+import java.text.NumberFormat
+import java.util.Locale
 
 @Composable
 fun ChangeStatusBarColor(
@@ -26,5 +28,11 @@ fun ChangeStatusBarColor(
         }
     }
 }
+
+fun formatCurrency(amount: Long): String {
+    val formatter = NumberFormat.getCurrencyInstance(Locale("in", "ID"))
+    return formatter.format(amount).replace(",00", "")
+}
+
 
 

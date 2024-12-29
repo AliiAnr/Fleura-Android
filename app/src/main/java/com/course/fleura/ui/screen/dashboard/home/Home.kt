@@ -62,8 +62,15 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import android.util.Log
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.runtime.mutableIntStateOf
+import com.course.fleura.ui.components.Flower
+import com.course.fleura.ui.components.FlowerItem
+import com.course.fleura.ui.components.Store
+import com.course.fleura.ui.components.StoreItem
 import com.course.fleura.ui.theme.base60
 import com.course.fleura.ui.theme.base80
 
@@ -77,48 +84,98 @@ fun Home(
 }
 
 @Composable
-private fun Home(
-    modifier: Modifier = Modifier
-) {
+private fun Home(modifier: Modifier = Modifier) {
+    var textState by remember { mutableStateOf("") } // Menggunakan remember untuk state
 
-    var textState = ""
-    FleuraSurface (
+    FleuraSurface(
         modifier = modifier.fillMaxSize()
-    ){
-        Box (
+    ) {
+        Box(
             modifier = Modifier.fillMaxSize()
-        ){
-            Column {
-                Spacer(modifier = Modifier.statusBarsPadding())
-                Header()
-                Spacer(modifier = Modifier.height(12.dp))
-                SearchBar(
-                    query = textState,
-                    onQueryChange = {
-                        textState = it
-                    },
-                    onSearch = {
-                        // call API
-                    }
-                )
-                Spacer(modifier = Modifier.height(14.dp))
-                ListCategory(
-                    onCategoryClick = { id, name ->
-                        // call API
-                    },
-                    listCategory = FakeCategory.categories
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                SectionText(title = "Explore Offers!")
-                Spacer(modifier = Modifier.height(8.dp))
-                Corousel(
-                    listCorousel = FakeCategory.corousels
-                )
-                Spacer(modifier = Modifier.height(12.dp))
+        ) {
+            LazyColumn (
+                modifier = Modifier.fillMaxSize().statusBarsPadding(),
+            ) {
+                item {
+                    Header()
+                }
+                item {
+                    Spacer(modifier = Modifier.height(12.dp))
+                }
+                item {
+                    SearchBar(
+                        query = textState,
+                        onQueryChange = {
+                            textState = it
+                        },
+                        onSearch = {
+                            // call API
+                        }
+                    )
+                }
+                item {
+                    Spacer(modifier = Modifier.height(14.dp))
+                }
+                item {
+                    ListCategory(
+                        onCategoryClick = { id, name ->
+                            // call API
+                        },
+                        listCategory = FakeCategory.categories
+                    )
+                }
+                item {
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
+                item {
+                    SectionText(title = "Explore Offers!")
+                }
+                item {
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
+                item {
+                    Corousel(
+                        listCorousel = FakeCategory.corousels
+                    )
+                }
+                item {
+                    Spacer(modifier = Modifier.height(12.dp))
+                }
+                item {
+                    ListStores(
+                        storeList = FakeCategory.stores,
+                        onNavigate = {
+                            // call API
+                        },
+                        onStoreClick = { id, name ->
+                            // call API
+                        }
+                    )
+                }
+                item {
+                    Spacer(modifier = Modifier.height(12.dp))
+                }
+                item {
+                    ListFlowers(
+                        flowerList = FakeCategory.flowers,
+                        onNavigate = {
+                            // call API
+                        },
+                        onStoreClick = { id, name ->
+                            // call API
+                        }
+                    )
+                }
+                item {
+                    Spacer(modifier = Modifier.height(200.dp))
+                }
+
+
             }
         }
     }
 }
+
 
 @Composable
 private fun Header(
@@ -192,19 +249,29 @@ private fun Corousel(
     val coroutineScope = rememberCoroutineScope()
     var isUserDragging by remember { mutableStateOf(true) }
 
-    LaunchedEffect(isUserDragging) {
-        coroutineScope.launch {
-            while (true) {
-                delay(2000)
-                    val nextPage = (pagerState.currentPage + 1) % pagerState.pageCount
-                    if (pagerState.currentPage == pagerState.pageCount - 1) {
-                        pagerState.scrollToPage(0)
-                    } else {
-                        pagerState.animateScrollToPage(nextPage, animationSpec = tween(durationMillis = 1000))
-                    }
-            }
-        }
-    }
+    var scrollDirection by remember { mutableIntStateOf(1) }
+
+//    LaunchedEffect(isUserDragging) {
+//        coroutineScope.launch {
+//            while (true) {
+//                delay(2000)
+//
+//                val nextPage = pagerState.currentPage + scrollDirection
+//
+//                if (nextPage >= pagerState.pageCount) {
+//                    scrollDirection = -1
+//                } else if (nextPage < 0) {
+//                    scrollDirection = 1
+//                }
+//
+//                pagerState.animateScrollToPage(
+//                    page = pagerState.currentPage + scrollDirection,
+//                    animationSpec = tween(durationMillis = 1000)
+//                )
+//            }
+//        }
+//    }
+
 
     Column(
         modifier.fillMaxWidth(),
@@ -285,6 +352,100 @@ private fun IndicatorDots(
                 if (isSelected) MaterialTheme.colorScheme.primary else base60
             )
     )
+}
+
+@Composable
+fun ListStores(
+    modifier : Modifier = Modifier,
+    storeList : List<Store>,
+    onNavigate: () -> Unit,
+    onStoreClick: (Long, String) -> Unit
+) {
+    Column(modifier = Modifier.padding(horizontal = 20.dp)) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(
+                text = "Explore Stores!",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.Black
+            )
+            Icon(
+                painter = painterResource(R.drawable.back_arrow),
+                contentDescription = "Navigate",
+                tint = Color.Black,
+                modifier = Modifier
+                    .size(16.dp)
+                    .clickable { onNavigate() }
+            )
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            items(storeList, key = { it.id }) { store ->
+                StoreItem(
+                    imageRes = store.image,
+                    name = store.name,
+                    openingHours = store.openHours
+                )
+            }
+
+        }
+    }
+}
+
+@Composable
+fun ListFlowers(
+    modifier : Modifier = Modifier,
+    flowerList : List<Flower>,
+    onNavigate: () -> Unit,
+    onStoreClick: (Long, String) -> Unit
+) {
+    Column(modifier = Modifier.padding(horizontal = 20.dp)) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(
+                text = "Best Ratings!",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.Black
+            )
+            Icon(
+                painter = painterResource(R.drawable.back_arrow),
+                contentDescription = "Navigate",
+                tint = Color.Black,
+                modifier = Modifier
+                    .size(16.dp)
+                    .clickable { onNavigate() }
+            )
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            items(flowerList, key = { it.id }) { flower ->
+                FlowerItem(
+                    onFlowerClick = { id, name ->
+                        // call API
+                    },
+                    imageRes = flower.image,
+                    storeName = flower.storeName,
+                    flowerName = flower.flowerName,
+                    rating = flower.rating,
+                    reviewsCount = flower.reviewsCount,
+                    price = flower.price
+                )
+            }
+
+        }
+    }
 }
 
 @Composable

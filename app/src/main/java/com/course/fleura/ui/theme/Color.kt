@@ -2,6 +2,9 @@ package com.course.fleura.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
+val secColor = Color(0xFFFFC107)
+val base100 = Color(0xFF757575)
+val base500 = Color(0xFF3B3B3B)
 val base80 = Color(0xFF949494)
 val base60 = Color(0xFFB0B0B0)
 val base40 = Color(0xFFA8A8A8)
