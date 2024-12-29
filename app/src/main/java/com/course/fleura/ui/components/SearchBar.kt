@@ -60,7 +60,7 @@ fun SearchBar(
                 contentDescription = "Notification",
                 tint = base80
             )
-            Spacer(modifier = Modifier.width(8.dp))
+            Spacer(modifier = Modifier.width(14.dp))
             BasicTextField(
                 value = textState,
                 onValueChange = {

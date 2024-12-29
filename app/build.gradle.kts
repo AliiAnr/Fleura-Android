@@ -72,4 +72,8 @@ dependencies {
     implementation(libs.androidx.animation)
 
     implementation(libs.androidx.core.splashscreen)
+
+    implementation (libs.accompanist.pager)
+    implementation (libs.accompanist.pager.indicators)
+
 }
