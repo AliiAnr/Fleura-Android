@@ -22,6 +22,7 @@ import com.course.fleura.ui.screen.dashboard.home.Home
 import com.course.fleura.ui.screen.dashboard.order.Order
 import com.course.fleura.ui.screen.dashboard.point.Point
 import com.course.fleura.ui.screen.dashboard.profile.Profile
+import com.course.fleura.ui.screen.navigation.Screen.Cart
 
 fun <T> spatialExpressiveSpring() = spring<T>(
     dampingRatio = 0.8f,
@@ -93,7 +94,10 @@ fun NavGraphBuilder.addHomeGraph(
     }
     composable(HomeSections.Cart.route) { from ->
         Cart(
-
+            onSnackClick = { id, origin ->
+                onSnackSelected(id, origin, from)
+            },
+            modifier = modifier
         )
     }
     composable(HomeSections.Point.route) { from ->
@@ -101,9 +105,12 @@ fun NavGraphBuilder.addHomeGraph(
 
         )
     }
-    composable(HomeSections.Order.route) {
+    composable(HomeSections.Order.route) {from ->
         Order(
-
+            onSnackClick = { id, origin ->
+                onSnackSelected(id, origin, from)
+            },
+            modifier = modifier
         )
     }
     composable(HomeSections.Profile.route) {

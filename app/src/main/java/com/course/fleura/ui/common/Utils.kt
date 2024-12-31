@@ -33,6 +33,3 @@ fun formatCurrency(amount: Long): String {
     val formatter = NumberFormat.getCurrencyInstance(Locale("in", "ID"))
     return formatter.format(amount).replace(",00", "")
 }
-
-
-

@@ -30,6 +30,33 @@ data class Flower(
     val price: Long
 )
 
+data class Common(
+    val id: Long,
+    val image: Int,
+    val name: String,
+    val price: Long
+)
+
+data class OrderItem(
+    val id: Long,
+    val imageRes: Int,
+    val name: String,
+    val quantity: Int,
+    val isRedeemAble: Boolean = false,
+    val points: Int = 0,
+    val price: Long
+)
+
+data class Order(
+    val id: Long,
+    val storeName: String,
+    val items: List<OrderItem>,
+    val isRedeemOrder: Boolean = false,
+    val totalPrice: Long,
+    val totalPoints: Long
+)
+
+
 object FakeCategory {
     val categories : List<Category> = listOf(
         Category(1, "All Variants", R.drawable.category_1),
@@ -54,5 +81,31 @@ object FakeCategory {
         Flower(1, R.drawable.flower_1, "Buga Adik", "Rose", 4.5, 100, 10000),
         Flower(2, R.drawable.flower_2, "Flower WwW", "Lily", 4.0, 50, 20000),
         Flower(3, R.drawable.flower_3, "Flwey", "Sunflower", 4.2, 70, 15000),
+    )
+
+    val commons : List<Common> = listOf(
+        Common(1, R.drawable.cc_1, "Flower Chocolate", 10000),
+        Common(2, R.drawable.cc_2, "Flower Bouquet", 20000),
+        Common(3, R.drawable.cc_3, "Chocolate Bouquet", 15000),
+        Common(4, R.drawable.cc_4, "Flower Bouquet", 20000),
+        Common(5, R.drawable.cc_5, "Chocolate Bouquet", 15000),
+        Common(6, R.drawable.cc_6, "Flower Bouquet", 20000),
+        Common(7, R.drawable.cc_7, "Chocolate Bouquet", 15000),
+        Common(8, R.drawable.cc_8, "Flower Bouquet", 20000),
+    )
+
+    val orders : List<Order> = listOf(
+        Order(
+            1,
+            "Buga Adik",
+            listOf(
+                OrderItem(1, R.drawable.order_1, "Rose", 1, true, 1000, 10000),
+                OrderItem(2, R.drawable.order_2, "Lily", 2, true, 2000, 20000),
+            ),
+            true,
+            20000,
+            3000
+        ),
+
     )
 }

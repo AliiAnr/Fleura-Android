@@ -166,7 +166,7 @@ fun MainContainer(
     ) { padding ->
         NavHost(
             navController = nestedNavController.navController,
-            startDestination = HomeSections.Home.route,
+            startDestination = HomeSections.Order.route,
             contentAlignment = Alignment.Center
         ) {
             addHomeGraph(

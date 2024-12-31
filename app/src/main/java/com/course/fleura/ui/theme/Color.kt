@@ -2,12 +2,14 @@ package com.course.fleura.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
+val listOrderColor = Color(0xFFFFEBFF)
 val secColor = Color(0xFFFFC107)
+val base20 = Color(0xFFF5F5F5)
 val base100 = Color(0xFF757575)
 val base500 = Color(0xFF3B3B3B)
 val base80 = Color(0xFF949494)
 val base60 = Color(0xFFB0B0B0)
-val base40 = Color(0xFFA8A8A8)
+val base40 = Color(0xFFDEDEDE)
 val categ = Color(0XFFFFEBFF)
 val tfbackground = Color(0xFFF8F5F4)
 val primaryLight = Color(0xFFF06AA8)

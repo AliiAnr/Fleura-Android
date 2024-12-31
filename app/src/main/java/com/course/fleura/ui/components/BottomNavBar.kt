@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -30,7 +31,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.course.fleura.R
 import com.course.fleura.ui.screen.navigation.FleuraSurface
+import com.course.fleura.ui.theme.base100
 import com.course.fleura.ui.theme.base40
+import com.course.fleura.ui.theme.base80
 import com.course.fleura.ui.theme.onPrimaryLight
 import com.course.fleura.ui.theme.primaryLight
 
@@ -72,7 +75,7 @@ fun FleuraBottomBar(
                         color = base40,
                         start = Offset.Zero,
                         end = Offset(size.width, 0f),
-                        strokeWidth = 0.6.dp.toPx()
+                        strokeWidth = 1.2.dp.toPx()
                     )
                 }
                 .fillMaxWidth()
@@ -87,7 +90,7 @@ fun FleuraBottomBar(
             ) {
                 tabs.forEach { section ->
                     val selected = section == currentSection
-                    val tint = if (selected) primaryLight else base40
+                    val tint = if (selected) MaterialTheme.colorScheme.primary else base100
                     val icon = if (selected) section.icon_filled else section.icon_non
 
                     Column(

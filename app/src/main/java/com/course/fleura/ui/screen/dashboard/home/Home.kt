@@ -4,7 +4,6 @@ import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGestures
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -64,9 +63,22 @@ import android.util.Log
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.snapping.SnapPosition
+import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.mutableIntStateOf
+import com.course.fleura.ui.components.Common
+import com.course.fleura.ui.components.CommonItem
 import com.course.fleura.ui.components.Flower
 import com.course.fleura.ui.components.FlowerItem
 import com.course.fleura.ui.components.Store
@@ -80,11 +92,18 @@ fun Home(
     modifier: Modifier
 ) {
     // call API in this section
-    Home()
+    Home(
+        modifier = modifier,
+        onSnackClick = onSnackClick
+    )
 }
 
 @Composable
-private fun Home(modifier: Modifier = Modifier) {
+private fun Home(
+    modifier: Modifier = Modifier,
+    onSnackClick: (Long, String) -> Unit,
+    data: Int = 0
+) {
     var textState by remember { mutableStateOf("") } // Menggunakan remember untuk state
 
     FleuraSurface(
@@ -93,8 +112,10 @@ private fun Home(modifier: Modifier = Modifier) {
         Box(
             modifier = Modifier.fillMaxSize()
         ) {
-            LazyColumn (
-                modifier = Modifier.fillMaxSize().statusBarsPadding(),
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .statusBarsPadding(),
             ) {
                 item {
                     Header()
@@ -167,6 +188,20 @@ private fun Home(modifier: Modifier = Modifier) {
                     )
                 }
                 item {
+                    Spacer(modifier = Modifier.height(12.dp))
+                }
+                item {
+                    ListCommon(
+                        items = FakeCategory.commons,
+                        onItemClicked = { id, name ->
+                            // call API
+                        },
+                        onNavigate = {
+
+                        }
+                    )
+                }
+                item {
                     Spacer(modifier = Modifier.height(200.dp))
                 }
 
@@ -190,11 +225,21 @@ private fun Header(
         Column {
             Text(
                 text = buildAnnotatedString {
-                    withStyle(style = SpanStyle(color = Color.Black, fontWeight = FontWeight.Bold)) {
-                        append("Halo, ")
+                    withStyle(
+                        style = SpanStyle(
+                            color = Color.Black,
+                            fontWeight = FontWeight.Bold
+                        )
+                    ) {
+                        append("Hello, ")
                     }
-                    withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)) {
-                        append("name!")
+                    withStyle(
+                        style = SpanStyle(
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.Bold
+                        )
+                    ) {
+                        append("Ali!")
                     }
                 },
                 fontSize = 26.sp,
@@ -222,16 +267,15 @@ private fun ListCategory(
     modifier: Modifier = Modifier,
     onCategoryClick: (Long, String) -> Unit,
     listCategory: List<Category>
-    ) {
+) {
     LazyRow(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 20.dp)
-            .height(112.dp)
-        ,
+            .height(112.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        items(listCategory, key = { it.id }){ category ->
+        items(listCategory, key = { it.id }) { category ->
             CategoryItem(category = category, onCategoryClick = onCategoryClick)
         }
     }
@@ -315,18 +359,19 @@ private fun Corousel(
         )
     }
 }
+
 @Composable
 private fun PageIndicator(
     modifier: Modifier = Modifier,
     pageCount: Int,
     currentPage: Int
 ) {
-    Row (
+    Row(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
-    ){
-        repeat(pageCount){
+    ) {
+        repeat(pageCount) {
             IndicatorDots(
                 isSelected = it == currentPage,
                 modifier = modifier
@@ -356,8 +401,8 @@ private fun IndicatorDots(
 
 @Composable
 fun ListStores(
-    modifier : Modifier = Modifier,
-    storeList : List<Store>,
+    modifier: Modifier = Modifier,
+    storeList: List<Store>,
     onNavigate: () -> Unit,
     onStoreClick: (Long, String) -> Unit
 ) {
@@ -369,7 +414,7 @@ fun ListStores(
         ) {
             Text(
                 text = "Explore Stores!",
-                fontSize = 20.sp,
+                fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.Black
             )
@@ -400,8 +445,8 @@ fun ListStores(
 
 @Composable
 fun ListFlowers(
-    modifier : Modifier = Modifier,
-    flowerList : List<Flower>,
+    modifier: Modifier = Modifier,
+    flowerList: List<Flower>,
     onNavigate: () -> Unit,
     onStoreClick: (Long, String) -> Unit
 ) {
@@ -413,7 +458,7 @@ fun ListFlowers(
         ) {
             Text(
                 text = "Best Ratings!",
-                fontSize = 20.sp,
+                fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.Black
             )
@@ -449,6 +494,68 @@ fun ListFlowers(
 }
 
 @Composable
+fun ListCommon(
+    modifier: Modifier = Modifier,
+    items: List<Common>,
+    onNavigate: () -> Unit,
+    onItemClicked: (Long, String) -> Unit
+) {
+    val lazyListState = rememberLazyListState()
+    val snapFlingBehavior = rememberSnapFlingBehavior(lazyListState = lazyListState)
+
+    Column(modifier = Modifier.padding(horizontal = 20.dp)) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(
+                text = "Best Ratings!",
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.Black
+            )
+            Icon(
+                painter = painterResource(R.drawable.back_arrow),
+                contentDescription = "Navigate",
+                tint = Color.Black,
+                modifier = Modifier
+                    .size(16.dp)
+                    .clickable { onNavigate() }
+            )
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        LazyRow(
+            state = lazyListState,
+            horizontalArrangement = Arrangement.spacedBy(20.dp),
+            flingBehavior = snapFlingBehavior,
+        ) {
+            items(items.chunked(4)) { chunkedItems ->
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    chunkedItems.chunked(2).forEach { rowItems ->
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(11.dp),
+                        ) {
+                            rowItems.forEach { item ->
+                                CommonItem(
+                                    imageRes = item.image,
+                                    name = item.name,
+                                    price = item.price,
+                                    onCommonClicked = onItemClicked
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+@Composable
 fun SectionText(
     title: String,
     modifier: Modifier = Modifier
@@ -461,7 +568,6 @@ fun SectionText(
         modifier = Modifier.padding(horizontal = 20.dp)
     )
 }
-
 
 
 @Preview(showBackground = true)
