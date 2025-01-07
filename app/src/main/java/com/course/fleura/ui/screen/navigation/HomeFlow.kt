@@ -102,7 +102,7 @@ fun NavGraphBuilder.addHomeGraph(
     }
     composable(HomeSections.Point.route) { from ->
         Point(
-
+            modifier = modifier
         )
     }
     composable(HomeSections.Order.route) {from ->

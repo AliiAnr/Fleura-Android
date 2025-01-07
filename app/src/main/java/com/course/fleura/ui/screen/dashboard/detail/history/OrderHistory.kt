@@ -1,4 +1,4 @@
-package com.course.fleura.ui.screen.dashboard.cart
+package com.course.fleura.ui.screen.dashboard.detail.history
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -14,30 +14,24 @@ import androidx.compose.ui.res.painterResource
 import com.course.fleura.R
 import com.course.fleura.ui.components.CustomTopAppBar
 import com.course.fleura.ui.components.EmptyCart
-import com.course.fleura.ui.components.FakeCategory
+import com.course.fleura.ui.components.HistoryTopBar
 import com.course.fleura.ui.components.Order
-import com.course.fleura.ui.components.OrderSummary
 import com.course.fleura.ui.screen.navigation.FleuraSurface
 import com.course.fleura.ui.theme.base20
 
 @Composable
-fun Cart(
-    onSnackClick: (Long, String) -> Unit,
-    modifier: Modifier
+fun OrderHistory(
+    modifier: Modifier = Modifier,
 ) {
-
-    //Call API disini dan passing data UiState ke Cart
-    // Data result API akan di passing ke cart
-    Cart(
+    OrderHistory(
         modifier = modifier,
-        onSnackClick = onSnackClick,
-        data = 12,
-        orderList = FakeCategory.orders[0]
+        orderList = null,
+        onSnackClick = { _, _ -> }
     )
 }
 
 @Composable
-private fun Cart(
+private fun OrderHistory(
     modifier: Modifier = Modifier,
     orderList: Order?,
     onSnackClick: (Long, String) -> Unit,
@@ -50,26 +44,26 @@ private fun Cart(
     ) {
         Box(
             modifier = Modifier
-                .fillMaxSize()
-                .background(base20),
+                .fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .statusBarsPadding(),
+                    .statusBarsPadding()
+                    .background(base20),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 CustomTopAppBar(
-                    title = "Your Cart",
-                    showNavigationIcon = true
+                    title = "Order History",
+                    showNavigationIcon = true,
                 )
 
                 if (orderList?.items?.isEmpty() != false) {
                     EmptyCart(
-                        painter = painterResource(id = R.drawable.cart_empty),
-                        title = "You have not added anything",
-                        description = "Explore the menu and add to your cart"
+                        painter = painterResource(id = R.drawable.order_history_empty),
+                        title = "You have not finished any order yet",
+                        description = "Start ordering now!"
                     )
                 } else {
                     LazyColumn(
@@ -78,11 +72,12 @@ private fun Cart(
                     ) {
 
                         item {
-                            OrderSummary(order = orderList)
+//                    OrderSummary(order = orderList)
                         }
                     }
                 }
             }
         }
     }
+
 }

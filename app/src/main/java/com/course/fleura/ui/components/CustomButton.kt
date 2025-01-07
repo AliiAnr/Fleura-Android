@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.course.fleura.ui.theme.noAvail
 import com.course.fleura.ui.theme.onPrimaryLight
 import com.course.fleura.ui.theme.primaryLight
 
@@ -34,7 +35,10 @@ fun CustomButton(
     modifier: Modifier = Modifier, // Modifier default tanpa ukuran
     defaultWidth: Dp = 370.dp, // Ukuran default yang dapat diubah
     defaultHeight: Dp = 55.dp,
+    textVerticalPadding: Dp = 12.dp,
+    textHorizontalPadding: Dp = 24.dp,
     text: String = "",
+    isAvailable: Boolean = true,
     isOutlined: Boolean = false,
     backgroundColor: Color = primaryLight,
     outlinedColor: Color = primaryLight,
@@ -60,7 +64,7 @@ fun CustomButton(
                 .clickable(onClick = onClick,
                     indication = null,
                     interactionSource = remember { MutableInteractionSource() })
-                .padding(vertical = 12.dp, horizontal = 24.dp)
+                .padding(vertical = textVerticalPadding, horizontal = textHorizontalPadding)
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -87,13 +91,13 @@ fun CustomButton(
             contentAlignment = Alignment.Center,
             modifier = buttonModifier
                 .background(
-                    color = backgroundColor,
+                    color = if (isAvailable) backgroundColor else noAvail,
                     shape = shape
                 )
                 .clickable(onClick = onClick,
                     indication = null,
                     interactionSource = remember { MutableInteractionSource() })
-                .padding(vertical = 12.dp, horizontal = 24.dp)
+                .padding(vertical = textVerticalPadding, horizontal = textHorizontalPadding)
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,

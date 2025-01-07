@@ -94,7 +94,8 @@ fun Home(
     // call API in this section
     Home(
         modifier = modifier,
-        onSnackClick = onSnackClick
+        onSnackClick = onSnackClick,
+        data = 0
     )
 }
 

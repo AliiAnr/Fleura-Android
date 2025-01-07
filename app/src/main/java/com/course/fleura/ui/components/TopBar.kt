@@ -42,7 +42,7 @@ fun CustomTopAppBar(
             .fillMaxWidth()
             .height(60.dp)
             .background(Color.White)
-            .padding(horizontal = 16.dp),
+            .padding(horizontal = 20.dp),
         contentAlignment = Alignment.Center
     ) {
         Text(
@@ -94,7 +94,7 @@ fun HistoryTopBar(
             .fillMaxWidth()
             .height(60.dp)
             .background(Color.White)
-            .padding(horizontal = 16.dp),
+            .padding(horizontal = 20.dp),
         contentAlignment = Alignment.Center
     ) {
         Text(

@@ -31,7 +31,6 @@ val displayFontFamily = FontFamily(
     )
 )
 
-// Default Material 3 typography values
 val baseline = Typography()
 
 val AppTypography = Typography(

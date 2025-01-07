@@ -1,5 +1,6 @@
 package com.course.fleura.ui.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -13,6 +14,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -21,13 +24,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.course.fleura.R
 import com.course.fleura.ui.common.formatCurrency
+import com.course.fleura.ui.common.formatNumber
 import com.course.fleura.ui.theme.base100
 import com.course.fleura.ui.theme.base40
 import com.course.fleura.ui.theme.listOrderColor
@@ -70,8 +76,8 @@ fun RedeemItemCard(item: OrderItem) {
             Spacer(modifier = Modifier.height(8.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
-                    painter = painterResource(id = R.drawable.star_point), // Ikon bintang
-                    contentDescription = "Points", // Warna emas
+                    painter = painterResource(id = R.drawable.star_point),
+                    contentDescription = "Points",
                     modifier = Modifier.size(18.dp),
                     tint = Color.Unspecified
                 )
@@ -123,6 +129,69 @@ fun OrderItemCard(item: OrderItem) {
                 color = MaterialTheme.colorScheme.primary,
                 fontWeight = FontWeight.Bold,
                 fontSize = 14.sp
+            )
+        }
+    }
+}
+
+@Composable
+fun PointCard(
+    modifier: Modifier = Modifier,
+    data: RewardItem,
+    onRedeemClicked: (Long, String) -> Unit
+) {
+    Card(
+        shape = RoundedCornerShape(10.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.onPrimary,
+        ),
+        border = BorderStroke(1.dp, base40),
+        modifier = modifier
+            .width(166.dp)
+            .height(196.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 10.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = data.name,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium,
+                color = Color.Black,
+                lineHeight = 18.sp,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.height(40.dp)
+            )
+            Image(
+                painter = painterResource(id = data.imageRes),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .size(70.dp)
+                    .clip(RoundedCornerShape(100.dp))
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = formatNumber(data.points) + " Points",
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium,
+                color = Color.Black,
+                modifier = Modifier.padding(bottom = 4.dp)
+            )
+
+            CustomButton (
+                text = "Redeem",
+                onClick = { onRedeemClicked(data.points, data.name) },
+                fontSize = 14.sp,
+                defaultHeight = 28.dp,
+                defaultWidth = 123.dp,
+                textVerticalPadding = 0.dp,
+                textHorizontalPadding = 0.dp,
+                isAvailable = data.available,
+                modifier = Modifier.fillMaxWidth()
             )
         }
     }
@@ -203,7 +272,7 @@ fun OrderSummary(order: Order) {
                     ) {
                         Icon(
                             painter = painterResource(id = R.drawable.star_point), // Ikon bintang
-                            contentDescription = "Points", // Warna emas
+                            contentDescription = "Points",
                             tint = Color.Unspecified,
                             modifier = Modifier.size(20.dp),
                         )

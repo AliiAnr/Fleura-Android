@@ -31,6 +31,7 @@ import com.course.fleura.ui.screen.authentication.login.LoginScreen
 import com.course.fleura.ui.screen.authentication.register.RegisterScreen
 import com.course.fleura.ui.screen.authentication.username.UsernameScreen
 import com.course.fleura.ui.screen.authentication.welcome.WelcomeScreen
+import com.course.fleura.ui.screen.dashboard.detail.history.OrderHistory
 import com.course.fleura.ui.screen.dashboard.detail.home.DetailTest
 import com.course.fleura.ui.screen.navigation.FleuraScaffold
 import com.course.fleura.ui.screen.navigation.MainDestinations
@@ -91,6 +92,14 @@ fun FleuraApp() {
                     ) { backStackEntry ->
                         MainContainer(
                             onSnackSelected = fleuraNavController::navigateToSnackDetail
+                        )
+                    }
+
+                    composableWithCompositionLocal (
+                        route = MainDestinations.ORDER_HISTORY_ROUTE
+                    ){backStackEntry ->
+                        OrderHistory(
+
                         )
                     }
 

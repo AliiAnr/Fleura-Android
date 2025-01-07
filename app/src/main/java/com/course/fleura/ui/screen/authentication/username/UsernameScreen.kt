@@ -75,9 +75,9 @@ fun UsernameScreen(
                     Text(
                         text = "Please enter your nickname (one word only)",
                         textAlign = TextAlign.Start,
-                        fontSize = 16.sp,
+                        fontSize = 15.sp,
                         color = Color.Black,
-                        fontWeight = FontWeight.ExtraBold,
+                        fontWeight = FontWeight.Medium,
                         lineHeight = 50.sp,
                         modifier = Modifier.padding(bottom = 16.dp)
                     )

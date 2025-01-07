@@ -56,6 +56,15 @@ data class Order(
     val totalPoints: Long
 )
 
+data class RewardItem(
+    val id: Long,
+    val name: String,
+    val imageRes: Int,
+    val points: Long,
+    val available: Boolean
+)
+
+
 
 object FakeCategory {
     val categories : List<Category> = listOf(
@@ -107,5 +116,16 @@ object FakeCategory {
             3000
         ),
 
+    )
+
+    val rewardItems = listOf(
+        RewardItem(1, "Sunflower", R.drawable.cc_4, 2500, true),
+        RewardItem(2, "Classic Bouquet", R.drawable.order_1, 1300, true),
+        RewardItem(3, "Artificial Flower", R.drawable.flower_1, 3000, false),
+        RewardItem(4, "Purple Bouquet", R.drawable.flower_2, 1800, true),
+        RewardItem(5, "Sunflower", R.drawable.cc_4, 2500, true),
+        RewardItem(6, "Classic Bouquet", R.drawable.order_1, 1300, true),
+        RewardItem(7, "Artificial Flower", R.drawable.flower_1, 3000, false),
+        RewardItem(8, "Purple Bouquet", R.drawable.flower_2, 1800, true)
     )
 }

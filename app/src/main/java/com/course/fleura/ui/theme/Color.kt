@@ -2,6 +2,7 @@ package com.course.fleura.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
+val noAvail = Color(0xFFFAD1E4)
 val listOrderColor = Color(0xFFFFEBFF)
 val secColor = Color(0xFFFFC107)
 val base20 = Color(0xFFF5F5F5)
