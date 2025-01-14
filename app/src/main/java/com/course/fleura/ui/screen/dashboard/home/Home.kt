@@ -77,6 +77,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.ui.unit.TextUnit
 import com.course.fleura.ui.components.Common
 import com.course.fleura.ui.components.CommonItem
 import com.course.fleura.ui.components.Flower
@@ -558,14 +559,17 @@ fun ListCommon(
 
 @Composable
 fun SectionText(
+    modifier: Modifier = Modifier,
     title: String,
-    modifier: Modifier = Modifier
+    color: Color = Color.Black,
+    fontSize : TextUnit = 18.sp,
+    fontWeight: FontWeight = FontWeight.Bold,
 ) {
     Text(
         text = title,
-        fontSize = 18.sp,
-        fontWeight = FontWeight.Bold,
-        color = Color.Black,
+        fontSize = fontSize,
+        fontWeight = fontWeight,
+        color = color,
         modifier = Modifier.padding(horizontal = 20.dp)
     )
 }

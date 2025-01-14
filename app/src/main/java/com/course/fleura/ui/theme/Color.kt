@@ -2,6 +2,7 @@ package com.course.fleura.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
+val dividerColor = Color(0xFFD9D9D9)
 val noAvail = Color(0xFFFAD1E4)
 val listOrderColor = Color(0xFFFFEBFF)
 val secColor = Color(0xFFFFC107)

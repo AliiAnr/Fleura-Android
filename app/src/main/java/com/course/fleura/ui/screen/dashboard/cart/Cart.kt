@@ -46,7 +46,6 @@ private fun Cart(
 
     FleuraSurface(
         modifier = modifier.fillMaxSize(),
-        color = Color.White
     ) {
         Box(
             modifier = Modifier

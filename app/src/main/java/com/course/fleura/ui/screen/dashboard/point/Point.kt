@@ -17,6 +17,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -61,7 +62,6 @@ private fun Point(
 ) {
     FleuraSurface(
         modifier = modifier.fillMaxSize(),
-        color = Color.White
     ) {
         Box(
             modifier = Modifier
@@ -241,9 +241,9 @@ private fun OrderList(
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                 }
-                items(items.size) { index ->
+                items(items) { index ->
                     PointCard(
-                        data = items[index],
+                        data = index,
                         onRedeemClicked = onItemClicked
                     )
                 }

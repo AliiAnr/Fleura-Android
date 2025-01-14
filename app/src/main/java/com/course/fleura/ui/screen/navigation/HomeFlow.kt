@@ -115,7 +115,7 @@ fun NavGraphBuilder.addHomeGraph(
     }
     composable(HomeSections.Profile.route) {
         Profile(
-
+            modifier = modifier
         )
     }
 }

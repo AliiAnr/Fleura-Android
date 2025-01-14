@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.course.fleura.R
 import com.course.fleura.ui.theme.base40
+import com.course.fleura.ui.theme.base60
 import com.course.fleura.ui.theme.base80
 import com.course.fleura.ui.theme.errorLight
 import com.course.fleura.ui.theme.onPrimaryLight
@@ -54,7 +55,7 @@ fun CustomTextField(
     placeholder: String,
     onChange: (String) -> Unit,
     isError: Boolean,
-    icon: ImageVector,
+    icon: ImageVector? = null,
     errorMessage: String,
     isPassword: Boolean = false,
     imeAction: ImeAction = ImeAction.Next,
@@ -76,8 +77,7 @@ fun CustomTextField(
                     width = borderWidth,
                     color = if (isError) errorLight else base40,
                     shape = RoundedCornerShape(50.dp)
-                )
-                .background(tfbackground, RoundedCornerShape(20.dp)),
+                ),
             contentAlignment = Alignment.CenterStart
         ) {
             if (value.isEmpty()) {
@@ -147,6 +147,84 @@ fun CustomTextField(
                         }
                     }
                 },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 16.dp)
+            )
+        }
+
+        if (isError) {
+            Text(
+                text = errorMessage,
+                style = MaterialTheme.typography.labelSmall,
+                color = errorLight,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp),
+                textAlign = TextAlign.Start
+            )
+        } else {
+            Spacer(modifier = Modifier.height(16.dp)) // Menambahkan spacer tetap saat tidak ada error
+        }
+    }
+}
+
+@Composable
+fun CustomTextInput(
+    value: String,
+    placeholder: String,
+    onChange: (String) -> Unit,
+    isError: Boolean,
+    errorMessage: String,
+    imeAction: ImeAction = ImeAction.Next,
+    keyboardType: KeyboardType = KeyboardType.Text,
+    borderWidth: Dp = 1.dp,
+    modifier: Modifier = Modifier,
+) {
+
+    Column(
+        horizontalAlignment = Alignment.Start,
+        modifier = modifier.fillMaxWidth().padding(horizontal = 20.dp),
+    ) {
+        Box(
+            modifier = Modifier
+                .height(50.dp)
+                .fillMaxWidth()
+                .border(
+                    width = borderWidth,
+                    color = if (isError) errorLight else base60,
+                    shape = RoundedCornerShape(10.dp)
+                ),
+            contentAlignment = Alignment.CenterStart
+        ) {
+            if (value.isEmpty()) {
+                Text(
+                    text = placeholder,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = base80,
+                    modifier = Modifier.padding(start = 35.dp)
+                )
+            }
+
+            BasicTextField(
+                value = value,
+                onValueChange = {
+                    if (!it.contains("\n"))
+                        onChange(it)
+                },
+                singleLine = true,
+                textStyle = TextStyle(
+                    color = Color.Black,
+                    fontWeight = FontWeight.Normal,
+                    fontSize = 16.sp,
+                    textAlign = TextAlign.Start
+                ),
+                cursorBrush = SolidColor(primaryLight),
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = keyboardType,
+                    imeAction = imeAction
+                ),
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(start = 16.dp)

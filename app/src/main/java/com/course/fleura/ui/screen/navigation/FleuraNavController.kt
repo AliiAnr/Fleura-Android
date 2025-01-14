@@ -23,6 +23,13 @@ object MainDestinations {
     const val ORIGIN = "origin"
 }
 
+object DetailDestinations {
+    const val DETAIL_PROFILE_ROUTE = "profileDetail"
+    const val DETAIL_GENERAL_ROUTE = "general"
+    const val DETAIL_ADD_ADDRESS = "addAddress"
+    const val DETAIL_MERCHANT = "merchant"
+}
+
 @Composable
 fun rememberFleuraNavController(
     navController: NavHostController = rememberNavController()
@@ -56,6 +63,19 @@ class FleuraNavController(
             navController.navigate("${MainDestinations.SNACK_DETAIL_ROUTE}/$snackId?origin=$origin")
         }
     }
+
+    fun navigateToDetailProfile(id: Long, location: String, from: NavBackStackEntry) {
+        if (from.lifecycleIsResumed()) {
+            navController.navigate("${DetailDestinations.DETAIL_PROFILE_ROUTE}/$id/$location")
+        }
+    }
+
+//    fun navigateToGeneral(origin: String, from: NavBackStackEntry,) {
+//        if (from.lifecycleIsResumed()) {
+//            navController.navigate("${DetailDestinations.DETAIL_GENERAL_ROUTE}/?origin=$origin")
+//        }
+//    }
+
 }
 
 private fun NavBackStackEntry.lifecycleIsResumed() =

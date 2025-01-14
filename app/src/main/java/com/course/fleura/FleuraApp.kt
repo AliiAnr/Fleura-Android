@@ -33,6 +33,10 @@ import com.course.fleura.ui.screen.authentication.username.UsernameScreen
 import com.course.fleura.ui.screen.authentication.welcome.WelcomeScreen
 import com.course.fleura.ui.screen.dashboard.detail.history.OrderHistory
 import com.course.fleura.ui.screen.dashboard.detail.home.DetailTest
+import com.course.fleura.ui.screen.dashboard.detail.home.Merchant
+import com.course.fleura.ui.screen.dashboard.detail.profile.AddAdress
+import com.course.fleura.ui.screen.dashboard.detail.profile.GeneralDetail
+import com.course.fleura.ui.screen.navigation.DetailDestinations
 import com.course.fleura.ui.screen.navigation.FleuraScaffold
 import com.course.fleura.ui.screen.navigation.MainDestinations
 import com.course.fleura.ui.screen.navigation.addHomeGraph
@@ -54,7 +58,7 @@ fun FleuraApp() {
             ) {
                 NavHost(
                     navController = fleuraNavController.navController,
-                    startDestination = MainDestinations.DASHBOARD_ROUTE,
+                    startDestination = DetailDestinations.DETAIL_MERCHANT,
                     contentAlignment = Alignment.Center
                 ) {
                     composableWithCompositionLocal(
@@ -101,6 +105,30 @@ fun FleuraApp() {
                         OrderHistory(
 
                         )
+                    }
+
+                    composableWithCompositionLocal (
+                        route = DetailDestinations.DETAIL_MERCHANT
+                    ){backStackEntry ->
+                        Merchant(
+                            id = 0
+                        )
+                    }
+
+                    composableWithCompositionLocal (
+                        route = DetailDestinations.DETAIL_PROFILE_ROUTE
+                    ){backStackEntry ->
+                        //ambil location dari arguments
+                        GeneralDetail(
+                            id = 0,
+                            location = "Address"
+                        )
+                    }
+
+                    composableWithCompositionLocal (
+                        route = DetailDestinations.DETAIL_ADD_ADDRESS
+                    ){backStackEntry ->
+                        AddAdress()
                     }
 
                     composableWithCompositionLocal(
@@ -175,7 +203,7 @@ fun MainContainer(
     ) { padding ->
         NavHost(
             navController = nestedNavController.navController,
-            startDestination = HomeSections.Order.route,
+            startDestination = HomeSections.Profile.route,
             contentAlignment = Alignment.Center
         ) {
             addHomeGraph(
