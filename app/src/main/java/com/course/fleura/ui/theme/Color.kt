@@ -2,6 +2,7 @@ package com.course.fleura.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
+val tert = Color(0xFF8BC34A)
 val dividerColor = Color(0xFFD9D9D9)
 val noAvail = Color(0xFFFAD1E4)
 val listOrderColor = Color(0xFFFFEBFF)
@@ -9,6 +10,7 @@ val secColor = Color(0xFFFFC107)
 val base20 = Color(0xFFF5F5F5)
 val base100 = Color(0xFF757575)
 val base500 = Color(0xFF3B3B3B)
+val base300 = Color(0xFF575757)
 val base80 = Color(0xFF949494)
 val base60 = Color(0xFFB0B0B0)
 val base40 = Color(0xFFDEDEDE)

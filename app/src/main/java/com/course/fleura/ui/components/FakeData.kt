@@ -106,7 +106,23 @@ data class AccountList(
     val icon: Int,
 )
 
-const val TEMP_ID : Long = 0
+data class UserRating(
+    val rating: Int,
+    val description: String,
+)
+
+data class CartItem(
+    val quantity: Int,
+    val cartOrder: CartOrder
+)
+
+data class CartOrder(
+    val name: String,
+    val description: String,
+    val price: Long
+)
+
+const val TEMP_ID: Long = 0
 
 
 object FakeCategory {
@@ -232,5 +248,12 @@ object FakeCategory {
                 )
             ),
         )
+
     )
+    val listRating: List<UserRating> = listOf(
+        UserRating(5, "suka banget sama buketnya <3"),
+        UserRating(4, "Nice"),
+        UserRating(4, "Great Great Great Great, suka banget sama buketnya"),
+    )
+
 }

@@ -28,6 +28,8 @@ object DetailDestinations {
     const val DETAIL_GENERAL_ROUTE = "general"
     const val DETAIL_ADD_ADDRESS = "addAddress"
     const val DETAIL_MERCHANT = "merchant"
+    const val DETAIL_FLOWER = "flowerDetail"
+    const val DETAIL_CONFIRM_ORDER = "confirmOrder"
 }
 
 @Composable

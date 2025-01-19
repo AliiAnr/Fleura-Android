@@ -174,17 +174,18 @@ fun CustomTextInput(
     value: String,
     placeholder: String,
     onChange: (String) -> Unit,
-    isError: Boolean,
-    errorMessage: String,
+    isError: Boolean = false,
+    errorMessage: String = "",
     imeAction: ImeAction = ImeAction.Next,
     keyboardType: KeyboardType = KeyboardType.Text,
     borderWidth: Dp = 1.dp,
+    horizontalPadding: Dp = 20.dp,
     modifier: Modifier = Modifier,
 ) {
 
     Column(
         horizontalAlignment = Alignment.Start,
-        modifier = modifier.fillMaxWidth().padding(horizontal = 20.dp),
+        modifier = modifier.fillMaxWidth().padding(horizontal = horizontalPadding),
     ) {
         Box(
             modifier = Modifier
@@ -201,9 +202,9 @@ fun CustomTextInput(
                 Text(
                     text = placeholder,
                     fontSize = 16.sp,
-                    fontWeight = FontWeight.ExtraBold,
+                    fontWeight = FontWeight.Normal,
                     color = base80,
-                    modifier = Modifier.padding(start = 35.dp)
+                    modifier = Modifier.padding(start = 16.dp)
                 )
             }
 

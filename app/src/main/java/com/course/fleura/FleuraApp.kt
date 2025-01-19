@@ -34,6 +34,8 @@ import com.course.fleura.ui.screen.authentication.welcome.WelcomeScreen
 import com.course.fleura.ui.screen.dashboard.detail.history.OrderHistory
 import com.course.fleura.ui.screen.dashboard.detail.home.DetailTest
 import com.course.fleura.ui.screen.dashboard.detail.home.Merchant
+import com.course.fleura.ui.screen.dashboard.detail.order.ConfirmOrder
+import com.course.fleura.ui.screen.dashboard.detail.order.FlowerDetail
 import com.course.fleura.ui.screen.dashboard.detail.profile.AddAdress
 import com.course.fleura.ui.screen.dashboard.detail.profile.GeneralDetail
 import com.course.fleura.ui.screen.navigation.DetailDestinations
@@ -58,7 +60,7 @@ fun FleuraApp() {
             ) {
                 NavHost(
                     navController = fleuraNavController.navController,
-                    startDestination = DetailDestinations.DETAIL_MERCHANT,
+                    startDestination = DetailDestinations.DETAIL_CONFIRM_ORDER,
                     contentAlignment = Alignment.Center
                 ) {
                     composableWithCompositionLocal(
@@ -99,25 +101,33 @@ fun FleuraApp() {
                         )
                     }
 
-                    composableWithCompositionLocal (
+                    composableWithCompositionLocal(
                         route = MainDestinations.ORDER_HISTORY_ROUTE
-                    ){backStackEntry ->
+                    ) { backStackEntry ->
                         OrderHistory(
 
                         )
                     }
 
-                    composableWithCompositionLocal (
+                    composableWithCompositionLocal(
+                        route = DetailDestinations.DETAIL_FLOWER
+                    ) { backStackEntry ->
+                        FlowerDetail(
+                            flowerId = 0
+                        )
+                    }
+
+                    composableWithCompositionLocal(
                         route = DetailDestinations.DETAIL_MERCHANT
-                    ){backStackEntry ->
+                    ) { backStackEntry ->
                         Merchant(
                             id = 0
                         )
                     }
 
-                    composableWithCompositionLocal (
+                    composableWithCompositionLocal(
                         route = DetailDestinations.DETAIL_PROFILE_ROUTE
-                    ){backStackEntry ->
+                    ) { backStackEntry ->
                         //ambil location dari arguments
                         GeneralDetail(
                             id = 0,
@@ -125,10 +135,18 @@ fun FleuraApp() {
                         )
                     }
 
-                    composableWithCompositionLocal (
+                    composableWithCompositionLocal(
                         route = DetailDestinations.DETAIL_ADD_ADDRESS
-                    ){backStackEntry ->
+                    ) { backStackEntry ->
                         AddAdress()
+                    }
+
+                    composableWithCompositionLocal(
+                        route = DetailDestinations.DETAIL_CONFIRM_ORDER
+                    ) { backStackEntry ->
+                        ConfirmOrder(
+                            flowerId = 0
+                        )
                     }
 
                     composableWithCompositionLocal(

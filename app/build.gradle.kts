@@ -77,4 +77,7 @@ dependencies {
     implementation (libs.accompanist.pager)
     implementation (libs.accompanist.pager.indicators)
 
+    implementation(libs.kmp.date.time.picker)
+    implementation(libs.kotlinx.datetime)
+
 }
