@@ -45,6 +45,7 @@ import com.course.fleura.ui.screen.dashboard.home.SectionText
 import com.course.fleura.ui.screen.dashboard.point.Point
 import com.course.fleura.ui.screen.navigation.FleuraSurface
 import com.course.fleura.ui.theme.base20
+import com.course.fleura.ui.theme.base40
 
 @Composable
 fun Profile(
@@ -210,7 +211,7 @@ fun MenuItem(
                     .size(16.dp)
             )
         }
-        Divider(color = Color.LightGray, thickness = 1.dp)
+        Divider(color = base40, thickness = 1.dp)
     }
 }
 

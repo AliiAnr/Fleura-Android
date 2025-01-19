@@ -2,6 +2,7 @@ package com.course.fleura.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
+val err = Color(0xFFFF4646)
 val tert = Color(0xFF8BC34A)
 val dividerColor = Color(0xFFD9D9D9)
 val noAvail = Color(0xFFFAD1E4)

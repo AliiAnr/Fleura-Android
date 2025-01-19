@@ -14,8 +14,10 @@ import androidx.compose.ui.res.painterResource
 import com.course.fleura.R
 import com.course.fleura.ui.components.CustomTopAppBar
 import com.course.fleura.ui.components.EmptyCart
+import com.course.fleura.ui.components.FakeCategory
 import com.course.fleura.ui.components.HistoryTopBar
 import com.course.fleura.ui.components.Order
+import com.course.fleura.ui.components.OrderSummary
 import com.course.fleura.ui.screen.navigation.FleuraSurface
 import com.course.fleura.ui.theme.base20
 
@@ -28,7 +30,7 @@ fun Order(
         modifier = modifier,
         onSnackClick = onSnackClick,
         data = 12,
-        orderList = null
+        orderList = FakeCategory.orders[0]
     )
 }
 
@@ -72,7 +74,7 @@ private fun Order(
                     ) {
 
                         item {
-//                    OrderSummary(order = orderList)
+                            OrderSummary(order = orderList)
                         }
                     }
                 }

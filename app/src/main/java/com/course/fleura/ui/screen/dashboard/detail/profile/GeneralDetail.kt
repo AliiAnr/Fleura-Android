@@ -40,7 +40,7 @@ import com.course.fleura.ui.theme.dividerColor
 @Composable
 fun GeneralDetail(
     modifier: Modifier = Modifier,
-    id: Int,
+    id: Int = 0,
     location: String
 ) {
 

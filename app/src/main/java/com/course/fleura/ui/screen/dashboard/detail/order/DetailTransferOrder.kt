@@ -1,36 +1,34 @@
 package com.course.fleura.ui.screen.dashboard.detail.order
 
-import android.os.Build
-import android.util.Log
-import androidx.annotation.RequiresApi
-import kotlinx.datetime.LocalDate
-import androidx.compose.foundation.Image
+import android.widget.Space
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -41,10 +39,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -57,42 +56,32 @@ import com.course.fleura.ui.common.formatCurrency
 import com.course.fleura.ui.components.CartItem
 import com.course.fleura.ui.components.CartOrder
 import com.course.fleura.ui.components.CustomButton
-import com.course.fleura.ui.components.CustomTextInput
 import com.course.fleura.ui.components.CustomTopAppBar
-import com.course.fleura.ui.components.FakeCategory
-import com.course.fleura.ui.components.HistoryTopBar
-import com.course.fleura.ui.components.Profile
 import com.course.fleura.ui.screen.navigation.FleuraSurface
 import com.course.fleura.ui.theme.base100
 import com.course.fleura.ui.theme.base20
-import com.course.fleura.ui.theme.base300
 import com.course.fleura.ui.theme.base40
 import com.course.fleura.ui.theme.base500
+import com.course.fleura.ui.theme.base60
+import com.course.fleura.ui.theme.err
+import com.course.fleura.ui.theme.secColor
 import com.course.fleura.ui.theme.tert
-import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 import kotlinx.datetime.format
-import kotlinx.datetime.format.DateTimeFormat
 import kotlinx.datetime.format.char
-import kotlinx.datetime.toJavaLocalDate
 import network.chaintech.kmp_date_time_picker.ui.date_range_picker.formatToString
-import network.chaintech.kmp_date_time_picker.ui.datepicker.WheelDatePickerDialog
-import network.chaintech.kmp_date_time_picker.ui.datepicker.WheelDatePickerView
-import network.chaintech.kmp_date_time_picker.ui.timepicker.WheelTimePickerDialog
-import network.chaintech.kmp_date_time_picker.utils.DateTimePickerView
-import network.chaintech.kmp_date_time_picker.utils.TimeFormat
-import network.chaintech.kmp_date_time_picker.utils.WheelPickerDefaults
-import network.chaintech.kmp_date_time_picker.utils.WheelPickerDefaults.selectorProperties
 import network.chaintech.kmp_date_time_picker.utils.now
-import java.time.format.DateTimeFormatter
-import kotlin.text.compareTo
 
 @Composable
-fun ConfirmOrder(
+fun DetailTranferOrder(
     modifier: Modifier = Modifier,
-    flowerId: Long,
+    id: Long,
 ) {
-    ConfirmOrder(
+
+    //call API here
+
+    DetailTransferOrder(
         orderData = listOf(
             CartItem(
                 quantity = 5,
@@ -107,14 +96,12 @@ fun ConfirmOrder(
 }
 
 @Composable
-private fun ConfirmOrder(
+private fun DetailTransferOrder(
     modifier: Modifier = Modifier,
-    userData: Profile? = null,
+    isPaid: Boolean = true,
     orderData: List<CartItem>? = null
 ) {
-
     val focusManager = LocalFocusManager.current
-
     FleuraSurface(
         modifier = modifier.fillMaxSize(),
     ) {
@@ -137,20 +124,25 @@ private fun ConfirmOrder(
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 CustomTopAppBar(
-                    title = "Confirm Order",
+                    title = "Detail Order",
                     showNavigationIcon = true
                 )
                 Box(
                     modifier = Modifier.weight(1f)
                 ) {
-
                     LazyColumn(
                         modifier = Modifier.fillMaxSize()
                     ) {
+                        if (isPaid) {
+                            item {
+                                Spacer(modifier = Modifier.height(8.dp))
+                                PaymentStatusSection()
+                            }
+                        }
 
                         item {
                             Spacer(modifier = Modifier.height(8.dp))
-                            OrderPickupSection()
+                            OrderStatus()
                         }
 
                         item {
@@ -198,17 +190,22 @@ private fun ConfirmOrder(
 
                         item {
                             Spacer(modifier = Modifier.height(8.dp))
-                            DateAndTimeSection()
+                            DateAndTimeDisplay(
+                                date = LocalDate.now(),
+                                time = LocalTime.now()
+                            )
                         }
 
                         item {
                             Spacer(modifier = Modifier.height(8.dp))
-                            NoteSection()
+                            NoteSection(
+                                note = "Lorem ipsesciunt a quia voluptatem."
+                            )
                         }
 
                         item {
                             Spacer(modifier = Modifier.height(8.dp))
-                            PaymentMethodSection()
+                            PaymentSummary()
                         }
 
                         item {
@@ -216,9 +213,18 @@ private fun ConfirmOrder(
                             TotalPriceSection()
                         }
 
+                        item {
+                            Spacer(modifier = Modifier.height(8.dp))
+                            StarSection()
+                        }
+
+                        item{
+                            Spacer(modifier = Modifier.height(8.dp))
+                            AddReviewSection()
+                        }
+
                     }
                 }
-
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -226,28 +232,8 @@ private fun ConfirmOrder(
                         .height(90.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    val text = buildAnnotatedString {
-                        withStyle(
-                            style = SpanStyle(
-                                fontSize = 16.sp,
-                                color = Color.White,
-                                fontWeight = FontWeight.W600
-                            )
-                        ) {
-                            append("Checkout\n")
-                        }
-                        withStyle(
-                            style = SpanStyle(
-                                fontSize = 14.sp,
-                                color = Color.White,
-                                fontWeight = FontWeight.Bold
-                            )
-                        ) {
-                            append(formatCurrency(10000))
-                        }
-                    }
                     CustomButton(
-                        textAnnotatedString = text,
+                        text = "Add to cart",
                         onClick = { }
                     )
                 }
@@ -257,92 +243,42 @@ private fun ConfirmOrder(
 }
 
 @Composable
-private fun OrderPickupSection(
+private fun PaymentStatusSection(
     modifier: Modifier = Modifier
 ) {
-
-    val temp = remember { mutableIntStateOf(1) }
-    Row(
+    Column(
         modifier = modifier
             .fillMaxWidth()
             .background(Color.White)
             .padding(horizontal = 20.dp, vertical = 12.dp),
     ) {
-        Icon(
-            painter = painterResource(id = R.drawable.pick_box),
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.size(20.dp)
+        Text(
+            text = "Order not yet paid!",
+            color = err,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.W700
         )
-        Spacer(modifier = Modifier.size(8.dp))
-        Column(
-
-        ) {
-            Text(
-                text = "Order Pickup",
-                color = Color.Black,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold
-            )
-            Row {
-                PickupChoice(
-                    label = "Pickup",
-                    isEnabled = if (temp.intValue == 1) 1 else 0,
-                    onClick = {
-                        temp.intValue = 1
-                    }
-                )
-                Spacer(modifier = Modifier.size(8.dp))
-                PickupChoice(
-                    label = "Delivery",
-                    isEnabled = if (temp.intValue == 0) 1 else 0,
-                    onClick = {
-                        temp.intValue = 0
-                    }
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun PickupChoice(
-    modifier: Modifier = Modifier,
-    label: String,
-    isEnabled: Int,
-    onClick: () -> Unit
-) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
+        Text(
+            text = "Make a payment now so that your order can be processed by the seller",
+            color = Color.Black,
+            lineHeight = 20.sp,
+            fontSize = 12.sp
+        )
+        Spacer(modifier = Modifier.height(6.dp))
         Box(
             modifier = Modifier
-                .size(15.dp)
-                .border(1.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(50.dp))
-                .clickable(
-                    onClick = onClick,
-                    indication = null,
-                    interactionSource = remember { MutableInteractionSource() }
-                ),
+                .clip(RoundedCornerShape(5.dp))
+                .height(25.dp)
+                .width(120.dp)
+                .background(secColor),
             contentAlignment = Alignment.Center
         ) {
-            Box(
-                modifier = Modifier
-                    .size(10.dp)
-                    .clip(RoundedCornerShape(50.dp))
-                    .background(
-                        if (isEnabled == 1) tert else Color.White
-                    )
-                    .padding(2.dp)
+            Text(
+                text = "Pay Now",
+                color = Color.White,
+                fontSize = 14.sp,
             )
         }
-        Spacer(modifier = Modifier.width(6.dp))
-        Text(
-            text = label,
-            color = Color.Black,
-            fontSize = 12.sp,
-            fontWeight = FontWeight.Normal
-        )
     }
 }
 
@@ -391,185 +327,118 @@ private fun AddressSection(
                 )
             }
         }
-        Icon(
-            painter = painterResource(id = R.drawable.back_arrow),
-            contentDescription = null,
-            tint = Color.Black,
-            modifier = Modifier.size(18.dp)
-        )
     }
 }
 
 @Composable
-fun MerchantProfileSection(
-    modifier: Modifier = Modifier
+private fun OrderStatus(
+    modifier: Modifier = Modifier,
+    currentStatus: String = "completed"
 ) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
+    Box(
+        modifier = Modifier
+            .height(90.dp)
             .background(Color.White)
             .padding(horizontal = 20.dp, vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically
+        contentAlignment = Alignment.Center
     ) {
-        Image(
-            painter = painterResource(id = R.drawable.store_1),
-            contentDescription = null,
-            contentScale = ContentScale.Crop,
+
+        Box(
             modifier = Modifier
-                .size(50.dp)
-                .clip(RoundedCornerShape(10.dp))
-        )
-        Spacer(modifier = Modifier.width(18.dp))
+                .background(Color.White)
+                .height(50.dp)
+                .fillMaxWidth(),
+        ) {
+            HorizontalDivider(
+                modifier = Modifier.padding(top = 12.dp),
+                color = base60,
+                thickness = 2.dp,
+            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                StatusItem(status = "process", currentStatus = currentStatus)
+                StatusItem(status = "delivery", currentStatus = currentStatus)
+                StatusItem(status = "completed", currentStatus = currentStatus)
+            }
+        }
+    }
+
+}
+
+@Composable
+private fun StatusItem(
+    modifier: Modifier = Modifier,
+    status: String,
+    currentStatus: String
+) {
+    val iconRes = when (status) {
+        "process" -> if (currentStatus == "process") R.drawable.check_circle else R.drawable.elipse
+        "delivery" -> if (currentStatus == "delivery") R.drawable.check_circle else R.drawable.elipse
+        "completed" -> if (currentStatus == "completed") R.drawable.check_circle else R.drawable.elipse
+        else -> R.drawable.elipse
+    }
+
+    val statusText = when (status) {
+        "process" -> "Processed"
+        "delivery" -> "Delivery"
+        "completed" -> "Completed"
+        else -> ""
+    }
+
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Box(
+            modifier = Modifier
+                .width(40.dp)
+                .height(25.dp)
+                .background(Color.White),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                painter = painterResource(id = iconRes),
+                contentDescription = null,
+                tint = if (currentStatus == status) MaterialTheme.colorScheme.primary else Color.Unspecified,
+                modifier = Modifier.size(if (currentStatus == status) 24.dp else 10.dp)
+            )
+        }
         Text(
-            text = "Buga Adik",
-            color = Color.Black,
-            fontSize = 16.sp,
-            fontWeight = FontWeight.Bold
+            text = statusText,
+            color = if (currentStatus == status) Color.Black else base40,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Normal
         )
     }
 }
 
 @Composable
-fun OrderSummaryItem(
+private fun NoteSection(
     modifier: Modifier = Modifier,
-    quantity: Int = 0,
-    name: String = "",
-    description: String = "",
-    price: Long
+    note: String = ""
 ) {
-    Row(
-        modifier = modifier
+    Column(
+        modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp),
-        horizontalArrangement = Arrangement.SpaceBetween
+            .background(Color.White)
+            .padding(horizontal = 20.dp, vertical = 12.dp)
     ) {
-        Row(
-            modifier = Modifier.weight(1f),
-        ) {
-
-            Text(
-                text = "5x",
-                color = Color.Black,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.ExtraBold
-            )
-            Spacer(modifier = Modifier.size(8.dp))
-            Column(
-            ) {
-                Text(
-                    text = "Sunflower Bouquet",
-                    color = Color.Black,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold
-                )
-
-                Text(
-                    text = "Lorem ipsulor sit amet. Nam voluptatem tenetur et voluptas nesciunt a quia voluptatem. tenetur et voluptas nesciunt a quia voluptatem.",
-                    color = base100,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                    fontSize = 12.sp,
-                    lineHeight = 20.sp,
-                    fontWeight = FontWeight.Normal,
-                    modifier = Modifier
-                        .height(50.dp)
-                        .padding(end = 20.dp)
-                )
-            }
-        }
         Text(
-            text = formatCurrency(10000),
+            text = "Note",
             color = Color.Black,
             fontSize = 14.sp,
             fontWeight = FontWeight.Bold
         )
-    }
-}
-
-@Composable
-private fun DateAndTimeSection(
-    modifier: Modifier = Modifier
-) {
-    var selectedDate by remember { mutableStateOf(LocalDate.now()) }
-    var selectedTime by remember { mutableStateOf(LocalTime.now()) }
-    var showDatePicker by remember { mutableStateOf(false) }
-    var showTimePicker by remember { mutableStateOf(false) }
-
-    DateAndTimeDisplay(
-        date = selectedDate,
-        time = selectedTime,
-        onDateClick = { showDatePicker = true },
-        onTimeClick = { showTimePicker = true }
-    )
-
-    if (showDatePicker) {
-        WheelDatePickerDialog(
-            modifier = Modifier.padding(vertical = 16.dp),
-            showDatePicker = showDatePicker,
-            onDismiss = { showDatePicker = false },
-            onDoneClick = { date ->
-                selectedDate = date
-                showDatePicker = false
-            },
-            minDate = LocalDate.now(),
-            title = "Pick Date",
-            titleStyle = TextStyle(
-                color = MaterialTheme.colorScheme.primary,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold
-            ),
-            doneLabelStyle = TextStyle(
-                color = MaterialTheme.colorScheme.primary,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold
-            ),
-            dateTextStyle = TextStyle(
-                color = Color.Black,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold
-            ),
-            selectorProperties = selectorProperties(
-                enabled = true,
-                borderColor = MaterialTheme.colorScheme.primary
-            ),
-            yearsRange = 2025..2025,
-            height = 200.dp,
-        )
-    }
-
-    if (showTimePicker) {
-        WheelTimePickerDialog(
-            modifier = Modifier.padding(vertical = 16.dp),
-            showTimePicker = showTimePicker,
-            onDismiss = { showTimePicker = false },
-            onDoneClick = { time ->
-                selectedTime = time
-                showTimePicker = false
-            },
-            startTime = selectedTime,
-            title = "Pick Time",
-            minTime = LocalTime.now(),
-            titleStyle = TextStyle(
-                color = MaterialTheme.colorScheme.primary,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold
-            ),
-            doneLabelStyle = TextStyle(
-                color = MaterialTheme.colorScheme.primary,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold
-            ),
-            textStyle = TextStyle(
-                color = Color.Black,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold
-            ),
-            selectorProperties = selectorProperties(
-                enabled = true,
-                borderColor = MaterialTheme.colorScheme.primary
-            ),
-            timeFormat = TimeFormat.HOUR_24,
-            height = 200.dp,
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = if (note.isEmpty()) "-" else note,
+            color = Color.Black,
+            fontSize = 12.sp,
+            overflow = TextOverflow.Ellipsis,
+            lineHeight = 20.sp,
+            maxLines = Int.MAX_VALUE,
+            modifier = Modifier.height(if (note.isEmpty()) 20.dp else 50.dp)
         )
     }
 
@@ -580,8 +449,6 @@ private fun DateAndTimeDisplay(
     modifier: Modifier = Modifier,
     date: LocalDate,
     time: LocalTime,
-    onDateClick: () -> Unit = {},
-    onTimeClick: () -> Unit = {}
 ) {
     Column(
         modifier = modifier
@@ -599,12 +466,7 @@ private fun DateAndTimeDisplay(
             )
             Row(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable(
-                        onClick = onDateClick,
-                        indication = null,
-                        interactionSource = remember { MutableInteractionSource() }),
-                horizontalArrangement = Arrangement.SpaceBetween,
+                    .fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(
@@ -623,11 +485,6 @@ private fun DateAndTimeDisplay(
                         fontSize = 12.sp,
                     )
                 }
-                Text(
-                    text = "(click to change)",
-                    color = base100,
-                    fontSize = 12.sp,
-                )
             }
         }
         Spacer(modifier = Modifier.height(8.dp))
@@ -642,12 +499,7 @@ private fun DateAndTimeDisplay(
             )
             Row(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable(
-                        onClick = onTimeClick,
-                        indication = null,
-                        interactionSource = remember { MutableInteractionSource() }),
-                horizontalArrangement = Arrangement.SpaceBetween,
+                    .fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
 
@@ -672,22 +524,15 @@ private fun DateAndTimeDisplay(
                         modifier = Modifier
                     )
                 }
-                Text(
-                    text = "(click to change)",
-                    color = base100,
-                    fontSize = 12.sp,
-                )
             }
         }
     }
 }
 
-
 @Composable
-private fun NoteSection(
-    modifier: Modifier = Modifier,
+private fun PaymentSummary(
+    modifier: Modifier = Modifier
 ) {
-    val temp = remember { mutableStateOf("") }
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -695,52 +540,7 @@ private fun NoteSection(
             .padding(horizontal = 20.dp, vertical = 12.dp)
     ) {
         Text(
-            text = buildAnnotatedString {
-                withStyle(
-                    style = SpanStyle(
-                        color = Color.Black,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 14.sp
-                    )
-                ) {
-                    append("Note to seller ")
-                }
-                withStyle(
-                    style = SpanStyle(
-                        color = base300,
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                ) {
-                    append("(Optional)")
-                }
-            },
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(bottom = 8.dp)
-        )
-        CustomTextInput(
-            value = temp.value,
-            onChange = { temp.value = it },
-            placeholder = "Ex : Use purple color",
-            horizontalPadding = 0.dp,
-        )
-    }
-}
-
-@Composable
-private fun PaymentMethodSection(
-    modifier: Modifier = Modifier
-) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .background(Color.White)
-            .padding(horizontal = 20.dp, vertical = 12.dp),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Text(
-            text = "Pickup Time",
+            text = "Payment Method",
             color = Color.Black,
             fontSize = 14.sp,
             fontWeight = FontWeight.Bold
@@ -748,18 +548,41 @@ private fun PaymentMethodSection(
         Row(
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = "Pickup Time",
-                color = Color.Black,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Normal
-            )
-            Spacer(modifier = Modifier.width(8.dp))
             Icon(
-                painter = painterResource(id = R.drawable.back_arrow),
+                painter = painterResource(id = R.drawable.cash),
                 contentDescription = null,
                 tint = base500,
                 modifier = Modifier.size(18.dp)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = "QRIS",
+                color = Color.Black,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold
+            )
+        }
+        Text(
+            text = "Order Number",
+            color = Color.Black,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Bold
+        )
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                painter = painterResource(id = R.drawable.order_number),
+                contentDescription = null,
+                tint = base500,
+                modifier = Modifier.size(18.dp)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = "#1239",
+                color = Color.Black,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold
             )
         }
     }
@@ -773,7 +596,7 @@ private fun TotalPriceSection(
         modifier = Modifier
             .fillMaxWidth()
             .background(Color.White)
-            .padding(horizontal = 20.dp, vertical = 12.dp)
+            .padding(start = 20.dp, end = 20.dp, top = 12.dp, bottom = 30.dp)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -815,7 +638,7 @@ private fun TotalPriceSection(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                text = "Pickup Time",
+                text = "Total Payment",
                 color = Color.Black,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold
@@ -827,6 +650,119 @@ private fun TotalPriceSection(
                 fontWeight = FontWeight.Bold
             )
         }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                text = "Payment Status",
+                color = Color.Black,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                text = "Unpaid",
+                color = err,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold
+            )
+        }
     }
 }
 
+@Composable
+fun StarSection(
+    modifier: Modifier = Modifier
+) {
+    var rating by remember { mutableIntStateOf(0) }
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color.White)
+            .padding(horizontal = 20.dp, vertical = 12.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = "Rate the Product!",
+            color = Color.Black,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Bold
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        RatingBar(
+            rating = rating,
+            onRatingSelected = { rating = it }
+        )
+    }
+}
+
+@Composable
+fun RatingBar(
+    rating: Int,
+    onRatingSelected: (Int) -> Unit
+) {
+    LazyRow(
+        modifier = Modifier.wrapContentWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        items(5) { index ->
+            val starIndex = index + 1
+            Icon(
+                painter = painterResource(if (starIndex <= rating) R.drawable.star else R.drawable.empty_star),
+                contentDescription = "Star $starIndex",
+                tint = Color.Unspecified,
+                modifier = Modifier
+                    .size(40.dp)
+                    .clickable { onRatingSelected(starIndex) }
+            )
+        }
+    }
+}
+
+@Composable
+fun AddReviewSection(
+    modifier: Modifier = Modifier
+) {
+    var reviewComment by remember { mutableStateOf("") }
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color.White)
+            .padding(horizontal = 20.dp, vertical = 12.dp),
+    ) {
+        Text(
+            text = "Add review",
+            color = Color.Black,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Bold
+        )
+        BasicTextField(
+            value = reviewComment,
+            onValueChange = { reviewComment = it },
+            textStyle = LocalTextStyle.current.copy(
+                fontSize = 12.sp,
+                color = Color.Black
+            ),
+            cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+            decorationBox = { innerTextField ->
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                ) {
+                    if (reviewComment.isEmpty()) {
+                        Text(
+                            text = "Add your review of the product...",
+                            color = Color.Gray,
+                            style = LocalTextStyle.current.copy(
+                                fontSize = 12.sp,
+                                color = base100
+                            )
+                        )
+                    }
+                    innerTextField()
+                }
+            },
+        )
+    }
+}

@@ -122,6 +122,11 @@ data class CartOrder(
     val price: Long
 )
 
+data class PaymentMethod(
+    val title: String,
+    val icon: Int,
+)
+
 const val TEMP_ID: Long = 0
 
 
@@ -170,12 +175,11 @@ object FakeCategory {
                 OrderItem(1, R.drawable.order_1, "Rose", 1, true, 1000, 10000),
                 OrderItem(2, R.drawable.order_2, "Lily", 2, true, 2000, 20000),
             ),
-            true,
+            false,
             20000,
             3000
         ),
-
-        )
+    )
 
     val rewardItems = listOf(
         RewardItem(1, "Sunflower", R.drawable.cc_4, 2500, true),
@@ -254,6 +258,11 @@ object FakeCategory {
         UserRating(5, "suka banget sama buketnya <3"),
         UserRating(4, "Nice"),
         UserRating(4, "Great Great Great Great, suka banget sama buketnya"),
+    )
+
+    val paymentMethods: List<PaymentMethod> = listOf(
+        PaymentMethod("Cash", R.drawable.cash),
+        PaymentMethod("Qris", R.drawable.qr_code),
     )
 
 }

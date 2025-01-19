@@ -35,7 +35,9 @@ import com.course.fleura.ui.screen.dashboard.detail.history.OrderHistory
 import com.course.fleura.ui.screen.dashboard.detail.home.DetailTest
 import com.course.fleura.ui.screen.dashboard.detail.home.Merchant
 import com.course.fleura.ui.screen.dashboard.detail.order.ConfirmOrder
+import com.course.fleura.ui.screen.dashboard.detail.order.DetailTranferOrder
 import com.course.fleura.ui.screen.dashboard.detail.order.FlowerDetail
+import com.course.fleura.ui.screen.dashboard.detail.order.GeneralOrder
 import com.course.fleura.ui.screen.dashboard.detail.profile.AddAdress
 import com.course.fleura.ui.screen.dashboard.detail.profile.GeneralDetail
 import com.course.fleura.ui.screen.navigation.DetailDestinations
@@ -60,7 +62,7 @@ fun FleuraApp() {
             ) {
                 NavHost(
                     navController = fleuraNavController.navController,
-                    startDestination = DetailDestinations.DETAIL_CONFIRM_ORDER,
+                    startDestination = DetailDestinations.DETAIL_TRANSFER_ORDER,
                     contentAlignment = Alignment.Center
                 ) {
                     composableWithCompositionLocal(
@@ -136,6 +138,15 @@ fun FleuraApp() {
                     }
 
                     composableWithCompositionLocal(
+                        route = DetailDestinations.DETAIL_GENERAL_ROUTE
+                    ) { backStackEntry ->
+                        GeneralOrder(
+                            id = 0,
+                            location = "Payment Process"
+                        )
+                    }
+
+                    composableWithCompositionLocal(
                         route = DetailDestinations.DETAIL_ADD_ADDRESS
                     ) { backStackEntry ->
                         AddAdress()
@@ -148,6 +159,15 @@ fun FleuraApp() {
                             flowerId = 0
                         )
                     }
+
+                    composableWithCompositionLocal(
+                        route = DetailDestinations.DETAIL_TRANSFER_ORDER
+                    ) { backStackEntry ->
+                        DetailTranferOrder(
+                            id = 0
+                        )
+                    }
+
 
                     composableWithCompositionLocal(
                         "${MainDestinations.SNACK_DETAIL_ROUTE}/" +
@@ -221,7 +241,7 @@ fun MainContainer(
     ) { padding ->
         NavHost(
             navController = nestedNavController.navController,
-            startDestination = HomeSections.Profile.route,
+            startDestination = HomeSections.Order.route,
             contentAlignment = Alignment.Center
         ) {
             addHomeGraph(

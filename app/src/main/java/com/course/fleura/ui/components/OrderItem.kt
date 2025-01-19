@@ -5,6 +5,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -23,6 +24,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.focusModifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -36,7 +38,9 @@ import com.course.fleura.ui.common.formatCurrency
 import com.course.fleura.ui.common.formatNumber
 import com.course.fleura.ui.theme.base100
 import com.course.fleura.ui.theme.base40
+import com.course.fleura.ui.theme.err
 import com.course.fleura.ui.theme.listOrderColor
+import com.course.fleura.ui.theme.tert
 
 @Composable
 fun RedeemItemCard(item: OrderItem) {
@@ -182,7 +186,7 @@ fun PointCard(
                 modifier = Modifier.padding(bottom = 4.dp)
             )
 
-            CustomButton (
+            CustomButton(
                 text = "Redeem",
                 onClick = { onRedeemClicked(data.points, data.name) },
                 fontSize = 14.sp,
@@ -198,7 +202,10 @@ fun PointCard(
 }
 
 @Composable
-fun OrderSummary(order: Order) {
+fun OrderSummary(
+    order: Order,
+    isCompleted: Boolean = false
+) {
     Column(
         modifier = Modifier
             .padding(top = 8.dp)
@@ -254,6 +261,20 @@ fun OrderSummary(order: Order) {
             }
 
             Spacer(modifier = Modifier.height(4.dp))
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(5.dp))
+                    .height(25.dp)
+                    .width(120.dp)
+                    .background(if (isCompleted) tert else err),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = if (isCompleted) "Paid" else "Unpaid",
+                    color = Color.White,
+                    fontSize = 14.sp,
+                )
+            }
 
             Row(
                 modifier = Modifier.fillMaxWidth(),

@@ -25,11 +25,13 @@ object MainDestinations {
 
 object DetailDestinations {
     const val DETAIL_PROFILE_ROUTE = "profileDetail"
-    const val DETAIL_GENERAL_ROUTE = "general"
+    const val DETAIL_GENERAL_ROUTE = "generalOrder"
     const val DETAIL_ADD_ADDRESS = "addAddress"
     const val DETAIL_MERCHANT = "merchant"
     const val DETAIL_FLOWER = "flowerDetail"
     const val DETAIL_CONFIRM_ORDER = "confirmOrder"
+    const val DETAIL_TRANSFER_ORDER = "orderDetail"
+    const val DETAIL_CASH_ORDER = "cashOrder"
 }
 
 @Composable
