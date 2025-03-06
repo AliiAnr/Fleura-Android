@@ -21,6 +21,8 @@ object MainDestinations {
     const val SNACK_DETAIL_ROUTE = "snack"
     const val SNACK_ID_KEY = "snackId"
     const val ORIGIN = "origin"
+    const val OTP_ROUTE = "otp"
+    const val NEW_PASSWORD_ROUTE = "newPassword"
 }
 
 object DetailDestinations {

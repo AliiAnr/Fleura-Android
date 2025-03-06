@@ -72,6 +72,7 @@ import kotlinx.datetime.format
 import kotlinx.datetime.format.char
 import network.chaintech.kmp_date_time_picker.ui.date_range_picker.formatToString
 import network.chaintech.kmp_date_time_picker.utils.now
+import kotlin.compareTo
 
 @Composable
 fun DetailTranferOrder(
@@ -102,6 +103,9 @@ private fun DetailTransferOrder(
     orderData: List<CartItem>? = null
 ) {
     val focusManager = LocalFocusManager.current
+    var rating by remember { mutableIntStateOf(0) }
+    var reviewComment by remember { mutableStateOf("") }
+    val isButtonEnabled = rating > 0 && reviewComment.isNotEmpty()
     FleuraSurface(
         modifier = modifier.fillMaxSize(),
     ) {
@@ -142,7 +146,9 @@ private fun DetailTransferOrder(
 
                         item {
                             Spacer(modifier = Modifier.height(8.dp))
-                            OrderStatus()
+                            OrderStatus(
+                                isDelivery = true
+                            )
                         }
 
                         item {
@@ -215,12 +221,18 @@ private fun DetailTransferOrder(
 
                         item {
                             Spacer(modifier = Modifier.height(8.dp))
-                            StarSection()
+                            StarSection(
+                                rating = rating,
+                                onRatingChanged = { rating = it },
+                            )
                         }
 
-                        item{
+                        item {
                             Spacer(modifier = Modifier.height(8.dp))
-                            AddReviewSection()
+                            AddReviewSection(
+                                reviewComment = reviewComment,
+                                onRatingChanged = { reviewComment = it }
+                            )
                         }
 
                     }
@@ -233,8 +245,9 @@ private fun DetailTransferOrder(
                     contentAlignment = Alignment.Center
                 ) {
                     CustomButton(
-                        text = "Add to cart",
-                        onClick = { }
+                        text = "Add Review",
+                        onClick = { },
+                        isAvailable = isButtonEnabled
                     )
                 }
             }
@@ -333,8 +346,15 @@ private fun AddressSection(
 @Composable
 private fun OrderStatus(
     modifier: Modifier = Modifier,
-    currentStatus: String = "completed"
+    currentStatus: String = "completed",
+    isDelivery: Boolean
 ) {
+    val statuses = if (isDelivery) {
+        listOf("process", "delivery", "completed")
+    } else {
+        listOf("process", "ready_+to_pickup", "completed")
+    }
+
     Box(
         modifier = Modifier
             .height(90.dp)
@@ -342,7 +362,6 @@ private fun OrderStatus(
             .padding(horizontal = 20.dp, vertical = 12.dp),
         contentAlignment = Alignment.Center
     ) {
-
         Box(
             modifier = Modifier
                 .background(Color.White)
@@ -358,13 +377,12 @@ private fun OrderStatus(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                StatusItem(status = "process", currentStatus = currentStatus)
-                StatusItem(status = "delivery", currentStatus = currentStatus)
-                StatusItem(status = "completed", currentStatus = currentStatus)
+                statuses.forEach { status ->
+                    StatusItem(status = status, currentStatus = currentStatus)
+                }
             }
         }
     }
-
 }
 
 @Composable
@@ -376,6 +394,7 @@ private fun StatusItem(
     val iconRes = when (status) {
         "process" -> if (currentStatus == "process") R.drawable.check_circle else R.drawable.elipse
         "delivery" -> if (currentStatus == "delivery") R.drawable.check_circle else R.drawable.elipse
+        "ready_to_pickup" -> if (currentStatus == "ready_to_pickup") R.drawable.check_circle else R.drawable.elipse
         "completed" -> if (currentStatus == "completed") R.drawable.check_circle else R.drawable.elipse
         else -> R.drawable.elipse
     }
@@ -383,6 +402,7 @@ private fun StatusItem(
     val statusText = when (status) {
         "process" -> "Processed"
         "delivery" -> "Delivery"
+        "ready_to_pickup" -> "Ready to Pickup"
         "completed" -> "Completed"
         else -> ""
     }
@@ -596,7 +616,7 @@ private fun TotalPriceSection(
         modifier = Modifier
             .fillMaxWidth()
             .background(Color.White)
-            .padding(start = 20.dp, end = 20.dp, top = 12.dp, bottom = 30.dp)
+            .padding(horizontal = 20.dp, vertical = 12.dp),
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -672,9 +692,10 @@ private fun TotalPriceSection(
 
 @Composable
 fun StarSection(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    rating: Int,
+    onRatingChanged: (Int) -> Unit
 ) {
-    var rating by remember { mutableIntStateOf(0) }
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -691,7 +712,7 @@ fun StarSection(
         Spacer(modifier = Modifier.height(8.dp))
         RatingBar(
             rating = rating,
-            onRatingSelected = { rating = it }
+            onRatingSelected = onRatingChanged
         )
     }
 }
@@ -722,14 +743,15 @@ fun RatingBar(
 
 @Composable
 fun AddReviewSection(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    reviewComment: String,
+    onRatingChanged: (String) -> Unit
 ) {
-    var reviewComment by remember { mutableStateOf("") }
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .background(Color.White)
-            .padding(horizontal = 20.dp, vertical = 12.dp),
+            .padding(start = 20.dp, end = 20.dp, top = 12.dp, bottom = 30.dp),
     ) {
         Text(
             text = "Add review",
@@ -739,7 +761,7 @@ fun AddReviewSection(
         )
         BasicTextField(
             value = reviewComment,
-            onValueChange = { reviewComment = it },
+            onValueChange = onRatingChanged,
             textStyle = LocalTextStyle.current.copy(
                 fontSize = 12.sp,
                 color = Color.Black

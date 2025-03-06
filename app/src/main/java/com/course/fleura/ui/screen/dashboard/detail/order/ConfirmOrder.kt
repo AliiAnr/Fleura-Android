@@ -1,9 +1,5 @@
 package com.course.fleura.ui.screen.dashboard.detail.order
 
-import android.os.Build
-import android.util.Log
-import androidx.annotation.RequiresApi
-import kotlinx.datetime.LocalDate
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -14,7 +10,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -24,13 +19,10 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -59,8 +51,6 @@ import com.course.fleura.ui.components.CartOrder
 import com.course.fleura.ui.components.CustomButton
 import com.course.fleura.ui.components.CustomTextInput
 import com.course.fleura.ui.components.CustomTopAppBar
-import com.course.fleura.ui.components.FakeCategory
-import com.course.fleura.ui.components.HistoryTopBar
 import com.course.fleura.ui.components.Profile
 import com.course.fleura.ui.screen.navigation.FleuraSurface
 import com.course.fleura.ui.theme.base100
@@ -69,23 +59,16 @@ import com.course.fleura.ui.theme.base300
 import com.course.fleura.ui.theme.base40
 import com.course.fleura.ui.theme.base500
 import com.course.fleura.ui.theme.tert
-import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 import kotlinx.datetime.format
-import kotlinx.datetime.format.DateTimeFormat
 import kotlinx.datetime.format.char
-import kotlinx.datetime.toJavaLocalDate
 import network.chaintech.kmp_date_time_picker.ui.date_range_picker.formatToString
 import network.chaintech.kmp_date_time_picker.ui.datepicker.WheelDatePickerDialog
-import network.chaintech.kmp_date_time_picker.ui.datepicker.WheelDatePickerView
 import network.chaintech.kmp_date_time_picker.ui.timepicker.WheelTimePickerDialog
-import network.chaintech.kmp_date_time_picker.utils.DateTimePickerView
 import network.chaintech.kmp_date_time_picker.utils.TimeFormat
-import network.chaintech.kmp_date_time_picker.utils.WheelPickerDefaults
 import network.chaintech.kmp_date_time_picker.utils.WheelPickerDefaults.selectorProperties
 import network.chaintech.kmp_date_time_picker.utils.now
-import java.time.format.DateTimeFormatter
-import kotlin.text.compareTo
 
 @Composable
 fun ConfirmOrder(
@@ -446,7 +429,6 @@ fun OrderSummaryItem(
         Row(
             modifier = Modifier.weight(1f),
         ) {
-
             Text(
                 text = "5x",
                 color = Color.Black,
@@ -462,7 +444,6 @@ fun OrderSummaryItem(
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold
                 )
-
                 Text(
                     text = "Lorem ipsulor sit amet. Nam voluptatem tenetur et voluptas nesciunt a quia voluptatem. tenetur et voluptas nesciunt a quia voluptatem.",
                     color = base100,
@@ -572,7 +553,6 @@ private fun DateAndTimeSection(
             height = 200.dp,
         )
     }
-
 }
 
 @Composable

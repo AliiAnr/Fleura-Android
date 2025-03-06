@@ -28,6 +28,8 @@ import androidx.navigation.navArgument
 import com.course.fleura.ui.components.FleuraBottomBar
 import com.course.fleura.ui.components.HomeSections
 import com.course.fleura.ui.screen.authentication.login.LoginScreen
+import com.course.fleura.ui.screen.authentication.newpassword.NewPasswordScreen
+import com.course.fleura.ui.screen.authentication.otp.OtpScreen
 import com.course.fleura.ui.screen.authentication.register.RegisterScreen
 import com.course.fleura.ui.screen.authentication.username.UsernameScreen
 import com.course.fleura.ui.screen.authentication.welcome.WelcomeScreen
@@ -62,7 +64,7 @@ fun FleuraApp() {
             ) {
                 NavHost(
                     navController = fleuraNavController.navController,
-                    startDestination = DetailDestinations.DETAIL_TRANSFER_ORDER,
+                    startDestination = MainDestinations.DASHBOARD_ROUTE,
                     contentAlignment = Alignment.Center
                 ) {
                     composableWithCompositionLocal(
@@ -93,6 +95,18 @@ fun FleuraApp() {
                         route = MainDestinations.USERNAME_ROUTE
                     ) { backStackEntry ->
                         UsernameScreen()
+                    }
+
+                    composableWithCompositionLocal(
+                        route = MainDestinations.OTP_ROUTE
+                    ) { backStackEntry ->
+                        OtpScreen()
+                    }
+
+                    composableWithCompositionLocal(
+                        route = MainDestinations.NEW_PASSWORD_ROUTE
+                    ) { backStackEntry ->
+                        NewPasswordScreen()
                     }
 
                     composableWithCompositionLocal(

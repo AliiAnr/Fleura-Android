@@ -16,6 +16,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -97,7 +98,7 @@ fun CustomTextField(
                         onChange(it)
                 },
                 singleLine = true,
-                textStyle = TextStyle(
+                textStyle = LocalTextStyle.current.copy(
                     color = Color.Black,
                     fontWeight = FontWeight.Normal,
                     fontSize = 16.sp,
@@ -215,7 +216,7 @@ fun CustomTextInput(
                         onChange(it)
                 },
                 singleLine = true,
-                textStyle = TextStyle(
+                textStyle = LocalTextStyle.current.copy(
                     color = Color.Black,
                     fontWeight = FontWeight.Normal,
                     fontSize = 16.sp,

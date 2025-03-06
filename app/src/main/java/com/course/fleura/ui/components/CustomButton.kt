@@ -75,6 +75,7 @@ fun CustomButton(
             modifier = buttonModifier
                 .border(width = borderWidth, color = outlinedColor, shape = shape)
                 .clickable(
+                    enabled = isAvailable,
                     onClick = onClick,
                     indication = null,
                     interactionSource = remember { MutableInteractionSource() })
@@ -109,6 +110,7 @@ fun CustomButton(
                     shape = shape
                 )
                 .clickable(
+                    enabled = isAvailable,
                     onClick = onClick,
                     indication = null,
                     interactionSource = remember { MutableInteractionSource() })

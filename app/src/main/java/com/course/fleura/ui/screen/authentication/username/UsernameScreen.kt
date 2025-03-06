@@ -46,7 +46,6 @@ fun UsernameScreen(
         }
 
     }
-
     FleuraSurface(modifier = modifier.fillMaxSize()) {
         Box(modifier = Modifier.fillMaxSize()) {
             Column(
@@ -71,7 +70,6 @@ fun UsernameScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-
                     Text(
                         text = "Please enter your nickname (one word only)",
                         textAlign = TextAlign.Start,
@@ -81,7 +79,6 @@ fun UsernameScreen(
                         lineHeight = 50.sp,
                         modifier = Modifier.padding(bottom = 16.dp)
                     )
-
                     CustomTextField(
                         value = viewModel.usernameValue,
                         onChange = viewModel::setUsername,
@@ -92,7 +89,6 @@ fun UsernameScreen(
                         modifier = Modifier.padding(bottom = 40.dp)
                     )
                 }
-
                 CustomButton(
                     text = "Next",
                     onClick = {

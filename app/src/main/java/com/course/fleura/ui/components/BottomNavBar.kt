@@ -75,7 +75,7 @@ fun FleuraBottomBar(
                         color = base40,
                         start = Offset.Zero,
                         end = Offset(size.width, 0f),
-                        strokeWidth = 1.2.dp.toPx()
+                        strokeWidth = 0.5.dp.toPx()
                     )
                 }
                 .fillMaxWidth()

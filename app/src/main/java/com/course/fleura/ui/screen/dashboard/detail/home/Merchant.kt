@@ -110,7 +110,6 @@ private fun Merchant(
                             )
                         }
 
-//                         Daftar item untuk kategori ini
                         itemsIndexed(category.items) { index, item ->
                             val isLastItem = index == category.items.size - 1
                             Column (
