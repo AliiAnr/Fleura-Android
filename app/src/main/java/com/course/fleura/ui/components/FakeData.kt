@@ -175,6 +175,28 @@ object FakeCategory {
                 OrderItem(1, R.drawable.order_1, "Rose", 1, true, 1000, 10000),
                 OrderItem(2, R.drawable.order_2, "Lily", 2, true, 2000, 20000),
             ),
+            true,
+            20000,
+            3000
+        ),
+        Order(
+            2,
+            "Buga Adik",
+            listOf(
+                OrderItem(1, R.drawable.order_1, "Rose", 1, true, 1000, 10000),
+                OrderItem(2, R.drawable.order_2, "Lily", 2, true, 2000, 20000),
+            ),
+            false,
+            20000,
+            3000
+        ),
+        Order(
+            3,
+            "Buga Adik",
+            listOf(
+                OrderItem(1, R.drawable.order_1, "Rose", 1, true, 1000, 10000),
+                OrderItem(2, R.drawable.order_2, "Lily", 2, true, 2000, 20000),
+            ),
             false,
             20000,
             3000

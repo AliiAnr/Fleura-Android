@@ -16,15 +16,23 @@ import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.datastore.core.DataStore
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navArgument
+import com.course.fleura.data.resource.Resource
+import com.course.fleura.data.store.DataStoreManager
+import com.course.fleura.di.factory.OnBoardingViewModelFactory
 import com.course.fleura.ui.components.FleuraBottomBar
 import com.course.fleura.ui.components.HomeSections
 import com.course.fleura.ui.screen.authentication.login.LoginScreen
@@ -52,10 +60,17 @@ import com.course.fleura.ui.screen.navigation.rememberFleuraNavController
 import com.course.fleura.ui.screen.navigation.rememberFleuraScaffoldState
 import com.course.fleura.ui.screen.navigation.spatialExpressiveSpring
 import com.course.fleura.ui.screen.onboarding.OnBoardingScreen
+import com.course.fleura.ui.screen.onboarding.OnBoardingViewModel
 import com.course.fleura.ui.theme.FleuraTheme
+import java.util.prefs.Preferences
 
 @Composable
 fun FleuraApp() {
+
+    val onBoardingViewModel : OnBoardingViewModel = viewModel(factory = OnBoardingViewModelFactory.getInstance(Resource.appContext))
+
+    val onBoardingStatus = onBoardingViewModel.onBoardingStatus.collectAsStateWithLifecycle(initialValue = false)
+
     FleuraTheme {
         val fleuraNavController = rememberFleuraNavController()
         SharedTransitionLayout {
@@ -64,31 +79,42 @@ fun FleuraApp() {
             ) {
                 NavHost(
                     navController = fleuraNavController.navController,
-                    startDestination = MainDestinations.DASHBOARD_ROUTE,
+                    startDestination = if(onBoardingStatus.value) MainDestinations.WELCOME_ROUTE else MainDestinations.ONBOARDING_ROUTE,
                     contentAlignment = Alignment.Center
                 ) {
                     composableWithCompositionLocal(
                         route = MainDestinations.WELCOME_ROUTE
                     ) { backStackEntry ->
-                        WelcomeScreen()
+                        WelcomeScreen(
+                            navigateToRoute = fleuraNavController::navigateToNonBottomBarRoute
+                        )
                     }
 
                     composableWithCompositionLocal(
                         route = MainDestinations.ONBOARDING_ROUTE
                     ) { backStackEntry ->
-                        OnBoardingScreen()
+                        OnBoardingScreen(
+                            navigateToRoute = fleuraNavController::navigateToNonBottomBarRoute,
+                            setOnBoardingCompleted = onBoardingViewModel::setOnBoardingCompleted
+                        )
                     }
 
                     composableWithCompositionLocal(
                         route = MainDestinations.LOGIN_ROUTE
                     ) { backStackEntry ->
-                        LoginScreen()
+                        LoginScreen(
+                            navigateToRoute = fleuraNavController::navigateToNonBottomBarRoute,
+                            onBackClick = fleuraNavController::upPress
+                        )
                     }
 
                     composableWithCompositionLocal(
                         route = MainDestinations.REGISTER_ROUTE
                     ) { backStackEntry ->
-                        RegisterScreen()
+                        RegisterScreen(
+                            navigateToRoute = fleuraNavController::navigateToNonBottomBarRoute,
+                            onBackClick = fleuraNavController::upPress
+                        )
                     }
 
                     composableWithCompositionLocal(

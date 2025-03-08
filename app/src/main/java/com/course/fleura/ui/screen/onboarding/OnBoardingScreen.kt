@@ -23,6 +23,8 @@ import androidx.compose.ui.unit.sp
 import com.course.fleura.ui.components.CustomButton
 import kotlinx.coroutines.launch
 import com.course.fleura.R
+import com.course.fleura.ui.screen.navigation.DetailDestinations
+import com.course.fleura.ui.screen.navigation.MainDestinations
 import com.course.fleura.ui.theme.base60
 import com.course.fleura.ui.theme.base80
 import com.course.fleura.ui.theme.onPrimaryLight
@@ -30,6 +32,9 @@ import com.course.fleura.ui.theme.primaryLight
 
 @Composable
 fun OnBoardingScreen(
+    modifier: Modifier = Modifier,
+    navigateToRoute: (String, Boolean) -> Unit,
+    setOnBoardingCompleted: (Boolean) -> Unit
 ) {
     val vectorImages = listOf(
         R.drawable.ob_1,
@@ -52,7 +57,6 @@ fun OnBoardingScreen(
     Column(
         modifier = Modifier
             .background(onPrimaryLight)
-            .padding(horizontal = 20.dp)
             .fillMaxSize(),
         verticalArrangement = Arrangement.Center
     ) {
@@ -79,8 +83,8 @@ fun OnBoardingScreen(
 
         ButtonSection(
             pagerState = pagerState,
-//            navController = navController,
-//            context = context
+            navigateToRoute = navigateToRoute,
+            setOnBoardingCompleted = setOnBoardingCompleted
         )
     }
 }
@@ -88,8 +92,8 @@ fun OnBoardingScreen(
 @Composable
 fun ButtonSection(
     pagerState: PagerState,
-//    navController: NavHostController,
-//    context: MainActivity
+    navigateToRoute: (String, Boolean) -> Unit,
+    setOnBoardingCompleted: (Boolean) -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
 
@@ -115,6 +119,7 @@ fun ButtonSection(
         modifier = Modifier
             .height(120.dp)
             .fillMaxWidth()
+            .padding(horizontal = 20.dp)
     ) {
         when (pagerState.currentPage) {
             0 -> {
@@ -134,8 +139,8 @@ fun ButtonSection(
                 CustomButton(
                     text = stringResource(R.string.start),
                     onClick = {
-//                        navController.popBackStack()
-//                        navController.navigate(Graph.REGISTER)
+                        setOnBoardingCompleted(true)
+                        navigateToRoute(MainDestinations.WELCOME_ROUTE, false)
                     },
                     modifier = Modifier.align(Alignment.BottomCenter)
                 )

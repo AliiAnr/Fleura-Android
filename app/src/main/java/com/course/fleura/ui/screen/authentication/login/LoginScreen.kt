@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Email
 import androidx.compose.material.icons.rounded.Lock
@@ -38,14 +39,16 @@ import androidx.compose.ui.unit.sp
 import com.course.fleura.R
 import com.course.fleura.ui.components.CustomButton
 import com.course.fleura.ui.components.CustomTextField
+import com.course.fleura.ui.components.CustomTopAppBar
 import com.course.fleura.ui.screen.navigation.FleuraSurface
+import com.course.fleura.ui.screen.navigation.MainDestinations
 import com.course.fleura.ui.theme.primaryLight
 
 @Composable
 fun LoginScreen(
-//    navController: NavHostController,
-//    context: MainActivity,
     modifier: Modifier = Modifier,
+    navigateToRoute: (String, Boolean) -> Unit,
+    onBackClick: () -> Unit
 ) {
     val viewModel: LoginScreenViewModel = remember { LoginScreenViewModel() }
     val isLoading by viewModel.loading.collectAsState(initial = false)
@@ -66,9 +69,23 @@ fun LoginScreen(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
+                    .clickable(
+                        onClick = {
+                            focusManager.clearFocus()
+                        },
+                        indication = null,
+                        interactionSource = remember { MutableInteractionSource() }
+                    )
+                    .statusBarsPadding()
                     .padding(horizontal = 20.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
+                CustomTopAppBar(
+                    title = "",
+                    showNavigationIcon = true,
+                    horizontalPadding = 0.dp,
+                    onBackClick = onBackClick
+                )
                 Text(
                     text = title,
                     textAlign = TextAlign.Start,
@@ -77,7 +94,7 @@ fun LoginScreen(
                     fontWeight = FontWeight.ExtraBold,
                     lineHeight = 50.sp,
                     modifier = Modifier
-                        .padding(top = 120.dp, bottom = 30.dp)
+                        .padding(top = 30.dp, bottom = 30.dp)
                         .align(Alignment.Start)
                 )
 
@@ -188,8 +205,7 @@ fun LoginScreen(
                         modifier = Modifier
                             .clickable(
                                 onClick = {
-//                                navController.popBackStack()
-//                                navController.navigate(Graph.REGISTER)
+                                    navigateToRoute(MainDestinations.REGISTER_ROUTE, true)
                                 },
                                 indication = null,
                                 interactionSource = remember { MutableInteractionSource() }

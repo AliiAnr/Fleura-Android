@@ -34,6 +34,7 @@ object DetailDestinations {
     const val DETAIL_CONFIRM_ORDER = "confirmOrder"
     const val DETAIL_TRANSFER_ORDER = "orderDetail"
     const val DETAIL_CASH_ORDER = "cashOrder"
+    const val DETAIL_CART = "detailCart"
 }
 
 @Composable
@@ -60,6 +61,18 @@ class FleuraNavController(
                 popUpTo(findStartDestination(navController.graph).id) {
                     saveState = true
                 }
+            }
+        }
+    }
+
+    fun navigateToNonBottomBarRoute(route: String, isPopBackStack: Boolean = false) {
+        if (route != navController.currentDestination?.route) {
+            if (isPopBackStack) {
+                navController.popBackStack()
+            }
+            navController.navigate(route) {
+                launchSingleTop = true
+                restoreState = true
             }
         }
     }

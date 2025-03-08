@@ -19,12 +19,14 @@ import androidx.compose.ui.unit.sp
 import com.course.fleura.R
 import com.course.fleura.ui.components.CustomButton
 import com.course.fleura.ui.screen.navigation.FleuraSurface
+import com.course.fleura.ui.screen.navigation.MainDestinations
 import com.course.fleura.ui.theme.base80
 import com.course.fleura.ui.theme.primaryLight
 
 @Composable
 fun WelcomeScreen(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    navigateToRoute : (String, Boolean) -> Unit
 ) {
     FleuraSurface(modifier = modifier.fillMaxSize()) {
         Column(
@@ -116,7 +118,9 @@ fun WelcomeScreen(
                 textColor = Color.White,
                 shape = RoundedCornerShape(50.dp),
                 fontWeight = FontWeight.Bold,
-                onClick = { /* TODO: Add Login Navigation */ },
+                onClick = {
+                    navigateToRoute(MainDestinations.LOGIN_ROUTE, false)
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(55.dp)
@@ -130,7 +134,9 @@ fun WelcomeScreen(
                 outlinedColor = Color.Black,
                 shape = RoundedCornerShape(50.dp),
                 fontWeight = FontWeight.Bold,
-                onClick = { /* TODO: Add Register Navigation */ },
+                onClick = {
+                    navigateToRoute(MainDestinations.REGISTER_ROUTE, false)
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(55.dp)
