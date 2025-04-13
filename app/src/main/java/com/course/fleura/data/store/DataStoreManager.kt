@@ -5,7 +5,10 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.course.fleura.data.model.remote.Detail
+import com.google.gson.Gson
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 
 private val Context.dataStore by preferencesDataStore(name = "user_prefs")
@@ -45,6 +48,34 @@ class DataStoreManager(private val context: Context) {
     val userToken: Flow<String?> = context.dataStore.data
         .map { preferences -> preferences[USER_TOKEN_KEY] }
 
+    suspend fun setPersonalizedFilled(filled: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[PERSONALIZED_KEY] = filled
+        }
+    }
+
+    val personalizedFilled: Flow<Boolean> = context.dataStore.data
+        .map { preferences -> preferences[PERSONALIZED_KEY] ?: false }
+
+    suspend fun saveUserDetail(detail: Detail) {
+        val gson = Gson()
+        val detailJson = gson.toJson(detail)
+        context.dataStore.edit { preferences ->
+            preferences[USER_DATA_KEY] = detailJson
+        }
+    }
+
+    suspend fun getUserDetail(): Detail? {
+        val preferences = context.dataStore.data.first()
+        val detailJson = preferences[USER_DATA_KEY] ?: return null
+        return Gson().fromJson(detailJson, Detail::class.java)
+    }
+
+    suspend fun isPersonalizeCompleted(): Boolean {
+        val detail = getUserDetail()
+        return detail?.isProfileComplete() ?: false
+    }
+
     /** Menghapus semua data (Logout) */
     suspend fun clearUserData() {
         context.dataStore.edit { preferences ->
@@ -57,5 +88,7 @@ class DataStoreManager(private val context: Context) {
         private val ONBOARDING_COMPLETED_KEY = booleanPreferencesKey("onboarding_completed")
         private val USER_LOGGED_IN_KEY = booleanPreferencesKey("user_logged_in")
         private val USER_TOKEN_KEY = stringPreferencesKey("user_token")
+        private val USER_DATA_KEY = stringPreferencesKey("user_data")
+        private val PERSONALIZED_KEY = booleanPreferencesKey("personalized_filled")
     }
 }

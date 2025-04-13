@@ -1,5 +1,7 @@
 package com.course.fleura.ui.screen.authentication.otp
 
+import android.net.Uri
+import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -23,12 +25,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -53,11 +57,16 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.course.fleura.R
+import com.course.fleura.data.model.remote.VerifyOtpResponse
+import com.course.fleura.data.resource.Resource
+import com.course.fleura.di.factory.OtpViewModelFactory
 import com.course.fleura.ui.common.OtpAction
 import com.course.fleura.ui.common.OtpState
+import com.course.fleura.ui.common.ResultResponse
 import com.course.fleura.ui.components.CustomTopAppBar
 import com.course.fleura.ui.components.OtpInputField
 import com.course.fleura.ui.screen.navigation.FleuraSurface
+import com.course.fleura.ui.screen.navigation.MainDestinations
 import com.course.fleura.ui.theme.base20
 import com.course.fleura.ui.theme.primaryLight
 import kotlinx.coroutines.delay
@@ -65,10 +74,32 @@ import kotlin.code
 
 @Composable
 fun OtpScreen(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    email: String,
+    navigateToRoute: (String, Boolean) -> Unit,
+    onBackClick: () -> Unit
 ) {
-    val viewModel = viewModel<OtpScreenViewModel>()
-    val state by viewModel.state.collectAsStateWithLifecycle()
+
+    var countdown by remember { mutableIntStateOf(0) }
+
+    val otpViewModel: OtpScreenViewModel = viewModel(
+        factory = OtpViewModelFactory.getInstance(
+            Resource.appContext
+        )
+    )
+
+    Log.e("OtpScreen", "data ${otpViewModel.otpData}")
+
+    val otpState by otpViewModel.verifyOtpState.collectAsStateWithLifecycle(initialValue = ResultResponse.None)
+    Log.e("OtPSTET", "otpState: $otpState")
+
+
+    val state by otpViewModel.state.collectAsStateWithLifecycle()
+    Log.e("OtpScreen", "email: $email")
+    Log.e("OTPVALID?", "${state.isValid}")
+    val decodedEmail: String = Uri.decode(email)
+    otpViewModel.setEmail(decodedEmail)
+    Log.e("OtpScreen", "email: ${otpViewModel.emailValue}")
     val focusRequesters = remember {
         List(5) { FocusRequester() }
     }
@@ -92,15 +123,25 @@ fun OtpScreen(
         }
     }
 
-    LaunchedEffect(state.isValid) {
-        if (state.isValid == false) {
-            viewModel.onAction(OtpAction.OnError)
+    LaunchedEffect(state.isValid, otpState) {
+        if (state.isValid == false || otpState is ResultResponse.Error) {
+            otpViewModel.onAction(OtpAction.OnError)
             focusManager.clearFocus()
+        }
+    }
+
+    LaunchedEffect(countdown) {
+        if (countdown > 0) {
+            delay(1000L)
+            countdown -= 1
         }
     }
 
     OtpScreen(
         state = state,
+        otpState = otpState,
+        navigateToRoute = navigateToRoute,
+        onBackClick = onBackClick,
         focusRequesters = focusRequesters,
         onAction = { action ->
             when (action) {
@@ -112,8 +153,13 @@ fun OtpScreen(
 
                 else -> Unit
             }
-            viewModel.onAction(action)
+            otpViewModel.onAction(action)
         },
+        onResendClick = {
+            countdown = 60
+            // Call your resend OTP function here
+        },
+        countdown = countdown
     )
 }
 
@@ -122,17 +168,52 @@ fun OtpScreen(
 private fun OtpScreen(
     modifier: Modifier = Modifier,
     state: OtpState,
+    otpState: ResultResponse<VerifyOtpResponse>,
     focusRequesters: List<FocusRequester>,
     onAction: (OtpAction) -> Unit,
+    navigateToRoute: (String, Boolean) -> Unit,
+    onBackClick: () -> Unit,
+    onResendClick: () -> Unit,
+    countdown: Int
 ) {
     val focusManager = LocalFocusManager.current
     var showInvalidOtpMessage by remember { mutableStateOf(false) }
+    var showCircularProgress by remember { mutableStateOf(false) }
 
     LaunchedEffect(state.isValid) {
         if (state.isValid == false) {
             showInvalidOtpMessage = true
-            delay(500)
+            delay(5000)
             showInvalidOtpMessage = false
+        }
+    }
+
+    LaunchedEffect(otpState) {
+        when (otpState) {
+            is ResultResponse.Success -> {
+                showCircularProgress = false
+                Log.e(
+                    "OtpScreen",
+                    "Otp Sukses: ${(otpState as ResultResponse.Success).data}"
+                )
+                navigateToRoute(MainDestinations.LOGIN_ROUTE, true)
+            }
+
+            is ResultResponse.Loading -> {
+                showCircularProgress = true
+            }
+
+            is ResultResponse.Error -> {
+                showCircularProgress = false
+                Log.e(
+                    "RegisterScreen",
+                    "Registration error: ${(otpState as ResultResponse.Error).error}"
+                )
+                // Display error message to the user
+                // Toast.makeText(context, otpState.message, Toast.LENGTH_SHORT).show()
+            }
+
+            else -> {}
         }
     }
 
@@ -159,7 +240,7 @@ private fun OtpScreen(
             ) {
                 CustomTopAppBar(
                     title = "",
-                    showNavigationIcon = true
+                    showNavigationIcon = false
                 )
                 Spacer(modifier = Modifier.height(80.dp))
                 Column(
@@ -167,11 +248,25 @@ private fun OtpScreen(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     val title = buildAnnotatedString {
-                        withStyle(style = SpanStyle(color = Color.Black, fontWeight = FontWeight.Normal)) {
+                        withStyle(
+                            style = SpanStyle(
+                                color = Color.Black,
+                                fontWeight = FontWeight.Normal
+                            )
+                        ) {
                             append("Didn't receive an email? ")
                         }
-                        withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Normal)) {
-                            append("Resent")
+                        withStyle(
+                            style = SpanStyle(
+                                color = MaterialTheme.colorScheme.primary,
+                                fontWeight = FontWeight.Normal
+                            )
+                        ) {
+                            if (countdown > 0) {
+                                append("$countdown")
+                            } else {
+                                append("Resend")
+                            }
                         }
                     }
 
@@ -226,13 +321,15 @@ private fun OtpScreen(
                         }
                     }
                     Spacer(modifier = Modifier.height(8.dp))
-                    if (!showInvalidOtpMessage){
+                    if (!showInvalidOtpMessage) {
                         Spacer(modifier = Modifier.height(24.dp))
                     } else {
                         AnimatedVisibility(
                             visible = showInvalidOtpMessage,
                             enter = fadeIn() + scaleIn(initialScale = 0.8f),
-                            exit = fadeOut(animationSpec = tween(durationMillis = 500)) + scaleOut(targetScale = 0.8f)
+                            exit = fadeOut(animationSpec = tween(durationMillis = 500)) + scaleOut(
+                                targetScale = 0.8f
+                            )
                         ) {
                             Text(
                                 text = "OTP is invalid!",
@@ -241,14 +338,59 @@ private fun OtpScreen(
                             )
                         }
                     }
-                    Text(
-                        text = title,
-                        textAlign = TextAlign.Center,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.W600,
-                        color = Color.Black,
-                        modifier = Modifier.fillMaxWidth()
-                    )
+
+//                    Text(
+//                        text = title,
+//                        textAlign = TextAlign.Center,
+//                        fontSize = 14.sp,
+//                        fontWeight = FontWeight.W600,
+//                        color = Color.Black,
+//                        modifier = Modifier
+//                            .fillMaxWidth()
+//                            .clickable { if (countdown == 0) onResendClick() }
+//                    )
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                    ) {
+                        Text(
+                            text = "Didn't receive an email? ",
+                            textAlign = TextAlign.Center,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.W600,
+                            color = Color.Black,
+                        )
+
+                        Text(
+                            text = if (countdown > 0) "$countdown" else "Resend",
+                            textAlign = TextAlign.Center,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.W600,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.
+                            clickable(
+                                indication = null,
+                                interactionSource = remember { MutableInteractionSource() }
+                            ) {
+                                if (countdown == 0) {
+                                    onResendClick()
+                                }
+                            }
+                        )
+
+                    }
+                }
+            }
+
+            if (showCircularProgress) {
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.8f))
+                ) {
+                    CircularProgressIndicator(color = primaryLight)
                 }
             }
         }

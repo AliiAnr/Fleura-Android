@@ -32,10 +32,12 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navArgument
 import com.course.fleura.data.resource.Resource
 import com.course.fleura.data.store.DataStoreManager
+import com.course.fleura.di.factory.LoginViewModelFactory
 import com.course.fleura.di.factory.OnBoardingViewModelFactory
 import com.course.fleura.ui.components.FleuraBottomBar
 import com.course.fleura.ui.components.HomeSections
 import com.course.fleura.ui.screen.authentication.login.LoginScreen
+import com.course.fleura.ui.screen.authentication.login.LoginScreenViewModel
 import com.course.fleura.ui.screen.authentication.newpassword.NewPasswordScreen
 import com.course.fleura.ui.screen.authentication.otp.OtpScreen
 import com.course.fleura.ui.screen.authentication.register.RegisterScreen
@@ -53,6 +55,7 @@ import com.course.fleura.ui.screen.dashboard.detail.profile.GeneralDetail
 import com.course.fleura.ui.screen.navigation.DetailDestinations
 import com.course.fleura.ui.screen.navigation.FleuraScaffold
 import com.course.fleura.ui.screen.navigation.MainDestinations
+import com.course.fleura.ui.screen.navigation.QueryKeys
 import com.course.fleura.ui.screen.navigation.addHomeGraph
 import com.course.fleura.ui.screen.navigation.composableWithCompositionLocal
 import com.course.fleura.ui.screen.navigation.nonSpatialExpressiveSpring
@@ -71,15 +74,35 @@ fun FleuraApp() {
 
     val onBoardingStatus = onBoardingViewModel.onBoardingStatus.collectAsStateWithLifecycle(initialValue = false)
 
+    val loginViewModel: LoginScreenViewModel = viewModel(
+        factory = LoginViewModelFactory.getInstance(
+            Resource.appContext
+        )
+    )
+
+    val navigationViewModel: NavigationDestinationViewModel = viewModel(
+        factory = StartupNavigationViewModelFactory(
+            onBoardingViewModel,
+            loginViewModel
+        )
+    )
+
+    val destination by navigationViewModel.startDestination.collectAsStateWithLifecycle(
+        initialValue = MainDestinations.ONBOARDING_ROUTE
+    )
+
     FleuraTheme {
         val fleuraNavController = rememberFleuraNavController()
         SharedTransitionLayout {
             CompositionLocalProvider(
                 LocalSharedTransitionScope provides this
             ) {
+//                if(onBoardingStatus.value) MainDestinations.WELCOME_ROUTE else MainDestinations.ONBOARDING_ROUTE
                 NavHost(
                     navController = fleuraNavController.navController,
-                    startDestination = if(onBoardingStatus.value) MainDestinations.WELCOME_ROUTE else MainDestinations.ONBOARDING_ROUTE,
+                    startDestination =
+                        destination
+                    ,
                     contentAlignment = Alignment.Center
                 ) {
                     composableWithCompositionLocal(
@@ -104,7 +127,8 @@ fun FleuraApp() {
                     ) { backStackEntry ->
                         LoginScreen(
                             navigateToRoute = fleuraNavController::navigateToNonBottomBarRoute,
-                            onBackClick = fleuraNavController::upPress
+                            onBackClick = fleuraNavController::upPress,
+                            loginViewModel = loginViewModel
                         )
                     }
 
@@ -120,13 +144,22 @@ fun FleuraApp() {
                     composableWithCompositionLocal(
                         route = MainDestinations.USERNAME_ROUTE
                     ) { backStackEntry ->
-                        UsernameScreen()
+                        UsernameScreen(
+                            loginScreenViewModel = loginViewModel,
+                            navigateToRoute = fleuraNavController::navigateToNonBottomBarRoute
+                        )
                     }
 
                     composableWithCompositionLocal(
-                        route = MainDestinations.OTP_ROUTE
+                        route = "${MainDestinations.OTP_ROUTE}?" + "email={${QueryKeys.EMAIL}}"
                     ) { backStackEntry ->
-                        OtpScreen()
+                        val arguments = requireNotNull(backStackEntry.arguments)
+                        val email = arguments.getString(QueryKeys.EMAIL) ?: "Email tidak ditemukan"
+                        OtpScreen(
+                            email = email,
+                            navigateToRoute = fleuraNavController::navigateToNonBottomBarRoute,
+                            onBackClick = fleuraNavController::upPress
+                        )
                     }
 
                     composableWithCompositionLocal(
@@ -281,7 +314,7 @@ fun MainContainer(
     ) { padding ->
         NavHost(
             navController = nestedNavController.navController,
-            startDestination = HomeSections.Order.route,
+            startDestination = HomeSections.Home.route,
             contentAlignment = Alignment.Center
         ) {
             addHomeGraph(

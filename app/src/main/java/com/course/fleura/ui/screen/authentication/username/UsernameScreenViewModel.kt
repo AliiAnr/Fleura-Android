@@ -20,6 +20,7 @@ class UsernameScreenViewModel : ViewModel() {
 
     var usernameValue by mutableStateOf("")
         private set
+
     var usernameError by mutableStateOf("")
         private set
 

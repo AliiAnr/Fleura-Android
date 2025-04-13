@@ -52,6 +52,7 @@ import com.course.fleura.ui.theme.tfbackground
 
 @Composable
 fun CustomTextField(
+    modifier: Modifier = Modifier,
     value: String,
     placeholder: String,
     onChange: (String) -> Unit,
@@ -62,7 +63,6 @@ fun CustomTextField(
     imeAction: ImeAction = ImeAction.Next,
     keyboardType: KeyboardType = KeyboardType.Text,
     borderWidth: Dp = 1.dp,
-    modifier: Modifier = Modifier,
 ) {
     var showPassword by rememberSaveable { mutableStateOf(false) }
 

@@ -1,5 +1,6 @@
 package com.course.fleura.ui.screen.authentication.welcome
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -16,6 +17,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.course.fleura.BuildConfig
 import com.course.fleura.R
 import com.course.fleura.ui.components.CustomButton
 import com.course.fleura.ui.screen.navigation.FleuraSurface

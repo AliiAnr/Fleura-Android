@@ -37,6 +37,10 @@ object DetailDestinations {
     const val DETAIL_CART = "detailCart"
 }
 
+object QueryKeys {
+    const val EMAIL = "email"
+}
+
 @Composable
 fun rememberFleuraNavController(
     navController: NavHostController = rememberNavController()

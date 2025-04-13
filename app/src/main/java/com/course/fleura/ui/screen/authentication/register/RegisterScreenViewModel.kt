@@ -1,17 +1,31 @@
 package com.course.fleura.ui.screen.authentication.register
 
+import android.util.Log
 import android.util.Patterns
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.course.fleura.data.model.remote.OtpResponse
+import com.course.fleura.data.model.remote.RegisterResponse
+import com.course.fleura.data.repository.RegisterRepository
+import com.course.fleura.ui.common.ResultResponse
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-class RegisterScreenViewModel : ViewModel() {
+class RegisterScreenViewModel(
+    private val registerRepository: RegisterRepository
+) : ViewModel() {
+
+    private val _registerState =
+        MutableStateFlow<ResultResponse<RegisterResponse>>(ResultResponse.None)
+    val registerState: StateFlow<ResultResponse<RegisterResponse>> = _registerState
+
+    private val _otpState = MutableStateFlow<ResultResponse<OtpResponse>>(ResultResponse.None)
+    val otpState: StateFlow<ResultResponse<OtpResponse>> = _otpState
 
     private val _loading = MutableStateFlow(false)
     val loading: StateFlow<Boolean> = _loading
@@ -21,6 +35,12 @@ class RegisterScreenViewModel : ViewModel() {
 
     private val _isValid = MutableStateFlow(false)
     val isValid: StateFlow<Boolean> = _isValid
+
+    var isButtonEnabled by mutableStateOf(true)
+        private set
+
+    var tempLog by mutableStateOf(false)
+        private set
 
     var usernameValue by mutableStateOf("")
         private set
@@ -41,6 +61,57 @@ class RegisterScreenViewModel : ViewModel() {
         private set
     var confirmPasswordError by mutableStateOf("")
         private set
+
+    fun registerBuyer() {
+        if (!isButtonEnabled) return
+
+        if (validateEmail() && validatePassword() && validateConfirmPassword()) {
+            viewModelScope.launch {
+                try {
+                    isButtonEnabled = false
+                    _registerState.value = ResultResponse.Loading
+                    registerRepository.registerBuyer(emailValue, passwordValue)
+                        .collect { result ->
+                            _registerState.value = result
+                        }
+                    if (_registerState.value is ResultResponse.Success) {
+                        requestOtp()
+                    }
+//                    _registerState.value = ResultResponse.Loading
+//                    delay(2000)
+//                    _registerState.value =
+//                        ResultResponse.Success(RegisterResponse("Success", 99, "buyer"))
+//                    if (_registerState.value is ResultResponse.Success) {
+//                        tempLog = true
+//                        requestOtp()
+//                    }
+                } catch (e: Exception) {
+                    _registerState.value = ResultResponse.Error("Registration failed: ${e.message}")
+                } finally {
+                    isButtonEnabled = true
+                }
+            }
+        } else {
+            _registerState.value = ResultResponse.Error("Please correct the errors above.")
+        }
+    }
+
+    private fun requestOtp() {
+        if (validateEmail()) {
+            viewModelScope.launch {
+                try {
+                    registerRepository.generateOtp(emailValue)
+                        .collect { result ->
+                            _otpState.value = result
+                        }
+                } catch (e: Exception) {
+                    _otpState.value = ResultResponse.Error("Failed to generate OTP: ${e.message}")
+                }
+            }
+        } else {
+            _otpState.value = ResultResponse.Error("Please enter a valid email address.")
+        }
+    }
 
     fun setUsername(value: String) {
         usernameValue = value
@@ -103,18 +174,22 @@ class RegisterScreenViewModel : ViewModel() {
                 passwordError = "Please fill password field"
                 false
             }
+
             password.length < 6 -> {
                 passwordError = "Password must be at least 6 characters long"
                 false
             }
+
             !containsLetter -> {
                 passwordError = "Password must contain at least one letter"
                 false
             }
+
             !containsDigit -> {
                 passwordError = "Password must contain at least one digit"
                 false
             }
+
             else -> {
                 passwordError = ""
                 true
@@ -144,4 +219,6 @@ class RegisterScreenViewModel : ViewModel() {
             onError("Please correct the errors above.")
         }
     }
+
+
 }

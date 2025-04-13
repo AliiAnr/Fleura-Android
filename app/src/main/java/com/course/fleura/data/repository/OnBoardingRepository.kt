@@ -1,6 +1,7 @@
 package com.course.fleura.data.repository
 
 import android.content.Context
+import com.course.fleura.data.resource.Resource
 import com.course.fleura.data.store.DataStoreManager
 import kotlinx.coroutines.flow.Flow
 
@@ -24,7 +25,7 @@ class OnBoardingRepository private constructor(
             context: Context
         ): OnBoardingRepository =
             INSTANCE ?: synchronized(this) {
-                INSTANCE ?: OnBoardingRepository(context.applicationContext).also {
+                INSTANCE ?: OnBoardingRepository(context).also {
                     INSTANCE = it
                 }
             }

@@ -1,41 +1,121 @@
 package com.course.fleura.ui.screen.authentication.otp
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.course.fleura.data.model.remote.VerifyOtpRequest
+import com.course.fleura.data.model.remote.VerifyOtpResponse
+import com.course.fleura.data.repository.OtpRepository
 import com.course.fleura.ui.common.OtpAction
 import com.course.fleura.ui.common.OtpState
+import com.course.fleura.ui.common.ResultResponse
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
 private const val VALID_OTP_CODE = "14141"
 
-class OtpScreenViewModel: ViewModel() {
+class OtpScreenViewModel(
+    private val otpRepository: OtpRepository
+) : ViewModel() {
 
     private val _state = MutableStateFlow(OtpState())
     val state = _state.asStateFlow()
 
-    fun onAction(action: OtpAction) {
-        when(action) {
-            is OtpAction.OnChangeFieldFocused -> {
-                _state.update { it.copy(
-                    focusedIndex = action.index
-                ) }
+    var emailValue by mutableStateOf("")
+        private set
+
+    var otpData by mutableStateOf(
+        VerifyOtpRequest(
+            "", ""
+        )
+    )
+
+    fun setEmail(value: String) {
+        emailValue = value
+    }
+
+    private val _verifyOtpState =
+        MutableStateFlow<ResultResponse<VerifyOtpResponse>>(ResultResponse.None)
+    val verifyOtpState: StateFlow<ResultResponse<VerifyOtpResponse>> = _verifyOtpState
+
+    private fun verifyOtp(email: String, otp: String) {
+        if (otp.isNotBlank()) {
+            viewModelScope.launch {
+                try {
+                    _verifyOtpState.value = ResultResponse.Loading
+//                    delay(2000)
+//                    _verifyOtpState.value =
+//                        ResultResponse.Success(VerifyOtpResponse("Success", 2, "d"))
+//                    _verifyOtpState.value = ResultResponse.Error("Failed to verify OTP")
+                    otpRepository.verifyOtp(email = email, otp = otp)
+                        .collect { result ->
+                            _verifyOtpState.value = result
+                        }
+                    if (_verifyOtpState.value is ResultResponse.Success) {
+                        otpData = VerifyOtpRequest(email = email, otpCode = otp)
+                        _state.update {
+                            it.copy(
+                                isValid = true,
+                                code = List(5) { null } // Mengatur ulang nilai OTP
+                            )
+                        }
+                    }
+                } catch (e: Exception) {
+                    _verifyOtpState.value =
+                        ResultResponse.Error(e.localizedMessage ?: "Network error")
+                    _state.update {
+                        it.copy(
+                            isValid = false,
+                            code = List(5) { null } // Mengatur ulang nilai OTP
+                        )
+                    }
+                }
             }
+        } else {
+            _verifyOtpState.value = ResultResponse.Error("Please enter OTP")
+            _state.update {
+                it.copy(
+                    isValid = false,
+                    code = List(5) { null } // Mengatur ulang nilai OTP
+                )
+            }
+        }
+    }
+
+    fun onAction(action: OtpAction) {
+        when (action) {
+            is OtpAction.OnChangeFieldFocused -> {
+                _state.update {
+                    it.copy(
+                        focusedIndex = action.index
+                    )
+                }
+            }
+
             is OtpAction.OnEnterNumber -> {
                 enterNumber(action.number, action.index)
             }
+
             OtpAction.OnKeyboardBack -> {
                 val previousIndex = getPreviousFocusedIndex(state.value.focusedIndex)
-                _state.update { it.copy(
-                    code = it.code.mapIndexed { index, number ->
-                        if(index == previousIndex) {
-                            null
-                        } else {
-                            number
-                        }
-                    },
-                    focusedIndex = previousIndex
-                ) }
+                _state.update {
+                    it.copy(
+                        code = it.code.mapIndexed { index, number ->
+                            if (index == previousIndex) {
+                                null
+                            } else {
+                                number
+                            }
+                        },
+                        focusedIndex = previousIndex
+                    )
+                }
             }
 
             OtpAction.OnError -> {
@@ -46,27 +126,33 @@ class OtpScreenViewModel: ViewModel() {
 
     private fun enterNumber(number: Int?, index: Int) {
         val newCode = state.value.code.mapIndexed { currentIndex, currentNumber ->
-            if(currentIndex == index) {
+            if (currentIndex == index) {
                 number
             } else {
                 currentNumber
             }
         }
         val wasNumberRemoved = number == null
-        _state.update { it.copy(
-            code = newCode,
-            focusedIndex = if(wasNumberRemoved || it.code.getOrNull(index) != null) {
-                it.focusedIndex
-            } else {
-                getNextFocusedTextFieldIndex(
-                    currentCode = it.code,
-                    currentFocusedIndex = it.focusedIndex
-                )
-            },
-            isValid = if(newCode.none { it == null }) {
-                newCode.joinToString("") == VALID_OTP_CODE
-            } else null
-        ) }
+        _state.update {
+            it.copy(
+                code = newCode,
+                focusedIndex = if (wasNumberRemoved || it.code.getOrNull(index) != null) {
+                    it.focusedIndex
+                } else {
+                    getNextFocusedTextFieldIndex(
+                        currentCode = it.code,
+                        currentFocusedIndex = it.focusedIndex
+                    )
+                },
+                isValid = if (newCode.none { it == null }) {
+                    val otp = newCode.joinToString("") { it?.toString() ?: "" }
+                    if (otp.length == 5 && emailValue.isNotBlank()) {
+                        verifyOtp(email = emailValue, otp = otp)
+                    }
+                    _verifyOtpState.value is ResultResponse.Success
+                } else null
+            )
+        }
     }
 
     private fun getPreviousFocusedIndex(currentIndex: Int?): Int? {
@@ -77,11 +163,11 @@ class OtpScreenViewModel: ViewModel() {
         currentCode: List<Int?>,
         currentFocusedIndex: Int?
     ): Int? {
-        if(currentFocusedIndex == null) {
+        if (currentFocusedIndex == null) {
             return null
         }
 
-        if(currentFocusedIndex == 4) {
+        if (currentFocusedIndex == 4) {
             return currentFocusedIndex
         }
 
@@ -96,10 +182,10 @@ class OtpScreenViewModel: ViewModel() {
         currentFocusedIndex: Int
     ): Int {
         code.forEachIndexed { index, number ->
-            if(index <= currentFocusedIndex) {
+            if (index <= currentFocusedIndex) {
                 return@forEachIndexed
             }
-            if(number == null) {
+            if (number == null) {
                 return index
             }
         }
