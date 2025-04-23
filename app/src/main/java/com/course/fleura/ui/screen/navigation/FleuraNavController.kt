@@ -20,6 +20,8 @@ object MainDestinations {
     const val ORDER_HISTORY_ROUTE = "orderHistory"
     const val SNACK_DETAIL_ROUTE = "snack"
     const val SNACK_ID_KEY = "snackId"
+    const val STORE_ID_KEY = "storeId"
+    const val FLOWER_ID_KEY = "flowerId"
     const val ORIGIN = "origin"
     const val OTP_ROUTE = "otp"
     const val NEW_PASSWORD_ROUTE = "newPassword"
@@ -84,6 +86,18 @@ class FleuraNavController(
     fun navigateToSnackDetail(snackId: Long, origin: String, from: NavBackStackEntry) {
         if (from.lifecycleIsResumed()) {
             navController.navigate("${MainDestinations.SNACK_DETAIL_ROUTE}/$snackId?origin=$origin")
+        }
+    }
+
+    fun navigateToStoreDetail(id: String, origin: String, from: NavBackStackEntry) {
+        if (from.lifecycleIsResumed()) {
+            navController.navigate("${DetailDestinations.DETAIL_MERCHANT}/$id?origin=$origin")
+        }
+    }
+
+    fun navigateToFlowerDetail(id: String, origin: String, from: NavBackStackEntry) {
+        if (from.lifecycleIsResumed()) {
+            navController.navigate("${DetailDestinations.DETAIL_FLOWER}/$id?origin=$origin")
         }
     }
 

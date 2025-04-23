@@ -3,6 +3,8 @@ package com.course.fleura.retrofit.api
 import android.content.Context
 import com.course.fleura.BuildConfig
 import com.course.fleura.retrofit.AuthInterceptor
+import com.course.fleura.retrofit.services.CartService
+import com.course.fleura.retrofit.services.HomeService
 import com.course.fleura.retrofit.services.LoginService
 import com.course.fleura.retrofit.services.OtpService
 import com.course.fleura.retrofit.services.RegisterService
@@ -50,6 +52,14 @@ object ApiConfig {
 
     fun getLoginService(context: Context): LoginService {
         return provideRetrofit(context).create(LoginService::class.java)
+    }
+
+    fun getHomeService(context: Context): HomeService {
+        return provideRetrofit(context).create(HomeService::class.java)
+    }
+
+    fun getCartService(context: Context): CartService {
+        return provideRetrofit(context).create(CartService::class.java)
     }
 
 }

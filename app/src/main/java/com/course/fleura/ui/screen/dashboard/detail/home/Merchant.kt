@@ -1,8 +1,8 @@
 package com.course.fleura.ui.screen.dashboard.detail.home
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -19,45 +19,141 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.vectorResource
-import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil3.compose.AsyncImage
+import coil3.request.ImageRequest
+import coil3.request.crossfade
 import com.course.fleura.R
-import com.course.fleura.ui.components.FakeCategory
-import com.course.fleura.ui.components.Merchant
+import com.course.fleura.data.model.remote.DetailStoreData
+import com.course.fleura.data.model.remote.DetailStoreResponse
+import com.course.fleura.data.model.remote.StoreProduct
+import com.course.fleura.data.model.remote.StoreProductResponse
+import com.course.fleura.ui.common.ResultResponse
+import com.course.fleura.ui.common.toFormattedAddress
 import com.course.fleura.ui.components.MerchantFlowerItem
+import com.course.fleura.ui.screen.dashboard.home.HomeViewModel
+import com.course.fleura.ui.screen.navigation.DetailDestinations
 import com.course.fleura.ui.screen.navigation.FleuraSurface
+import com.course.fleura.ui.screen.navigation.MainDestinations
 import com.course.fleura.ui.theme.base20
 import com.course.fleura.ui.theme.base40
 import com.course.fleura.ui.theme.base500
-import com.course.fleura.ui.theme.base60
-import com.course.fleura.ui.theme.secColor
+import com.course.fleura.ui.theme.primaryLight
 
 @Composable
 fun Merchant(
     modifier: Modifier = Modifier,
-    id: Long
+    homeViewModel: HomeViewModel,
+    storeId: String,
+    origin: String,
+    onBackClick: () -> Unit,
+    onFlowerClick: (String, String) -> Unit,
+    storeViewModel: StoreViewModel
 ) {
+    val storeDetailState by storeViewModel.storeDetailState.collectAsStateWithLifecycle(initialValue = ResultResponse.None)
+    val storeProductState by storeViewModel.storeProductState.collectAsStateWithLifecycle(initialValue = ResultResponse.None)
+//    val productReviewState by storeViewModel.productReviewState.collectAsStateWithLifecycle(initialValue = ResultResponse.None)
+
+    var showCircularProgress by remember { mutableStateOf(false) }
+
+    LaunchedEffect(storeId) {
+        storeViewModel.getStoreDetail(storeId)
+        storeViewModel.getAllStoreProduct(storeId)
+//        storeViewModel.getProductReview(storeId)
+    }
+
+    LaunchedEffect(storeDetailState) {
+        when (storeDetailState) {
+            is ResultResponse.Success -> {
+                showCircularProgress = false
+                Log.e(
+                    "Merchant Fetched",
+                    "Success: ${(storeDetailState as ResultResponse.Success<DetailStoreResponse>).data}"
+                )
+            }
+
+            is ResultResponse.Loading -> {
+                showCircularProgress = true
+            }
+
+            is ResultResponse.Error -> {
+                showCircularProgress = false
+            }
+
+            else -> {}
+        }
+    }
+
+    LaunchedEffect(storeProductState) {
+        when (storeProductState) {
+            is ResultResponse.Success -> {
+                showCircularProgress = false
+                Log.e(
+                    "Merchant Products Fetched",
+                    "Success: ${(storeProductState as ResultResponse.Success<StoreProductResponse>).data.data}"
+                )
+            }
+
+            is ResultResponse.Loading -> {
+                showCircularProgress = true
+            }
+
+            is ResultResponse.Error -> {
+                showCircularProgress = false
+            }
+
+            else -> {}
+        }
+    }
+
+
+
+    val isLoading = storeDetailState is ResultResponse.Loading ||
+            storeProductState is ResultResponse.Loading ||
+            (storeDetailState is ResultResponse.None && storeProductState is ResultResponse.None)
+
+
+    val storeData = when (storeDetailState) {
+        is ResultResponse.Success -> (storeDetailState as ResultResponse.Success<DetailStoreResponse>).data.data
+        else -> null
+    }
+
+    val productData = when (storeProductState) {
+        is ResultResponse.Success -> (storeProductState as ResultResponse.Success<StoreProductResponse>).data.data
+        else -> null
+    }
 
     Merchant(
         modifier = modifier,
-        data = FakeCategory.merchantItem
+        storeData = storeData,
+        productData = productData,
+        isLoading = isLoading,
+        onBackClick = onBackClick,
+        onFlowerClick = onFlowerClick,
+        homeViewModel = homeViewModel
     )
 
 }
@@ -65,8 +161,18 @@ fun Merchant(
 @Composable
 private fun Merchant(
     modifier: Modifier = Modifier,
-    data: Merchant
+    storeData: DetailStoreData?,
+    homeViewModel: HomeViewModel,
+    productData: List<StoreProduct>?,
+    isLoading: Boolean,
+    onBackClick: () -> Unit,
+    onFlowerClick: (String, String) -> Unit
 ) {
+
+    val groupedByCat = remember(productData) {
+        productData?.groupBy { it.category.name }?.toSortedMap() ?: sortedMapOf()
+    }
+
     FleuraSurface(
         modifier = modifier.fillMaxSize(),
     ) {
@@ -82,54 +188,130 @@ private fun Merchant(
                     .background(base20),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize()
-                ) {
+                if (isLoading) {
+                    // Show empty state when there's no data and not loading
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color.White),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {}
+                } else {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize()
+                    ) {
 
-                    item {
-                        DescMerchant(
-                            name = data.name,
-                            description = data.description,
-                            location = data.address,
-                            phoneNumber = data.phone,
-                            openHours = data.openHours,
-                            openDays = data.openDays
-                        )
-                    }
-
-                    data.categories.forEach { category ->
-                        // Header untuk kategori
                         item {
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text(
-                                text = category.title,
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.Black,
-                                modifier = Modifier.fillMaxWidth().background(Color.White).padding(start = 20.dp, top = 20.dp, end = 20.dp)
+                            DescMerchant(
+                                storeData = storeData,
+                                onBackClick = onBackClick
                             )
                         }
 
-                        itemsIndexed(category.items) { index, item ->
-                            val isLastItem = index == category.items.size - 1
-                            Column (
-                                modifier = Modifier.fillMaxWidth().background(Color.White).padding(horizontal = 20.dp)
-                            ){
-                                MerchantFlowerItem(
-                                    item = item,
-                                    onFlowerClick = { _, _ ->
-
-                                    }
+                        groupedByCat.forEach { (categoryName, itemsInCat) ->
+                            // Header kategori
+                            item(key = "header-$categoryName") {
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(
+                                    text = categoryName,
+                                    fontSize = 18.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.Black,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .background(Color.White)
+                                        .padding(start = 20.dp, top = 20.dp, end = 20.dp)
                                 )
-                                if (!isLastItem) {
-                                    HorizontalDivider(
-                                        color = base40,
-                                    )
-                                }
                             }
 
+                            items(
+                                items = itemsInCat,
+                                key = { it.id }
+                            ) { product ->
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .background(Color.White)
+                                        .padding(horizontal = 20.dp)
+                                ) {
+                                    MerchantFlowerItem(
+                                        item = product,
+                                        onFlowerClick = {
+                                            homeViewModel.setSelectedProduct(product)
+                                            onFlowerClick(
+                                                product.id,
+                                                DetailDestinations.DETAIL_MERCHANT
+                                            )
+                                        }
+                                    )
+                                    // Divider kecuali item terakhir
+                                    if (product != itemsInCat.last()) {
+                                        HorizontalDivider(color = base40)
+                                    }
+                                }
+                            }
                         }
+
+                        item {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(100.dp)
+                                    .background(Color.White)
+                            )
+                        }
+
+//                        data.categories.forEach { category ->
+//                            // Header untuk kategori
+//                            item {
+//                                Spacer(modifier = Modifier.height(8.dp))
+//                                Text(
+//                                    text = category.title,
+//                                    fontSize = 18.sp,
+//                                    fontWeight = FontWeight.Bold,
+//                                    color = Color.Black,
+//                                    modifier = Modifier
+//                                        .fillMaxWidth()
+//                                        .background(Color.White)
+//                                        .padding(start = 20.dp, top = 20.dp, end = 20.dp)
+//                                )
+//                            }
+//
+//                            itemsIndexed(category.items) { index, item ->
+//                                val isLastItem = index == category.items.size - 1
+//                                Column(
+//                                    modifier = Modifier
+//                                        .fillMaxWidth()
+//                                        .background(Color.White)
+//                                        .padding(horizontal = 20.dp)
+//                                ) {
+//                                    MerchantFlowerItem(
+//                                        item = item,
+//                                        onFlowerClick = { _, _ ->
+//
+//                                        }
+//                                    )
+//                                    if (!isLastItem) {
+//                                        HorizontalDivider(
+//                                            color = base40,
+//                                        )
+//                                    }
+//                                }
+//
+//                            }
+//                        }
                     }
+                }
+            }
+            if (isLoading) {
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.8f))
+                ) {
+                    CircularProgressIndicator(color = primaryLight)
                 }
             }
         }
@@ -139,12 +321,8 @@ private fun Merchant(
 @Composable
 private fun DescMerchant(
     modifier: Modifier = Modifier,
-    name: String,
-    description: String,
-    location: String,
-    phoneNumber: String,
-    openHours: String,
-    openDays: String
+    storeData: DetailStoreData?,
+    onBackClick: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -156,13 +334,32 @@ private fun DescMerchant(
                 .fillMaxWidth()
                 .height(250.dp)
         ) {
+
+            if (storeData?.picture.isNullOrEmpty()) {
+                Log.e("WOIII KOSONG", "${storeData?.picture}")
+                Image(
+                    painter = painterResource(id = R.drawable.placeholder),  // Use a placeholder image
+                    contentDescription = "Store Image",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .fillMaxSize()
+                )
+            } else {
+                Log.e("WOIII ADA", "${storeData?.picture}")
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(storeData?.picture)
+                        .crossfade(true)
+                        .build(),
+                    contentDescription = "Store Image",
+                    contentScale = ContentScale.Crop,
+                    placeholder = painterResource(id = R.drawable.placeholder),
+                    error = painterResource(id = R.drawable.placeholder),
+                    modifier = Modifier
+                        .fillMaxSize()
+                )
+            }
             // Gambar Header
-            Image(
-                painter = painterResource(id = R.drawable.store_1),
-                contentDescription = "Flower Shop",
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize()
-            )
 
             // Ikon di atas gambar
             Row(
@@ -179,7 +376,7 @@ private fun DescMerchant(
                             shape = RoundedCornerShape(50.dp)
                         )
                         .clickable(
-                            onClick = { },
+                            onClick = { onBackClick() },
                             indication = null,
                             interactionSource = remember { MutableInteractionSource() }
                         ),
@@ -229,7 +426,7 @@ private fun DescMerchant(
         ) {
             // Nama Toko
             Text(
-                text = "Eunoias",
+                text = storeData?.name ?: "STORE NAME",
                 color = Color.Black,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
@@ -238,7 +435,8 @@ private fun DescMerchant(
 
             // Deskripsi
             Text(
-                text = "Eunoia is a flower shop that sell many kind of flower. Available fresh flower and artificial flower. You can also order a bouquet and feel free to do custom order.",
+                text = storeData?.description
+                    ?: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
                 color = base500,
                 fontSize = 12.sp,
                 lineHeight = 18.sp,
@@ -258,7 +456,7 @@ private fun DescMerchant(
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = "Jl. Majapahit, No. 15",
+                    text = storeData?.address?.toFormattedAddress() ?: "Address not available",
                     color = base500,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.W700
@@ -277,7 +475,7 @@ private fun DescMerchant(
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = "083-777-888-999",
+                    text = storeData?.phone ?: "Phone not available",
                     color = base500,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.W700
@@ -313,7 +511,7 @@ private fun DescMerchant(
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = "Jl. Majapahit, No. 15",
+                    text = storeData?.operationalDay ?: "Not specified",
                     color = base500,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.W700
@@ -332,7 +530,7 @@ private fun DescMerchant(
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = "083-777-888-999",
+                    text = storeData?.operationalHour ?: "Not specified",
                     color = base500,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.W700

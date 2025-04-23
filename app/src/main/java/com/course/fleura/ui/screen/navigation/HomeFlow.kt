@@ -19,6 +19,7 @@ import com.course.fleura.LocalNavAnimatedVisibilityScope
 import com.course.fleura.ui.components.HomeSections
 import com.course.fleura.ui.screen.dashboard.cart.Cart
 import com.course.fleura.ui.screen.dashboard.home.Home
+import com.course.fleura.ui.screen.dashboard.home.HomeViewModel
 import com.course.fleura.ui.screen.dashboard.order.Order
 import com.course.fleura.ui.screen.dashboard.point.Point
 import com.course.fleura.ui.screen.dashboard.profile.Profile
@@ -81,15 +82,25 @@ fun NavGraphBuilder.composableWithCompositionLocal(
 
 
 fun NavGraphBuilder.addHomeGraph(
+    modifier: Modifier = Modifier,
     onSnackSelected: (Long, String, NavBackStackEntry) -> Unit,
-    modifier: Modifier = Modifier
+    onStoreClick: (String, String, NavBackStackEntry) -> Unit,
+    onFlowerClick: (String, String, NavBackStackEntry) -> Unit,
+    homeViewModel: HomeViewModel
 ) {
     composable(HomeSections.Home.route) { from ->
         Home(
             onSnackClick = { id, origin ->
                 onSnackSelected(id, origin, from)
-                           },
-            modifier = modifier
+            },
+            modifier = modifier,
+            onStoreClick = { storeid, origin ->
+                onStoreClick(storeid, origin, from)
+            },
+            onFlowerClick = { flowerId, origin ->
+                onFlowerClick(flowerId, origin, from)
+            },
+            homeViewModel = homeViewModel
         )
     }
     composable(HomeSections.Cart.route) { from ->
@@ -105,7 +116,7 @@ fun NavGraphBuilder.addHomeGraph(
             modifier = modifier
         )
     }
-    composable(HomeSections.Order.route) {from ->
+    composable(HomeSections.Order.route) { from ->
         Order(
             onSnackClick = { id, origin ->
                 onSnackSelected(id, origin, from)

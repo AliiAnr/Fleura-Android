@@ -32,8 +32,10 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navArgument
 import com.course.fleura.data.resource.Resource
 import com.course.fleura.data.store.DataStoreManager
+import com.course.fleura.di.factory.HomeViewModelFactory
 import com.course.fleura.di.factory.LoginViewModelFactory
 import com.course.fleura.di.factory.OnBoardingViewModelFactory
+import com.course.fleura.di.factory.StoreViewModelFactory
 import com.course.fleura.ui.components.FleuraBottomBar
 import com.course.fleura.ui.components.HomeSections
 import com.course.fleura.ui.screen.authentication.login.LoginScreen
@@ -52,6 +54,7 @@ import com.course.fleura.ui.screen.dashboard.detail.order.FlowerDetail
 import com.course.fleura.ui.screen.dashboard.detail.order.GeneralOrder
 import com.course.fleura.ui.screen.dashboard.detail.profile.AddAdress
 import com.course.fleura.ui.screen.dashboard.detail.profile.GeneralDetail
+import com.course.fleura.ui.screen.dashboard.home.HomeViewModel
 import com.course.fleura.ui.screen.navigation.DetailDestinations
 import com.course.fleura.ui.screen.navigation.FleuraScaffold
 import com.course.fleura.ui.screen.navigation.MainDestinations
@@ -89,6 +92,12 @@ fun FleuraApp() {
 
     val destination by navigationViewModel.startDestination.collectAsStateWithLifecycle(
         initialValue = MainDestinations.ONBOARDING_ROUTE
+    )
+
+    val homeViewModel: HomeViewModel = viewModel(
+        factory = HomeViewModelFactory.getInstance(
+            Resource.appContext
+        )
     )
 
     FleuraTheme {
@@ -172,7 +181,10 @@ fun FleuraApp() {
                         route = MainDestinations.DASHBOARD_ROUTE
                     ) { backStackEntry ->
                         MainContainer(
-                            onSnackSelected = fleuraNavController::navigateToSnackDetail
+                            onSnackSelected = fleuraNavController::navigateToSnackDetail,
+                            onStoreSelected = fleuraNavController::navigateToStoreDetail,
+                            onFlowerSelected = fleuraNavController::navigateToFlowerDetail,
+                            homeViewModel = homeViewModel
                         )
                     }
 
@@ -185,18 +197,57 @@ fun FleuraApp() {
                     }
 
                     composableWithCompositionLocal(
-                        route = DetailDestinations.DETAIL_FLOWER
+                        route = "${DetailDestinations.DETAIL_FLOWER}/" +
+                                "{${MainDestinations.FLOWER_ID_KEY}}" +
+                                "?origin={${MainDestinations.ORIGIN}}",
                     ) { backStackEntry ->
-                        FlowerDetail(
-                            flowerId = 0
-                        )
+                        val arguments = requireNotNull(backStackEntry.arguments)
+                        val flowerId = arguments.getString(MainDestinations.FLOWER_ID_KEY)
+                        val origin = arguments.getString(MainDestinations.ORIGIN)
+
+                        val selectedProduct by homeViewModel.selectedProduct.collectAsStateWithLifecycle()
+                        selectedProduct?.let {
+                            FlowerDetail(
+                                flowerId = flowerId ?: "",
+                                origin = origin ?: "",
+                                selectedProduct = it,
+                                homeViewModel = homeViewModel,
+                                onStoreClick = { storeid, origin ->
+                                    fleuraNavController.navigateToStoreDetail(storeid, origin, backStackEntry)
+                                },
+                                onBackClick = fleuraNavController::upPress,
+                            )
+                        }
                     }
 
                     composableWithCompositionLocal(
-                        route = DetailDestinations.DETAIL_MERCHANT
+                        route = "${DetailDestinations.DETAIL_MERCHANT}/" +
+                                "{${MainDestinations.STORE_ID_KEY}}" +
+                                "?origin={${MainDestinations.ORIGIN}}",
+                        arguments = listOf(
+                            navArgument(MainDestinations.STORE_ID_KEY) {
+                                type = NavType.StringType
+                            }
+                        ),
                     ) { backStackEntry ->
+                        val arguments = requireNotNull(backStackEntry.arguments)
+                        val storeId = arguments.getString(MainDestinations.STORE_ID_KEY)
+                        val origin = arguments.getString(MainDestinations.ORIGIN)
+
                         Merchant(
-                            id = 0
+                            homeViewModel = homeViewModel,
+                            storeId = storeId ?: "Store ID tidak ditemukan",
+                            origin = origin ?: "NULL",
+                            onBackClick = fleuraNavController::upPress,
+                            onFlowerClick = { flowerId, from ->
+                                fleuraNavController.navigateToFlowerDetail(flowerId, from, backStackEntry)
+                            },
+                            storeViewModel = viewModel(
+                                factory = StoreViewModelFactory.getInstance(
+                                    Resource.appContext
+                                )
+                            )
+//                            onFlowerClick
                         )
                     }
 
@@ -271,7 +322,10 @@ fun FleuraApp() {
 @Composable
 fun MainContainer(
     modifier: Modifier = Modifier,
-    onSnackSelected: (Long, String, NavBackStackEntry) -> Unit
+    onSnackSelected: (Long, String, NavBackStackEntry) -> Unit,
+    onStoreSelected: (String, String, NavBackStackEntry) -> Unit,
+    onFlowerSelected: (String, String, NavBackStackEntry) -> Unit,
+    homeViewModel: HomeViewModel
 ) {
     val fleuraScaffoldState = rememberFleuraScaffoldState()
     val nestedNavController = rememberFleuraNavController()
@@ -319,9 +373,12 @@ fun MainContainer(
         ) {
             addHomeGraph(
                 onSnackSelected = onSnackSelected,
+                onStoreClick = onStoreSelected,
+                onFlowerClick = onFlowerSelected,
                 modifier = Modifier
                     .padding(padding)
-                    .consumeWindowInsets(padding)
+                    .consumeWindowInsets(padding),
+                homeViewModel = homeViewModel
             )
         }
     }

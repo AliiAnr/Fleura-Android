@@ -3,10 +3,13 @@ package com.course.fleura
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import com.course.fleura.data.resource.Resource
+import com.course.fleura.ui.common.NetworkUtils
 
 class   MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -17,6 +20,7 @@ class   MainActivity : ComponentActivity() {
         Handler(Looper.getMainLooper()).postDelayed({
             splashScreen.setKeepOnScreenCondition { false }
         }, 2500)
+
         setContent {
             FleuraApp()
         }

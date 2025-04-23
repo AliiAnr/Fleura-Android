@@ -1,8 +1,9 @@
 package com.course.fleura.ui.components
 
+import android.util.Log
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -18,18 +19,28 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil3.compose.AsyncImage
+import coil3.request.CachePolicy
+import coil3.request.ImageRequest
+import coil3.request.crossfade
 import com.course.fleura.R
+import com.course.fleura.data.model.remote.ItemProductList
+import com.course.fleura.data.model.remote.StoreProduct
 import com.course.fleura.ui.common.formatCurrency
+import com.course.fleura.ui.common.formatCurrencyFromString
+import com.course.fleura.ui.screen.navigation.MainDestinations
 import com.course.fleura.ui.theme.base100
 import com.course.fleura.ui.theme.base500
 import com.course.fleura.ui.theme.secColor
@@ -37,13 +48,9 @@ import com.course.fleura.ui.theme.secColor
 @Composable
 fun FlowerItem(
     modifier: Modifier = Modifier,
-    onFlowerClick: (Long, String) -> Unit,
-    imageRes: Int,
-    storeName: String,
-    flowerName: String,
-    rating: Double,
-    reviewsCount: Int,
-    price: Long
+    onFlowerClick: (String, String) -> Unit,
+    setSelectedProduct: (StoreProduct) -> Unit,
+    item: StoreProduct
 ) {
     Card(
         shape = RoundedCornerShape(10.dp),
@@ -52,20 +59,48 @@ fun FlowerItem(
         ),
         modifier = modifier
             .width(140.dp)
+            .clickable(
+                onClick = {
+                    setSelectedProduct(item)
+                    onFlowerClick(item.id, MainDestinations.DASHBOARD_ROUTE)
+                          },
+                indication = null,
+                interactionSource = remember { MutableInteractionSource() }
+            )
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
-            Image(
-                painter = painterResource(id = imageRes),
-                contentDescription = null,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(10.dp))
-            )
+
+            if (item.picture.isNullOrEmpty()) {
+                Image(
+                    painter = painterResource(id = R.drawable.placeholder),  // Use a placeholder image
+                    contentDescription = "Store Image",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(110.dp)
+                        .clip(RoundedCornerShape(10.dp))
+                )
+            } else {
+                AsyncImage(
+                    model = item.picture[0].path,
+                    contentDescription = "Store Image",
+                    contentScale = ContentScale.Crop,
+                    placeholder = painterResource(id = R.drawable.placeholder),
+                    error = painterResource(id = R.drawable.placeholder),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(110.dp)
+                        .clip(RoundedCornerShape(10.dp))
+                )
+            }
+
             Spacer(modifier = Modifier.height(6.dp))
 
             Text(
-                text = "$storeName - $flowerName",
+                text = "${item.name} - ${item.store.name}",
                 fontSize = 14.sp,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
                 fontWeight = FontWeight.Medium,
             )
             Row(
@@ -80,13 +115,13 @@ fun FlowerItem(
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
-                    text = "$rating | $reviewsCount",
+                    text = "${item.rating} | 100",
                     fontSize = 10.sp,
                     color = base100
                 )
             }
             Text(
-                text = formatCurrency(price),
+                text = formatCurrencyFromString(item.price),
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary,
@@ -98,24 +133,59 @@ fun FlowerItem(
 
 @Composable
 fun MerchantFlowerItem(
-    onFlowerClick: (Long, String) -> Unit,
-    item: Flower
+    onFlowerClick: () -> Unit,
+    item: StoreProduct
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 16.dp),
+            .padding(vertical = 16.dp)
+            .clickable(
+                onClick = {
+                    onFlowerClick()
+                },
+                indication = null,
+                interactionSource = remember { MutableInteractionSource() }
+            ),
         verticalAlignment = Alignment.CenterVertically
     ) {
         // Gambar item
-        Image(
-            painter = painterResource(id = item.image),
-            contentDescription = null,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .size(110.dp)
-                .clip(RoundedCornerShape(10.dp))
-        )
+
+        if (item.picture.isNullOrEmpty()) {
+//            Log.e("MerchantFlowerItem", "Image URL is null or empty")
+            Image(
+                painter = painterResource(id = R.drawable.placeholder),  // Use a placeholder image
+                contentDescription = "Store Image",
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .size(110.dp)
+                    .clip(RoundedCornerShape(10.dp))
+            )
+        } else {
+//            Log.d("MerchantFlowerItem", "Image URL: ${item.picture}")
+//            AsyncImage(
+//                model = ImageRequest.Builder(LocalContext.current)
+//                    .data(item.picture.firstOrNull()?.path)
+//                    .crossfade(true)
+//                    .memoryCachePolicy(CachePolicy.ENABLED)
+//                    .build(),
+//                contentDescription = "Store Image",
+////                contentScale = ContentScale.Crop,
+//                placeholder = painterResource(id = R.drawable.placeholder),
+//                error = painterResource(id = R.drawable.placeholder),
+//                modifier = Modifier
+//                    .size(110.dp)
+//                    .clip(RoundedCornerShape(10.dp))
+//            )
+            AsyncImage(
+                model = item.picture.firstOrNull()?.path,
+                contentDescription = null,
+                placeholder = painterResource(R.drawable.placeholder),
+                error       = painterResource(R.drawable.placeholder),
+                contentScale = ContentScale.Crop,
+                modifier    = Modifier.size(110.dp).clip(RoundedCornerShape(10.dp)),
+            )
+        }
 
         Spacer(modifier = Modifier.width(18.dp))
 
@@ -125,13 +195,13 @@ fun MerchantFlowerItem(
                 .fillMaxWidth()
         ) {
             Text(
-                text = "flowerName",
+                text = item.name,
                 fontSize = 14.sp,
                 color = Color.Black,
                 fontWeight = FontWeight.Medium,
             )
             Text(
-                text = "Filled yourself up with Filled yourself up with this beaut this beautiful pack of pink flowers.",
+                text = item.description,
                 fontSize = 12.sp,
                 lineHeight = 18.sp,
                 maxLines = 2,
@@ -151,13 +221,13 @@ fun MerchantFlowerItem(
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
-                    text = "${item.rating} | ${item.reviewsCount}",
+                    text = "${item.rating} | 100",
                     fontSize = 10.sp,
                     color = base100
                 )
             }
             Text(
-                text = formatCurrency(item.price),
+                text = formatCurrencyFromString(item.price),
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary,

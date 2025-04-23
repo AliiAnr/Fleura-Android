@@ -1,9 +1,9 @@
 package com.course.fleura.ui.screen.dashboard.home
 
+import android.util.Log
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.PageInfo
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Card
@@ -28,7 +27,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -57,53 +55,216 @@ import com.course.fleura.ui.components.FakeCategory
 import com.course.fleura.ui.components.SearchBar
 import com.course.fleura.ui.screen.navigation.FleuraSurface
 import com.course.fleura.ui.theme.FleuraTheme
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import android.util.Log
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.gestures.snapping.SnapPosition
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.navigationBars
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.ui.unit.TextUnit
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.course.fleura.data.model.remote.Detail
+import com.course.fleura.data.model.remote.ItemProductList
+import com.course.fleura.data.model.remote.ListProductResponse
+import com.course.fleura.data.model.remote.ListStoreResponse
+import com.course.fleura.data.model.remote.StoreItem
+import com.course.fleura.data.model.remote.StoreProduct
+import com.course.fleura.data.model.remote.StoreProductResponse
+import com.course.fleura.ui.common.ArticleCategoryLoading
+import com.course.fleura.ui.common.ProductListLoading
+import com.course.fleura.ui.common.ResultResponse
+import com.course.fleura.ui.common.StoreListLoading
 import com.course.fleura.ui.components.Common
 import com.course.fleura.ui.components.CommonItem
 import com.course.fleura.ui.components.Flower
 import com.course.fleura.ui.components.FlowerItem
+import com.course.fleura.ui.components.ListStoreItem
 import com.course.fleura.ui.components.Store
-import com.course.fleura.ui.components.StoreItem
+import com.course.fleura.ui.screen.navigation.MainDestinations
 import com.course.fleura.ui.theme.base60
-import com.course.fleura.ui.theme.base80
+import kotlinx.coroutines.Delay
+import kotlinx.coroutines.delay
 
 @Composable
 fun Home(
+    modifier: Modifier,
     onSnackClick: (Long, String) -> Unit,
-    modifier: Modifier
+    onStoreClick: (String, String) -> Unit,
+    onFlowerClick: (String, String) -> Unit,
+    homeViewModel: HomeViewModel
 ) {
+
     // call API in this section
+    LaunchedEffect(Unit) {
+        // This ensures the API calls happen after the composable is fully set up
+//        delay(3000)
+        homeViewModel.loadInitialData()
+    }
+
+    val userState by homeViewModel.userDetailState.collectAsStateWithLifecycle(initialValue = ResultResponse.None)
+    val listProductData by homeViewModel.productListState.collectAsStateWithLifecycle(initialValue = ResultResponse.None)
+
+    val listStoreData by homeViewModel.storeListState.collectAsStateWithLifecycle(initialValue = ResultResponse.None)
+
+//    LaunchedEffect(userState) {
+//        when (userState) {
+//            is ResultResponse.Success -> {
+////                showCircularProgress = false
+//                Log.e(
+//                    "HOME SCRENN",
+//                    "SUGSESS: ${(userState as ResultResponse.Success).data}"
+//                )
+////                navigateToRoute(MainDestinations.LOGIN_ROUTE, true)
+//            }
+//
+//            is ResultResponse.Loading -> {
+////                showCircularProgress = true
+//                Log.e(
+//                    "HOME USER STET SCRENN",
+//                    "LOADING"
+//                )
+//            }
+//
+//            is ResultResponse.Error -> {
+//                Log.e(
+//                    "HOME USER STEET SCRENN",
+//                    "ERROR JIRR"
+//                )
+////                showCircularProgress = false
+//                Log.e(
+//                    "ERRROOR",
+//                    "USERSTEERR error: ${(userState as ResultResponse.Error).error}"
+//                )
+//                // Display error message to the user
+//                // Toast.makeText(context, otpState.message, Toast.LENGTH_SHORT).show()
+//            }
+//
+//            else -> {}
+//        }
+//    }
+
+    LaunchedEffect(listProductData) {
+        when (listProductData) {
+            is ResultResponse.Success -> {
+//                showCircularProgress = false
+                Log.e(
+                    "HOME SCRENN",
+                    "SUGSESS PRODUGGG: ${(listProductData as ResultResponse.Success).data}"
+                )
+//                navigateToRoute(MainDestinations.LOGIN_ROUTE, true)
+            }
+
+            is ResultResponse.Loading -> {
+//                showCircularProgress = true
+                Log.e(
+                    "HOME USER STET SCRENN",
+                    "LOADING"
+                )
+            }
+
+            is ResultResponse.Error -> {
+                Log.e(
+                    "HOME USER STEET SCRENN",
+                    "ERROR JIRR"
+                )
+//                showCircularProgress = false
+                Log.e(
+                    "ERRROOR",
+                    "USERSTEERR error: ${(listProductData as ResultResponse.Error).error}"
+                )
+                // Display error message to the user
+                // Toast.makeText(context, otpState.message, Toast.LENGTH_SHORT).show()
+            }
+
+            else -> {}
+        }
+    }
+
+//    LaunchedEffect(listStoreData) {
+//        when (listStoreData) {
+//            is ResultResponse.Success -> {
+////                showCircularProgress = false
+//                Log.e(
+//                    "HOME SCRENN",
+//                    "SUGSESS: ${(listStoreData as ResultResponse.Success).data}"
+//                )
+////                navigateToRoute(MainDestinations.LOGIN_ROUTE, true)
+//            }
+//
+//            is ResultResponse.Loading -> {
+////                showCircularProgress = true
+//                Log.e(
+//                    "HOME SCRENN",
+//                    "LOADING"
+//                )
+//            }
+//
+//            is ResultResponse.Error -> {
+//                Log.e(
+//                    "HOME SCRENN",
+//                    "ERROR JIRR"
+//                )
+////                showCircularProgress = false
+//                Log.e(
+//                    "ERRROOR",
+//                    "STORE error: ${(listStoreData as ResultResponse.Error).error}"
+//                )
+//                // Display error message to the user
+//                // Toast.makeText(context, otpState.message, Toast.LENGTH_SHORT).show()
+//            }
+//
+//            else -> {}
+//        }
+//    }
+
+    val isLoading = userState is ResultResponse.Loading ||
+            listStoreData is ResultResponse.Loading ||
+            listProductData is ResultResponse.Loading ||
+            (userState is ResultResponse.None && listStoreData is ResultResponse.None && listProductData is ResultResponse.None)
+
+    // Extract userData
+    val userData = when (userState) {
+        is ResultResponse.Success -> (userState as ResultResponse.Success<Detail?>).data
+        else -> null
+    }
+
+    // Extract stores from listStoreData
+    val storeData = when (listStoreData) {
+        is ResultResponse.Success -> (listStoreData as ResultResponse.Success<ListStoreResponse>).data.data
+        else -> emptyList()
+    }
+
+    val productData = when (listProductData) {
+        is ResultResponse.Success -> (listProductData as ResultResponse.Success<StoreProductResponse>).data.data
+        else -> emptyList()
+    }
+
     Home(
         modifier = modifier,
-        onSnackClick = onSnackClick,
-        data = 0
+        data = 0,
+        userData = userData,
+        storeData = storeData,
+        productData = productData,
+        isLoding = isLoading,
+        onStoreClick = onStoreClick,
+        onFlowerClick = onFlowerClick,
+        setSelectedProduct = homeViewModel::setSelectedProduct
     )
 }
 
 @Composable
 private fun Home(
     modifier: Modifier = Modifier,
-    onSnackClick: (Long, String) -> Unit,
+    onStoreClick: (String, String) -> Unit,
+    onFlowerClick: (String, String) -> Unit,
+    setSelectedProduct: (StoreProduct) -> Unit,
+    userData: Detail?,
+    productData: List<StoreProduct>,
+    storeData: List<StoreItem>,
+    isLoding: Boolean = false,
     data: Int = 0
 ) {
     var textState by remember { mutableStateOf("") } // Menggunakan remember untuk state
@@ -120,7 +281,9 @@ private fun Home(
                     .statusBarsPadding(),
             ) {
                 item {
-                    Header()
+                    Header(
+                        name = userData?.name ?: "User"
+                    )
                 }
                 item {
                     Spacer(modifier = Modifier.height(12.dp))
@@ -139,6 +302,7 @@ private fun Home(
                 item {
                     Spacer(modifier = Modifier.height(14.dp))
                 }
+
                 item {
                     ListCategory(
                         onCategoryClick = { id, name ->
@@ -165,29 +329,41 @@ private fun Home(
                     Spacer(modifier = Modifier.height(12.dp))
                 }
                 item {
-                    ListStores(
-                        storeList = FakeCategory.stores,
-                        onNavigate = {
-                            // call API
-                        },
-                        onStoreClick = { id, name ->
-                            // call API
-                        }
-                    )
+                    if (isLoding) {
+                        StoreListLoading()
+
+                    } else {
+                        ListStores(
+                            storeList = storeData,
+                            onNavigate = {
+                                // call
+                            },
+                            onStoreClick = { storeId, origin ->
+                                onStoreClick(storeId, origin)
+                            }
+                        )
+                    }
                 }
+
                 item {
                     Spacer(modifier = Modifier.height(12.dp))
                 }
+
                 item {
-                    ListFlowers(
-                        flowerList = FakeCategory.flowers,
-                        onNavigate = {
-                            // call API
-                        },
-                        onStoreClick = { id, name ->
-                            // call API
-                        }
-                    )
+                    if (isLoding){
+                        ProductListLoading()
+                    } else {
+                        ListFlowers(
+                            flowerList = productData,
+                            onNavigate = {
+                                // call API
+                            },
+                            setSelectedProduct = setSelectedProduct,
+                            onFlowerClick = { productId, origin ->
+                                onFlowerClick(productId, origin)
+                            }
+                        )
+                    }
                 }
                 item {
                     Spacer(modifier = Modifier.height(12.dp))
@@ -216,7 +392,8 @@ private fun Home(
 
 @Composable
 private fun Header(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    name: String
 ) {
     Row(
         modifier = Modifier
@@ -241,7 +418,7 @@ private fun Header(
                             fontWeight = FontWeight.Bold
                         )
                     ) {
-                        append("Ali!")
+                        append("$name!")
                     }
                 },
                 fontSize = 26.sp,
@@ -404,9 +581,9 @@ private fun IndicatorDots(
 @Composable
 fun ListStores(
     modifier: Modifier = Modifier,
-    storeList: List<Store>,
+    storeList: List<StoreItem>,
     onNavigate: () -> Unit,
-    onStoreClick: (Long, String) -> Unit
+    onStoreClick: (String, String) -> Unit
 ) {
     Column(modifier = Modifier.padding(horizontal = 20.dp)) {
         Row(
@@ -434,10 +611,12 @@ fun ListStores(
             horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             items(storeList, key = { it.id }) { store ->
-                StoreItem(
-                    imageRes = store.image,
+                ListStoreItem(
+                    storeId = store.id,
+                    imageUrl = store.picture,
                     name = store.name,
-                    openingHours = store.openHours
+                    openingHours = store.operationalHour,
+                    onStoreClick = onStoreClick
                 )
             }
 
@@ -448,9 +627,10 @@ fun ListStores(
 @Composable
 fun ListFlowers(
     modifier: Modifier = Modifier,
-    flowerList: List<Flower>,
+    flowerList: List<StoreProduct>,
     onNavigate: () -> Unit,
-    onStoreClick: (Long, String) -> Unit
+    setSelectedProduct: (StoreProduct) -> Unit,
+    onFlowerClick: (String, String) -> Unit
 ) {
     Column(modifier = Modifier.padding(horizontal = 20.dp)) {
         Row(
@@ -479,15 +659,9 @@ fun ListFlowers(
         ) {
             items(flowerList, key = { it.id }) { flower ->
                 FlowerItem(
-                    onFlowerClick = { id, name ->
-                        // call API
-                    },
-                    imageRes = flower.image,
-                    storeName = flower.storeName,
-                    flowerName = flower.flowerName,
-                    rating = flower.rating,
-                    reviewsCount = flower.reviewsCount,
-                    price = flower.price
+                    onFlowerClick = onFlowerClick,
+                   item = flower,
+                    setSelectedProduct = setSelectedProduct
                 )
             }
 
@@ -579,6 +753,6 @@ fun SectionText(
 @Composable
 fun GreetingHeaderPreview() {
     FleuraTheme {
-        Header()
+//        Header()
     }
 }
