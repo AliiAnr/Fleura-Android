@@ -8,21 +8,21 @@ import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.datastore.core.DataStore
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavBackStackEntry
@@ -31,7 +31,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navArgument
 import com.course.fleura.data.resource.Resource
-import com.course.fleura.data.store.DataStoreManager
+import com.course.fleura.di.factory.CartViewModelFactory
 import com.course.fleura.di.factory.HomeViewModelFactory
 import com.course.fleura.di.factory.LoginViewModelFactory
 import com.course.fleura.di.factory.OnBoardingViewModelFactory
@@ -45,16 +45,19 @@ import com.course.fleura.ui.screen.authentication.otp.OtpScreen
 import com.course.fleura.ui.screen.authentication.register.RegisterScreen
 import com.course.fleura.ui.screen.authentication.username.UsernameScreen
 import com.course.fleura.ui.screen.authentication.welcome.WelcomeScreen
+import com.course.fleura.ui.screen.dashboard.cart.CartViewModel
 import com.course.fleura.ui.screen.dashboard.detail.history.OrderHistory
 import com.course.fleura.ui.screen.dashboard.detail.home.DetailTest
 import com.course.fleura.ui.screen.dashboard.detail.home.Merchant
 import com.course.fleura.ui.screen.dashboard.detail.order.ConfirmOrder
-import com.course.fleura.ui.screen.dashboard.detail.order.DetailTranferOrder
+import com.course.fleura.ui.screen.dashboard.detail.order.DetailTransferOrder
 import com.course.fleura.ui.screen.dashboard.detail.order.FlowerDetail
 import com.course.fleura.ui.screen.dashboard.detail.order.GeneralOrder
 import com.course.fleura.ui.screen.dashboard.detail.profile.AddAdress
+import com.course.fleura.ui.screen.dashboard.detail.profile.AddressDetail
 import com.course.fleura.ui.screen.dashboard.detail.profile.GeneralDetail
 import com.course.fleura.ui.screen.dashboard.home.HomeViewModel
+import com.course.fleura.ui.screen.dashboard.profile.ProfileViewModel
 import com.course.fleura.ui.screen.navigation.DetailDestinations
 import com.course.fleura.ui.screen.navigation.FleuraScaffold
 import com.course.fleura.ui.screen.navigation.MainDestinations
@@ -68,14 +71,15 @@ import com.course.fleura.ui.screen.navigation.spatialExpressiveSpring
 import com.course.fleura.ui.screen.onboarding.OnBoardingScreen
 import com.course.fleura.ui.screen.onboarding.OnBoardingViewModel
 import com.course.fleura.ui.theme.FleuraTheme
-import java.util.prefs.Preferences
 
 @Composable
 fun FleuraApp() {
 
-    val onBoardingViewModel : OnBoardingViewModel = viewModel(factory = OnBoardingViewModelFactory.getInstance(Resource.appContext))
+    val onBoardingViewModel: OnBoardingViewModel =
+        viewModel(factory = OnBoardingViewModelFactory.getInstance(Resource.appContext))
 
-    val onBoardingStatus = onBoardingViewModel.onBoardingStatus.collectAsStateWithLifecycle(initialValue = false)
+    val onBoardingStatus =
+        onBoardingViewModel.onBoardingStatus.collectAsStateWithLifecycle(initialValue = false)
 
     val loginViewModel: LoginScreenViewModel = viewModel(
         factory = LoginViewModelFactory.getInstance(
@@ -100,6 +104,18 @@ fun FleuraApp() {
         )
     )
 
+    val cartViewModel: CartViewModel = viewModel(
+        factory = CartViewModelFactory.getInstance(
+            Resource.appContext
+        )
+    )
+
+    val profileViewModel: ProfileViewModel = viewModel(
+        factory = ProfileViewModelFactory.getInstance(
+            Resource.appContext
+        )
+    )
+
     FleuraTheme {
         val fleuraNavController = rememberFleuraNavController()
         SharedTransitionLayout {
@@ -110,8 +126,10 @@ fun FleuraApp() {
                 NavHost(
                     navController = fleuraNavController.navController,
                     startDestination =
-                        destination
-                    ,
+                        destination,
+//                        DetailDestinations.DETAIL_GENERAL_ROUTE,
+//                        DetailDestinations.DETAIL_CONFIRM_ORDER,
+//                        DetailDestinations.DETAIL_TRANSFER_ORDER,
                     contentAlignment = Alignment.Center
                 ) {
                     composableWithCompositionLocal(
@@ -184,7 +202,11 @@ fun FleuraApp() {
                             onSnackSelected = fleuraNavController::navigateToSnackDetail,
                             onStoreSelected = fleuraNavController::navigateToStoreDetail,
                             onFlowerSelected = fleuraNavController::navigateToFlowerDetail,
-                            homeViewModel = homeViewModel
+                            onOrderDetail = fleuraNavController::navigateToOrderDetail,
+                            onProfileDetail = fleuraNavController::navigateToProfileDetail,
+                            homeViewModel = homeViewModel,
+                            cartViewModel = cartViewModel,
+                            profileViewModel = profileViewModel,
                         )
                     }
 
@@ -200,6 +222,11 @@ fun FleuraApp() {
                         route = "${DetailDestinations.DETAIL_FLOWER}/" +
                                 "{${MainDestinations.FLOWER_ID_KEY}}" +
                                 "?origin={${MainDestinations.ORIGIN}}",
+                        arguments = listOf(
+                            navArgument(MainDestinations.FLOWER_ID_KEY) {
+                                type = NavType.StringType
+                            }
+                        ),
                     ) { backStackEntry ->
                         val arguments = requireNotNull(backStackEntry.arguments)
                         val flowerId = arguments.getString(MainDestinations.FLOWER_ID_KEY)
@@ -213,7 +240,11 @@ fun FleuraApp() {
                                 selectedProduct = it,
                                 homeViewModel = homeViewModel,
                                 onStoreClick = { storeid, origin ->
-                                    fleuraNavController.navigateToStoreDetail(storeid, origin, backStackEntry)
+                                    fleuraNavController.navigateToStoreDetail(
+                                        storeid,
+                                        origin,
+                                        backStackEntry
+                                    )
                                 },
                                 onBackClick = fleuraNavController::upPress,
                             )
@@ -240,7 +271,11 @@ fun FleuraApp() {
                             origin = origin ?: "NULL",
                             onBackClick = fleuraNavController::upPress,
                             onFlowerClick = { flowerId, from ->
-                                fleuraNavController.navigateToFlowerDetail(flowerId, from, backStackEntry)
+                                fleuraNavController.navigateToFlowerDetail(
+                                    flowerId,
+                                    from,
+                                    backStackEntry
+                                )
                             },
                             storeViewModel = viewModel(
                                 factory = StoreViewModelFactory.getInstance(
@@ -252,42 +287,219 @@ fun FleuraApp() {
                     }
 
                     composableWithCompositionLocal(
-                        route = DetailDestinations.DETAIL_PROFILE_ROUTE
+                        route = "${DetailDestinations.DETAIL_PROFILE_ROUTE}/" +
+                                "{${MainDestinations.GENERAL_PROFILE_ID_KEY}}",
+                        arguments = listOf(
+                            navArgument(MainDestinations.GENERAL_PROFILE_ID_KEY) {
+                                type = NavType.StringType
+                            }
+                        ),
+
                     ) { backStackEntry ->
-                        //ambil location dari arguments
+                        val arguments = requireNotNull(backStackEntry.arguments)
+                        val generalProfileLocation = arguments.getString(MainDestinations.GENERAL_PROFILE_ID_KEY)
+
                         GeneralDetail(
-                            id = 0,
-                            location = "Address"
+                            location = generalProfileLocation ?: "Address",
+                            onBackClick = fleuraNavController::upPress,
+                            profileViewModel = profileViewModel,
+                            onAddAddressClick = {
+                                fleuraNavController.navigateToAddAddress(
+                                    DetailDestinations.DETAIL_PROFILE_ROUTE,
+                                    backStackEntry
+                                )
+                            },
+                            onAddressClick = { id ->
+                                fleuraNavController.navigateToAddressDetail(
+                                    id,
+                                    backStackEntry
+                                )
+                            }
                         )
                     }
 
                     composableWithCompositionLocal(
-                        route = DetailDestinations.DETAIL_GENERAL_ROUTE
+                        route = "${DetailDestinations.DETAIL_GENERAL_ROUTE}/" +
+                                "{${MainDestinations.GENERAL_ORDER_ID_KEY}}",
+                        arguments = listOf(
+                            navArgument(MainDestinations.GENERAL_ORDER_ID_KEY) {
+                                type = NavType.StringType
+                            }
+                        ),
+                        enterTransition = {
+                            // Muncul dari kanan
+                            slideInHorizontally(
+                                initialOffsetX = { it },
+                                animationSpec = tween(durationMillis = 350)
+                            )
+                        },
+                        exitTransition = {
+                            // Keluar ke kanan
+                            slideOutHorizontally(
+                                targetOffsetX = { it },
+                                animationSpec = tween(durationMillis = 350)
+                            )
+                        },
+                        popEnterTransition = {
+                            // Jika balik (back), bisa juga dari kiri ke posisi normal
+                            slideInHorizontally(
+                                initialOffsetX = { it },
+                                animationSpec = tween(durationMillis = 350)
+                            )
+                        },
+                        popExitTransition = {
+                            // Jika back, keluar ke kanan
+                            slideOutHorizontally(
+                                targetOffsetX = { it },
+                                animationSpec = tween(durationMillis = 350)
+                            )
+                        }
                     ) { backStackEntry ->
+
+                        val arguments = requireNotNull(backStackEntry.arguments)
+                        val generalOrderLocation = arguments.getString(MainDestinations.GENERAL_ORDER_ID_KEY)
+
                         GeneralOrder(
-                            id = 0,
-                            location = "Payment Process"
+                            onBackClick = fleuraNavController::upPress,
+                            cartViewModel = cartViewModel,
+                            location = generalOrderLocation ?: "Payment Method",
                         )
                     }
 
                     composableWithCompositionLocal(
-                        route = DetailDestinations.DETAIL_ADD_ADDRESS
+                        route = "${DetailDestinations.DETAIL_ADD_ADDRESS}/" + "{${MainDestinations.DETAIL_ADDRESS_ID_KEY}}",
+                        arguments = listOf(
+                            navArgument(MainDestinations.DETAIL_ADDRESS_ID_KEY) {
+                                type = NavType.StringType
+                            }
+                        ),
+                        enterTransition = {
+                            // Muncul dari kanan
+                            slideInHorizontally(
+                                initialOffsetX = { it },
+                                animationSpec = tween(durationMillis = 350)
+                            )
+                        },
+                        exitTransition = {
+                            // Keluar ke kanan
+                            slideOutHorizontally(
+                                targetOffsetX = { it },
+                                animationSpec = tween(durationMillis = 350)
+                            )
+                        },
+                        popEnterTransition = {
+                            // Jika balik (back), bisa juga dari kiri ke posisi normal
+                            slideInHorizontally(
+                                initialOffsetX = { it },
+                                animationSpec = tween(durationMillis = 350)
+                            )
+                        },
+                        popExitTransition = {
+                            // Jika back, keluar ke kanan
+                            slideOutHorizontally(
+                                targetOffsetX = { it },
+                                animationSpec = tween(durationMillis = 350)
+                            )
+                        }
                     ) { backStackEntry ->
-                        AddAdress()
+
+                        val arguments = requireNotNull(backStackEntry.arguments)
+                        val location = arguments.getString(MainDestinations.DETAIL_ADDRESS_ID_KEY)
+
+                        AddAdress(
+                            onBackClick = fleuraNavController::upPress,
+                            profileViewModel = profileViewModel
+                        )
                     }
 
                     composableWithCompositionLocal(
-                        route = DetailDestinations.DETAIL_CONFIRM_ORDER
+                        route = "${DetailDestinations.DETAIL_ADDRESS}/" + "{${MainDestinations.ADDRESS_ID_KEY}}",
+                        arguments = listOf(
+                            navArgument(MainDestinations.ADDRESS_ID_KEY) {
+                                type = NavType.StringType
+                            }
+                        ),
+                        enterTransition = {
+                            // Muncul dari kanan
+                            slideInHorizontally(
+                                initialOffsetX = { it },
+                                animationSpec = tween(durationMillis = 350)
+                            )
+                        },
+                        exitTransition = {
+                            // Keluar ke kanan
+                            slideOutHorizontally(
+                                targetOffsetX = { it },
+                                animationSpec = tween(durationMillis = 350)
+                            )
+                        },
+                        popEnterTransition = {
+                            // Jika balik (back), bisa juga dari kiri ke posisi normal
+                            slideInHorizontally(
+                                initialOffsetX = { it },
+                                animationSpec = tween(durationMillis = 350)
+                            )
+                        },
+                        popExitTransition = {
+                            // Jika back, keluar ke kanan
+                            slideOutHorizontally(
+                                targetOffsetX = { it },
+                                animationSpec = tween(durationMillis = 350)
+                            )
+                        }
                     ) { backStackEntry ->
-                        ConfirmOrder(
-                            flowerId = 0
-                        )
+
+                        val arguments = requireNotNull(backStackEntry.arguments)
+                        val addressId = arguments.getString(MainDestinations.ADDRESS_ID_KEY)
+
+                        val selectedAddressItem by profileViewModel.selectedAddressItem.collectAsStateWithLifecycle()
+
+                        selectedAddressItem?.let {
+                            AddressDetail(
+                                onBackClick = fleuraNavController::upPress,
+                                profileViewModel = profileViewModel,
+                                selectedAddressItem = it
+                            )
+                        }
+                    }
+
+                    composableWithCompositionLocal(
+                        route = "${DetailDestinations.DETAIL_CONFIRM_ORDER}/" +
+                                "{${MainDestinations.STORE_ID_KEY}}" +
+                                "?origin={${MainDestinations.ORIGIN}}",
+                        arguments = listOf(
+                            navArgument(MainDestinations.STORE_ID_KEY) {
+                                type = NavType.StringType
+                            }
+                        ),
+                    ) { backStackEntry ->
+                        val arguments = requireNotNull(backStackEntry.arguments)
+                        val storeId = arguments.getString(MainDestinations.STORE_ID_KEY)
+                        val origin = arguments.getString(MainDestinations.ORIGIN)
+
+                        val selectedCartItem by cartViewModel.selectedCartItem.collectAsStateWithLifecycle()
+
+                        selectedCartItem?.let {
+                            ConfirmOrder(
+                                storeId = storeId ?: "",
+                                origin = origin ?: "",
+                                selectedCartItem = it,
+                                cartViewModel = cartViewModel,
+                                onBackClick = fleuraNavController::upPress,
+                                onChooseClick = { location ->
+                                    fleuraNavController.navigateToGeneralOrder(
+                                        location,
+                                        backStackEntry
+                                    )
+                                },
+                            )
+                        }
                     }
 
                     composableWithCompositionLocal(
                         route = DetailDestinations.DETAIL_TRANSFER_ORDER
                     ) { backStackEntry ->
-                        DetailTranferOrder(
+                        DetailTransferOrder(
                             id = 0
                         )
                     }
@@ -325,7 +537,11 @@ fun MainContainer(
     onSnackSelected: (Long, String, NavBackStackEntry) -> Unit,
     onStoreSelected: (String, String, NavBackStackEntry) -> Unit,
     onFlowerSelected: (String, String, NavBackStackEntry) -> Unit,
-    homeViewModel: HomeViewModel
+    onOrderDetail: (String, String, NavBackStackEntry) -> Unit,
+    onProfileDetail: (String, NavBackStackEntry) -> Unit,
+    homeViewModel: HomeViewModel,
+    cartViewModel: CartViewModel,
+    profileViewModel: ProfileViewModel
 ) {
     val fleuraScaffoldState = rememberFleuraScaffoldState()
     val nestedNavController = rememberFleuraNavController()
@@ -375,10 +591,15 @@ fun MainContainer(
                 onSnackSelected = onSnackSelected,
                 onStoreClick = onStoreSelected,
                 onFlowerClick = onFlowerSelected,
+                onOrderDetail = onOrderDetail,
+                onProfileDetail = onProfileDetail,
+                homeViewModel = homeViewModel,
+                cartViewModel = cartViewModel,
+                profileViewModel = profileViewModel,
                 modifier = Modifier
                     .padding(padding)
                     .consumeWindowInsets(padding),
-                homeViewModel = homeViewModel
+
             )
         }
     }

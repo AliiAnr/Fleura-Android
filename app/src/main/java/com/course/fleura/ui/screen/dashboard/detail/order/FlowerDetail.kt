@@ -265,7 +265,7 @@ private fun FlowerDetail(
                     contentAlignment = Alignment.Center,
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(Color.Black.copy(alpha = 0.8f))
+                        .background(Color.Black.copy(alpha = 0.3f))
                 ) {
                     CircularProgressIndicator(color = primaryLight)
                 }

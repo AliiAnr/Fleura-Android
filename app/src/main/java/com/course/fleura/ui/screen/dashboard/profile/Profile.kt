@@ -1,5 +1,6 @@
 package com.course.fleura.ui.screen.dashboard.profile
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -17,62 +18,77 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.course.fleura.R
+import com.course.fleura.data.model.remote.Detail
+import com.course.fleura.ui.common.ResultResponse
 import com.course.fleura.ui.components.AccountList
+import com.course.fleura.ui.components.CustomButton
+import com.course.fleura.ui.components.CustomPopUpDialog
 import com.course.fleura.ui.components.CustomTopAppBar
 import com.course.fleura.ui.components.FakeCategory
 import com.course.fleura.ui.components.Profile
 import com.course.fleura.ui.components.TEMP_ID
 import com.course.fleura.ui.screen.dashboard.home.SectionText
-import com.course.fleura.ui.screen.dashboard.point.Point
 import com.course.fleura.ui.screen.navigation.FleuraSurface
-import com.course.fleura.ui.theme.base20
 import com.course.fleura.ui.theme.base40
 
 @Composable
 fun Profile(
-    modifier: Modifier
+    modifier: Modifier,
+    onProfileDetailClick: (String) -> Unit,
+    profileViewModel: ProfileViewModel
 ) {
+
+    LaunchedEffect(Unit) {
+        profileViewModel.loadInitialData()
+    }
+
+    val profileState by profileViewModel.profileDetailState.collectAsStateWithLifecycle(initialValue = ResultResponse.None)
+
+    LaunchedEffect(profileState) {
+        Log.e("PROFILE STATE", profileState.toString())
+    }
+
+    val userData = when (profileState) {
+        is ResultResponse.Success -> (profileState as ResultResponse.Success<Detail?>).data
+        else -> null
+    }
+
     Profile(
         modifier = modifier,
-        onItemClick = { _, _ ->
-
-        },
-        data = Profile(
-            image = R.drawable.profile_temp,
-            name = "John Doe",
-            email = "alidaldia@gmail.com",
-            phone = "081234567890",
-            points = 1020,
-            address = listOf("Jl. Raya Bogor", "Bogor", "Jawa Barat", "Indonesia")
-        )
+        onProfileDetailClick = onProfileDetailClick,
+        userData = userData
     )
 }
 
 @Composable
 private fun Profile(
     modifier: Modifier = Modifier,
-    onItemClick: (Long, String) -> Unit,
-    data: Profile
+    onProfileDetailClick: (String) -> Unit,
+    userData: Detail?
 ) {
+
     FleuraSurface(
         modifier = modifier.fillMaxSize(),
     ) {
@@ -91,32 +107,28 @@ private fun Profile(
                         title = "Profile",
                     )
                 }
+
                 item {
                     Spacer(modifier = Modifier.height(4.dp))
-                }
-                item {
                     Header(
-                        data = data
+                        name = userData?.name ?: "No Name",
+                        email = userData?.email ?: "No Email",
                     )
                 }
+
                 item {
                     Spacer(modifier = Modifier.height(12.dp))
-                }
-                item {
                     AccountList(
                         data = FakeCategory.accountItem,
-                        onItemClick = onItemClick
+                        onProfileDetailClick = onProfileDetailClick
                     )
                 }
 
                 item {
                     Spacer(modifier = Modifier.height(12.dp))
-                }
-
-                item {
                     GeneralList(
                         data = FakeCategory.generalItem,
-                        onItemClick = onItemClick
+                        onProfileDetailClick = onProfileDetailClick
                     )
                 }
             }
@@ -127,7 +139,8 @@ private fun Profile(
 @Composable
 private fun Header(
     modifier: Modifier = Modifier,
-    data: Profile
+    name: String,
+    email: String
 ) {
     Row(
         modifier = Modifier
@@ -137,27 +150,33 @@ private fun Header(
         horizontalArrangement = Arrangement.Start,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Image(
-            painter = painterResource(id = data.image),
-            contentDescription = null,
-            contentScale = ContentScale.Crop,
+        Box(
+            contentAlignment = Alignment.Center,
             modifier = Modifier
                 .size(70.dp)
-                .clip(RoundedCornerShape(100.dp))
-        )
+                .clip(CircleShape)
+                .background(Color(0xFFC8A2C8))
+        ) {
+            Text(
+                text = name.firstOrNull()?.uppercase() ?: "",
+                color = Color.White,
+                fontSize = 28.sp,
+                fontWeight = FontWeight.Bold,
+            )
+        }
         Spacer(modifier = Modifier.width(20.dp))
         Column(
             modifier = modifier.fillMaxHeight(),
             verticalArrangement = Arrangement.Center
         ) {
             Text(
-                text = data.name,
+                text = name,
                 color = Color.Black,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Medium
             )
             Text(
-                text = data.email,
+                text = email,
                 color = Color.Black,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Medium
@@ -172,7 +191,7 @@ fun MenuItem(
     icon: Int,
     id: Long,
     title: String,
-    onItemClick: (Long, String) -> Unit
+    onProfileDetailClick: (String) -> Unit
 ) {
     Column(
         modifier = modifier
@@ -184,7 +203,9 @@ fun MenuItem(
                 .fillMaxSize()
                 .padding(vertical = 8.dp)
                 .clickable {
-                    onItemClick(id, title)
+//                    if (title != "Language") {
+                    onProfileDetailClick(title)
+//                    }
                 },
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -193,12 +214,12 @@ fun MenuItem(
                 contentDescription = "Navigate",
                 tint = Color.Black,
                 modifier = Modifier
-                    .size(16.dp)
+                    .size(18.dp)
             )
             Spacer(modifier = Modifier.width(16.dp))
             Text(
                 text = title,
-                fontSize = 12.sp,
+                fontSize = 14.sp,
                 fontWeight = FontWeight.Normal,
                 color = Color.Black,
                 modifier = Modifier.weight(1f)
@@ -219,7 +240,7 @@ fun MenuItem(
 private fun AccountList(
     modifier: Modifier = Modifier,
     data: List<AccountList>,
-    onItemClick: (Long, String) -> Unit,
+    onProfileDetailClick: (String) -> Unit,
 ) {
     Column(
 
@@ -227,7 +248,7 @@ private fun AccountList(
         SectionText(
             title = "My Account",
             fontWeight = FontWeight.W700,
-            fontSize = 14.sp,
+            fontSize = 16.sp,
             color = MaterialTheme.colorScheme.primary
         )
         Spacer(modifier = Modifier.height(4.dp))
@@ -236,7 +257,7 @@ private fun AccountList(
                 icon = it.icon,
                 id = TEMP_ID,
                 title = it.name,
-                onItemClick = onItemClick
+                onProfileDetailClick = onProfileDetailClick
             )
         }
 
@@ -247,7 +268,7 @@ private fun AccountList(
 private fun GeneralList(
     modifier: Modifier = Modifier,
     data: List<AccountList>,
-    onItemClick: (Long, String) -> Unit,
+    onProfileDetailClick: (String) -> Unit,
 ) {
     Column(
 
@@ -255,7 +276,7 @@ private fun GeneralList(
         SectionText(
             title = "General",
             fontWeight = FontWeight.W700,
-            fontSize = 14.sp,
+            fontSize = 16.sp,
             color = MaterialTheme.colorScheme.primary
         )
         Spacer(modifier = Modifier.height(4.dp))
@@ -264,7 +285,7 @@ private fun GeneralList(
                 icon = it.icon,
                 id = TEMP_ID,
                 title = it.name,
-                onItemClick = onItemClick,
+                onProfileDetailClick = onProfileDetailClick,
             )
         }
 

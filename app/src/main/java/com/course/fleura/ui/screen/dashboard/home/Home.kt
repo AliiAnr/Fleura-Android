@@ -83,6 +83,7 @@ import com.course.fleura.ui.components.Flower
 import com.course.fleura.ui.components.FlowerItem
 import com.course.fleura.ui.components.ListStoreItem
 import com.course.fleura.ui.components.Store
+import com.course.fleura.ui.screen.dashboard.profile.ProfileViewModel
 import com.course.fleura.ui.screen.navigation.MainDestinations
 import com.course.fleura.ui.theme.base60
 import kotlinx.coroutines.Delay
@@ -94,7 +95,8 @@ fun Home(
     onSnackClick: (Long, String) -> Unit,
     onStoreClick: (String, String) -> Unit,
     onFlowerClick: (String, String) -> Unit,
-    homeViewModel: HomeViewModel
+    homeViewModel: HomeViewModel,
+    profileViewModel: ProfileViewModel
 ) {
 
     // call API in this section
@@ -102,9 +104,11 @@ fun Home(
         // This ensures the API calls happen after the composable is fully set up
 //        delay(3000)
         homeViewModel.loadInitialData()
+        profileViewModel.loadInitialData()
     }
 
     val userState by homeViewModel.userDetailState.collectAsStateWithLifecycle(initialValue = ResultResponse.None)
+
     val listProductData by homeViewModel.productListState.collectAsStateWithLifecycle(initialValue = ResultResponse.None)
 
     val listStoreData by homeViewModel.storeListState.collectAsStateWithLifecycle(initialValue = ResultResponse.None)

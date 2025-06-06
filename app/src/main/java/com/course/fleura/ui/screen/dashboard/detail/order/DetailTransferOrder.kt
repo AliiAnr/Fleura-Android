@@ -1,19 +1,17 @@
 package com.course.fleura.ui.screen.dashboard.detail.order
 
-import android.widget.Space
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -28,7 +26,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -40,18 +37,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.TextLayoutResult
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil3.compose.AsyncImage
 import com.course.fleura.R
+import com.course.fleura.data.model.remote.DataCartItem
 import com.course.fleura.ui.common.formatCurrency
 import com.course.fleura.ui.components.CartItem
 import com.course.fleura.ui.components.CartOrder
@@ -65,17 +60,15 @@ import com.course.fleura.ui.theme.base500
 import com.course.fleura.ui.theme.base60
 import com.course.fleura.ui.theme.err
 import com.course.fleura.ui.theme.secColor
-import com.course.fleura.ui.theme.tert
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 import kotlinx.datetime.format
 import kotlinx.datetime.format.char
 import network.chaintech.kmp_date_time_picker.ui.date_range_picker.formatToString
 import network.chaintech.kmp_date_time_picker.utils.now
-import kotlin.compareTo
 
 @Composable
-fun DetailTranferOrder(
+fun DetailTransferOrder(
     modifier: Modifier = Modifier,
     id: Long,
 ) {
@@ -146,19 +139,19 @@ private fun DetailTransferOrder(
 
                         item {
                             Spacer(modifier = Modifier.height(8.dp))
-                            OrderStatus(
+                            DetailOrderStatus(
                                 isDelivery = true
                             )
                         }
 
                         item {
                             Spacer(modifier = Modifier.height(8.dp))
-                            AddressSection()
+//                            DetailOrderAddressSection()
                         }
 
                         item {
                             Spacer(modifier = Modifier.height(8.dp))
-                            MerchantProfileSection()
+//                            DetailOrderMerchantProfileSection()
                         }
 
                         item {
@@ -178,12 +171,12 @@ private fun DetailTransferOrder(
 
                                 orderData?.forEachIndexed { index, item ->
                                     val isLastItem = index == orderData.size - 1
-                                    OrderSummaryItem(
-                                        quantity = item.quantity,
-                                        name = item.cartOrder.name,
-                                        description = item.cartOrder.description,
-                                        price = item.cartOrder.price
-                                    )
+//                                    OrderSummaryItem(
+//                                        quantity = item.quantity,
+//                                        name = item.cartOrder.name,
+//                                        description = item.cartOrder.description,
+//                                        price = item.cartOrder.price
+//                                    )
 
                                     if (!isLastItem) {
                                         HorizontalDivider(
@@ -216,7 +209,7 @@ private fun DetailTransferOrder(
 
                         item {
                             Spacer(modifier = Modifier.height(8.dp))
-                            TotalPriceSection()
+                            DetailOrderTotalPriceSection()
                         }
 
                         item {
@@ -296,12 +289,19 @@ private fun PaymentStatusSection(
 }
 
 @Composable
-private fun AddressSection(
-    modifier: Modifier = Modifier
+private fun DetailOrderAddressSection(
+    modifier: Modifier = Modifier,
+    onAddressClick: (String) -> Unit
 ) {
     Row(
         modifier = modifier
             .fillMaxWidth()
+            .clickable(
+                indication = null,
+                interactionSource = remember { MutableInteractionSource() }
+            ) {
+                onAddressClick("")
+            }
             .background(Color.White)
             .padding(horizontal = 20.dp, vertical = 12.dp),
         horizontalArrangement = Arrangement.SpaceBetween
@@ -344,7 +344,7 @@ private fun AddressSection(
 }
 
 @Composable
-private fun OrderStatus(
+private fun DetailOrderStatus(
     modifier: Modifier = Modifier,
     currentStatus: String = "completed",
     isDelivery: Boolean
@@ -352,7 +352,7 @@ private fun OrderStatus(
     val statuses = if (isDelivery) {
         listOf("process", "delivery", "completed")
     } else {
-        listOf("process", "ready_+to_pickup", "completed")
+        listOf("process", "ready_to_pickup", "completed")
     }
 
     Box(
@@ -609,7 +609,7 @@ private fun PaymentSummary(
 }
 
 @Composable
-private fun TotalPriceSection(
+private fun DetailOrderTotalPriceSection(
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -785,6 +785,51 @@ fun AddReviewSection(
                     innerTextField()
                 }
             },
+        )
+    }
+}
+
+@Composable
+fun DetailOrderMerchantProfileSection(
+    modifier: Modifier = Modifier,
+    storeData: DataCartItem
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(Color.White)
+            .padding(horizontal = 20.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+
+        if (storeData.storePicture.isNullOrEmpty()) {
+            Image(
+                painter = painterResource(id = R.drawable.placeholder),  // Use a placeholder image
+                contentDescription = "Store Image",
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .size(50.dp)
+                    .clip(RoundedCornerShape(10.dp))
+            )
+        } else {
+            AsyncImage(
+                model = storeData.storePicture,
+                contentDescription = "Store Image",
+                contentScale = ContentScale.Crop,
+                placeholder = painterResource(id = R.drawable.placeholder),
+                error = painterResource(id = R.drawable.placeholder),
+                modifier = Modifier
+                    .size(50.dp)
+                    .clip(RoundedCornerShape(10.dp))
+            )
+        }
+
+        Spacer(modifier = Modifier.width(18.dp))
+        Text(
+            text = storeData.storeName,
+            color = Color.Black,
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Bold
         )
     }
 }

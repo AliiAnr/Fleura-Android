@@ -5,8 +5,10 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.course.fleura.data.model.remote.AddressItem
 import com.course.fleura.data.model.remote.Detail
 import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -76,6 +78,28 @@ class DataStoreManager(private val context: Context) {
         return detail?.isProfileComplete() ?: false
     }
 
+    val addressListFlow: Flow<List<AddressItem>> = context.dataStore.data
+        .map { prefs ->
+            prefs[ADDRESSES_KEY]?.let { json ->
+                val type = object : TypeToken<List<AddressItem>>() {}.type
+                Gson().fromJson(json, type)
+            } ?: emptyList()
+        }
+
+    suspend fun saveAddressList(addresses: List<AddressItem>) {
+        val json = Gson().toJson(addresses)
+        context.dataStore.edit { prefs ->
+            prefs[ADDRESSES_KEY] = json
+        }
+    }
+
+    suspend fun getUserAddressList(): List<AddressItem> {
+        val prefs = context.dataStore.data.first()
+        val json = prefs[ADDRESSES_KEY] ?: return emptyList()
+        val type = object : TypeToken<List<AddressItem>>() {}.type
+        return Gson().fromJson(json, type)
+    }
+
     /** Menghapus semua data (Logout) */
     suspend fun clearUserData() {
         context.dataStore.edit { preferences ->
@@ -90,5 +114,6 @@ class DataStoreManager(private val context: Context) {
         private val USER_TOKEN_KEY = stringPreferencesKey("user_token")
         private val USER_DATA_KEY = stringPreferencesKey("user_data")
         private val PERSONALIZED_KEY = booleanPreferencesKey("personalized_filled")
+        private val ADDRESSES_KEY = stringPreferencesKey("address_list")
     }
 }

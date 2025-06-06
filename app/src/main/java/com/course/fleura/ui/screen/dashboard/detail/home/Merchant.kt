@@ -309,7 +309,6 @@ private fun Merchant(
                     contentAlignment = Alignment.Center,
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(Color.Black.copy(alpha = 0.8f))
                 ) {
                     CircularProgressIndicator(color = primaryLight)
                 }
@@ -347,10 +346,11 @@ private fun DescMerchant(
             } else {
                 Log.e("WOIII ADA", "${storeData?.picture}")
                 AsyncImage(
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .data(storeData?.picture)
-                        .crossfade(true)
-                        .build(),
+//                    model = ImageRequest.Builder(LocalContext.current)
+//                        .data(storeData?.picture)
+//                        .crossfade(true)
+//                        .build(),
+                    model = storeData?.picture,
                     contentDescription = "Store Image",
                     contentScale = ContentScale.Crop,
                     placeholder = painterResource(id = R.drawable.placeholder),

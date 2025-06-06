@@ -28,6 +28,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.IntSize
 import androidx.core.view.WindowCompat
 import com.course.fleura.data.model.remote.Address
+import com.course.fleura.data.model.remote.DataCartItem
+import com.course.fleura.data.model.remote.ItemFromCart
 import java.text.NumberFormat
 import java.util.Locale
 
@@ -143,6 +145,12 @@ fun Address.toFormattedAddress(): String {
     }
 
     return addressParts.joinToString(", ")
+}
+
+fun DataCartItem.getTotalPrice(): Int {
+    return items.sumOf {
+        it.price.toIntOrNull()?.times(it.quantity) ?: it.total
+    }
 }
 
 object NetworkUtils {

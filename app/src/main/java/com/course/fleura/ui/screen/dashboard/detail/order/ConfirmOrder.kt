@@ -1,5 +1,7 @@
 package com.course.fleura.ui.screen.dashboard.detail.order
 
+import android.util.Log
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -13,17 +15,23 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -44,20 +52,31 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil3.compose.AsyncImage
 import com.course.fleura.R
+import com.course.fleura.data.model.remote.AddressItem
+import com.course.fleura.data.model.remote.DataCartItem
+import com.course.fleura.ui.common.ResultResponse
 import com.course.fleura.ui.common.formatCurrency
+import com.course.fleura.ui.common.formatCurrencyFromString
+import com.course.fleura.ui.common.getTotalPrice
 import com.course.fleura.ui.components.CartItem
 import com.course.fleura.ui.components.CartOrder
 import com.course.fleura.ui.components.CustomButton
+import com.course.fleura.ui.components.CustomPopUpDialog
 import com.course.fleura.ui.components.CustomTextInput
 import com.course.fleura.ui.components.CustomTopAppBar
 import com.course.fleura.ui.components.Profile
+import com.course.fleura.ui.screen.dashboard.cart.CartViewModel
+import com.course.fleura.ui.screen.dashboard.cart.DeliveryMethod
 import com.course.fleura.ui.screen.navigation.FleuraSurface
 import com.course.fleura.ui.theme.base100
 import com.course.fleura.ui.theme.base20
 import com.course.fleura.ui.theme.base300
 import com.course.fleura.ui.theme.base40
 import com.course.fleura.ui.theme.base500
+import com.course.fleura.ui.theme.primaryLight
 import com.course.fleura.ui.theme.tert
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
@@ -73,8 +92,62 @@ import network.chaintech.kmp_date_time_picker.utils.now
 @Composable
 fun ConfirmOrder(
     modifier: Modifier = Modifier,
-    flowerId: Long,
+    storeId: String,
+    origin: String,
+    cartViewModel: CartViewModel,
+    selectedCartItem: DataCartItem,
+    onChooseClick: (String) -> Unit,
+    onBackClick: () -> Unit
 ) {
+
+    val selectedDeliveryMethod by cartViewModel.deliveryMethod.collectAsStateWithLifecycle()
+
+    val totalPayment by cartViewModel.totalPayment.collectAsStateWithLifecycle()
+    val selectedAddress by cartViewModel.selectedCartAddress.collectAsStateWithLifecycle()
+
+    val orderState by cartViewModel.orderState.collectAsStateWithLifecycle(initialValue = ResultResponse.None)
+
+    var showCircularProgress by remember { mutableStateOf(false) }
+    var showSuccessDialog by remember { mutableStateOf(false) }
+
+    LaunchedEffect(orderState) {
+        when (orderState) {
+            is ResultResponse.Success -> {
+                showCircularProgress = false
+                showSuccessDialog = true
+            }
+
+            is ResultResponse.Loading -> {
+                showCircularProgress = true
+            }
+
+            is ResultResponse.Error -> {
+                showCircularProgress = false
+            }
+
+            else -> {
+                // Do nothing
+            }
+        }
+    }
+
+    LaunchedEffect(selectedDeliveryMethod) {
+        Log.e("ConfirmOrder", "Selected Delivery Method: $selectedDeliveryMethod")
+
+    }
+
+    LaunchedEffect (selectedCartItem) {
+        Log.e("ConfirmOrder", "Selected Cart Item: $selectedCartItem")
+    }
+
+    LaunchedEffect(selectedAddress) {
+        Log.e("ConfirmOrder", "Selected Address: $selectedAddress")
+    }
+
+    LaunchedEffect(selectedCartItem, selectedDeliveryMethod) {
+        cartViewModel.calculateTotalPayment(selectedCartItem)
+    }
+
     ConfirmOrder(
         orderData = listOf(
             CartItem(
@@ -85,7 +158,19 @@ fun ConfirmOrder(
                     price = 10000
                 )
             )
-        )
+        ),
+        selectedCartItem = selectedCartItem,
+        onBackClick = onBackClick,
+        cartViewModel = cartViewModel,
+        deliveryMethod = selectedDeliveryMethod,
+        onChooseClick = onChooseClick,
+        totalPayment = totalPayment,
+        showCircularProgress = showCircularProgress,
+        showSuccessDialog = showSuccessDialog,
+        onSuccessDialogDismiss = {
+            showSuccessDialog = false
+            onBackClick()
+        },
     )
 }
 
@@ -93,10 +178,21 @@ fun ConfirmOrder(
 private fun ConfirmOrder(
     modifier: Modifier = Modifier,
     userData: Profile? = null,
-    orderData: List<CartItem>? = null
+    orderData: List<CartItem>? = null,
+    selectedCartItem: DataCartItem,
+    onBackClick: () -> Unit,
+    cartViewModel: CartViewModel,
+    deliveryMethod: DeliveryMethod,
+    onChooseClick: (String) -> Unit,
+    totalPayment: Long,
+    showCircularProgress: Boolean,
+    showSuccessDialog: Boolean,
+    onSuccessDialogDismiss: () -> Unit
 ) {
 
     val focusManager = LocalFocusManager.current
+
+    var showConfirmDialog by remember { mutableStateOf(false) }
 
     FleuraSurface(
         modifier = modifier.fillMaxSize(),
@@ -121,7 +217,8 @@ private fun ConfirmOrder(
             ) {
                 CustomTopAppBar(
                     title = "Confirm Order",
-                    showNavigationIcon = true
+                    showNavigationIcon = true,
+                    onBackClick = onBackClick
                 )
                 Box(
                     modifier = Modifier.weight(1f)
@@ -133,17 +230,29 @@ private fun ConfirmOrder(
 
                         item {
                             Spacer(modifier = Modifier.height(8.dp))
-                            OrderPickupSection()
+                            ConfirmOrderPickupSection(
+                                setSelectedDeliveryMethod = { selectedDeliveryMethod ->
+                                    cartViewModel.setSelectedDeliveryMethod(selectedDeliveryMethod)
+                                },
+                                method = cartViewModel.getSelectedDeliveryMethod()
+                            )
                         }
 
                         item {
                             Spacer(modifier = Modifier.height(8.dp))
-                            AddressSection()
+                            cartViewModel.getSelectedCartAddress()?.let {
+                                ConfirmOrderAddressSection(
+                                    onAddressClick = onChooseClick,
+                                    selectedAddress = it
+                                )
+                            }
                         }
 
                         item {
                             Spacer(modifier = Modifier.height(8.dp))
-                            MerchantProfileSection()
+                            MerchantProfileSection(
+                                storeData = selectedCartItem
+                            )
                         }
 
                         item {
@@ -161,13 +270,13 @@ private fun ConfirmOrder(
                                     fontWeight = FontWeight.Bold
                                 )
 
-                                orderData?.forEachIndexed { index, item ->
-                                    val isLastItem = index == orderData.size - 1
+                                selectedCartItem.items.forEachIndexed { index, item ->
+                                    val isLastItem = index == selectedCartItem.items.size - 1
                                     OrderSummaryItem(
                                         quantity = item.quantity,
-                                        name = item.cartOrder.name,
-                                        description = item.cartOrder.description,
-                                        price = item.cartOrder.price
+                                        name = item.product.name,
+                                        description = item.product.description,
+                                        price = item.product.price
                                     )
 
                                     if (!isLastItem) {
@@ -181,22 +290,32 @@ private fun ConfirmOrder(
 
                         item {
                             Spacer(modifier = Modifier.height(8.dp))
-                            DateAndTimeSection()
+                            DateAndTimeSection(
+                                cartViewModel = cartViewModel
+                            )
                         }
 
                         item {
                             Spacer(modifier = Modifier.height(8.dp))
-                            NoteSection()
+                            PaymentMethodSection(
+                                onPaymentMethodClick = onChooseClick,
+                                paymentMethod = cartViewModel.getSelectedPaymentMethod()
+                            )
                         }
 
                         item {
                             Spacer(modifier = Modifier.height(8.dp))
-                            PaymentMethodSection()
+                            NoteSection(
+                                cartViewModel = cartViewModel
+                            )
                         }
 
                         item {
                             Spacer(modifier = Modifier.height(8.dp))
-                            TotalPriceSection()
+                            ConfirmOrderTotalPriceSection(
+                                deliveryMethod = deliveryMethod,
+                                selectedCartItem = selectedCartItem
+                            )
                         }
 
                     }
@@ -226,25 +345,120 @@ private fun ConfirmOrder(
                                 fontWeight = FontWeight.Bold
                             )
                         ) {
-                            append(formatCurrency(10000))
+                            append(formatCurrency(totalPayment))
                         }
                     }
                     CustomButton(
                         textAnnotatedString = text,
-                        onClick = { }
+                        onClick = {
+                            showConfirmDialog = true
+                        }
                     )
                 }
+            }
+
+            if (showCircularProgress) {
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.3f))
+                ) {
+                    CircularProgressIndicator(color = primaryLight)
+                }
+            }
+
+            if (showSuccessDialog) {
+                CustomPopUpDialog(
+                    onDismiss = onSuccessDialogDismiss,
+                    isShowIcon = true,
+                    isShowTitle = true,
+                    isShowDescription = true,
+                    isShowButton = false,
+                    icon = {
+                        Box(
+                            modifier = Modifier
+                                .size(80.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ceklist),
+                                contentDescription = null,
+                                tint = Color.Unspecified,
+                            )
+                        }
+                    },
+                    title = "Order Successful",
+                    description = "Your order has been successfully placed. Thank you for shopping with us!. Check your order for payment details.",
+                )
+            }
+
+            if (showConfirmDialog) {
+                CustomPopUpDialog(
+                    onDismiss = { showConfirmDialog = false },
+                    isShowIcon = true,
+                    isShowTitle = true,
+                    isShowDescription = false,
+                    isShowButton = true,
+                    icon = {
+
+                        Icon(
+                            painter = painterResource(id = R.drawable.think),
+                            contentDescription = null,
+                            tint = Color.Unspecified,
+                            modifier = Modifier.height(150.dp)
+                        )
+                    },
+                    title = "Are you sure you want to continue?",
+                    buttons = {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceEvenly
+                        ) {
+                            OutlinedButton(
+                                onClick = { showConfirmDialog = false },
+                                border = BorderStroke(1.dp, primaryLight),
+                                shape = RoundedCornerShape(28.dp),
+                                modifier = Modifier.weight(1f).padding(end = 6.dp)
+                            ) {
+                                Text("Cancel", color = primaryLight)
+                            }
+                            Button(
+                                onClick = {
+                                    cartViewModel.createOrder()
+                                    showConfirmDialog = false
+                                },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = primaryLight
+                                ),
+                                shape = RoundedCornerShape(28.dp),
+                                modifier = Modifier.weight(1f).padding(start = 6.dp)
+                            ) {
+                                Text("Confirm", color = Color.White)
+                            }
+                        }
+                    }
+                )
             }
         }
     }
 }
 
 @Composable
-private fun OrderPickupSection(
-    modifier: Modifier = Modifier
+private fun ConfirmOrderPickupSection(
+    modifier: Modifier = Modifier,
+    setSelectedDeliveryMethod: (String) -> Unit,
+    method: String
 ) {
 
-    val temp = remember { mutableIntStateOf(1) }
+    val temp = remember { mutableIntStateOf(
+        when (method) {
+            "Pickup" -> 1
+            "Delivery" -> 0
+            else -> 0
+        }
+    ) }
+
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -273,6 +487,12 @@ private fun OrderPickupSection(
                     isEnabled = if (temp.intValue == 1) 1 else 0,
                     onClick = {
                         temp.intValue = 1
+                        setSelectedDeliveryMethod(
+                            when (temp.intValue) {
+                                1 -> "Pickup"
+                                else -> "Delivery"
+                            }
+                        )
                     }
                 )
                 Spacer(modifier = Modifier.size(8.dp))
@@ -281,11 +501,18 @@ private fun OrderPickupSection(
                     isEnabled = if (temp.intValue == 0) 1 else 0,
                     onClick = {
                         temp.intValue = 0
+                        setSelectedDeliveryMethod(
+                            when (temp.intValue) {
+                                1 -> "Pickup"
+                                else -> "Delivery"
+                            }
+                        )
                     }
                 )
             }
         }
     }
+
 }
 
 @Composable
@@ -330,12 +557,23 @@ private fun PickupChoice(
 }
 
 @Composable
-private fun AddressSection(
-    modifier: Modifier = Modifier
+private fun ConfirmOrderAddressSection(
+    modifier: Modifier = Modifier,
+    onAddressClick:(String) -> Unit,
+    selectedAddress: AddressItem
 ) {
     Row(
         modifier = modifier
             .fillMaxWidth()
+            .clickable(
+                onClick = {
+                    onAddressClick(
+                        "Select Address"
+                    )
+                },
+                indication = null,
+                interactionSource = remember { MutableInteractionSource() }
+            )
             .background(Color.White)
             .padding(horizontal = 20.dp, vertical = 12.dp),
         horizontalArrangement = Arrangement.SpaceBetween
@@ -359,19 +597,39 @@ private fun AddressSection(
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold
                 )
-
-                Text(
-                    text = "Lorem ipsulor sit amet. Nam voluptatem tenetur et voluptas nesciunt a quia voluptatem. tenetur et voluptas nesciunt a quia voluptatem.",
-                    color = Color.Black,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                    fontSize = 12.sp,
-                    lineHeight = 20.sp,
-                    fontWeight = FontWeight.Normal,
-                    modifier = Modifier
-                        .height(50.dp)
-                        .padding(end = 20.dp)
-                )
+                Column {
+                    Text(
+                        text = selectedAddress.name,
+                        color = Color.Black,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Normal
+                    )
+                    Text(
+                        text = selectedAddress.phone,
+                        color = Color.DarkGray,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Normal
+                    )
+                    Text(
+                        text = buildString {
+                            append(selectedAddress.detail)
+                            if (selectedAddress.detail != "") append(", ")
+                            append(selectedAddress.road)
+                            append(", ")
+                            append(selectedAddress.district)
+                            append(", ")
+                            append(selectedAddress.city)
+                            append(", ")
+                            append(selectedAddress.province)
+                            append(" ")
+                            append(selectedAddress.postcode)
+                        },
+                        color = Color.Black,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Normal,
+                        modifier = Modifier.padding(vertical = 4.dp)
+                    )
+                }
             }
         }
         Icon(
@@ -385,7 +643,8 @@ private fun AddressSection(
 
 @Composable
 fun MerchantProfileSection(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    storeData: DataCartItem
 ) {
     Row(
         modifier = modifier
@@ -394,17 +653,32 @@ fun MerchantProfileSection(
             .padding(horizontal = 20.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Image(
-            painter = painterResource(id = R.drawable.store_1),
-            contentDescription = null,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .size(50.dp)
-                .clip(RoundedCornerShape(10.dp))
-        )
+
+        if (storeData.storePicture.isNullOrEmpty()) {
+            Image(
+                painter = painterResource(id = R.drawable.placeholder),  // Use a placeholder image
+                contentDescription = "Store Image",
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .size(50.dp)
+                    .clip(RoundedCornerShape(10.dp))
+            )
+        } else {
+            AsyncImage(
+                model = storeData.storePicture,
+                contentDescription = "Store Image",
+                contentScale = ContentScale.Crop,
+                placeholder = painterResource(id = R.drawable.placeholder),
+                error = painterResource(id = R.drawable.placeholder),
+                modifier = Modifier
+                    .size(50.dp)
+                    .clip(RoundedCornerShape(10.dp))
+            )
+        }
+
         Spacer(modifier = Modifier.width(18.dp))
         Text(
-            text = "Buga Adik",
+            text = storeData.storeName,
             color = Color.Black,
             fontSize = 16.sp,
             fontWeight = FontWeight.Bold
@@ -418,7 +692,7 @@ fun OrderSummaryItem(
     quantity: Int = 0,
     name: String = "",
     description: String = "",
-    price: Long
+    price: String
 ) {
     Row(
         modifier = modifier
@@ -430,7 +704,7 @@ fun OrderSummaryItem(
             modifier = Modifier.weight(1f),
         ) {
             Text(
-                text = "5x",
+                text = "$quantity" + "x",
                 color = Color.Black,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.ExtraBold
@@ -439,13 +713,13 @@ fun OrderSummaryItem(
             Column(
             ) {
                 Text(
-                    text = "Sunflower Bouquet",
+                    text = name,
                     color = Color.Black,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    text = "Lorem ipsulor sit amet. Nam voluptatem tenetur et voluptas nesciunt a quia voluptatem. tenetur et voluptas nesciunt a quia voluptatem.",
+                    text = description,
                     color = base100,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
@@ -453,13 +727,14 @@ fun OrderSummaryItem(
                     lineHeight = 20.sp,
                     fontWeight = FontWeight.Normal,
                     modifier = Modifier
-                        .height(50.dp)
+                        .heightIn(max = 50.dp)
                         .padding(end = 20.dp)
                 )
             }
         }
+
         Text(
-            text = formatCurrency(10000),
+            text = formatCurrencyFromString(price),
             color = Color.Black,
             fontSize = 14.sp,
             fontWeight = FontWeight.Bold
@@ -469,12 +744,23 @@ fun OrderSummaryItem(
 
 @Composable
 private fun DateAndTimeSection(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    cartViewModel: CartViewModel
 ) {
-    var selectedDate by remember { mutableStateOf(LocalDate.now()) }
-    var selectedTime by remember { mutableStateOf(LocalTime.now()) }
+    val selectedDate by cartViewModel.selectedDate.collectAsStateWithLifecycle()
+    val selectedTime by cartViewModel.selectedTime.collectAsStateWithLifecycle()
+
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
+
+    LaunchedEffect(selectedTime) {
+        Log.e("DateAndTimeSection", "Selected Time: $selectedTime")
+        Log.e("RESULTTTTDETTIME", cartViewModel.getFormattedDateTime())
+    }
+
+    LaunchedEffect(selectedDate) {
+        Log.e("DateAndTimeSection", "Selected Date: $selectedDate")
+    }
 
     DateAndTimeDisplay(
         date = selectedDate,
@@ -489,7 +775,7 @@ private fun DateAndTimeSection(
             showDatePicker = showDatePicker,
             onDismiss = { showDatePicker = false },
             onDoneClick = { date ->
-                selectedDate = date
+                cartViewModel.setSelectedDate(date)
                 showDatePicker = false
             },
             minDate = LocalDate.now(),
@@ -504,6 +790,7 @@ private fun DateAndTimeSection(
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold
             ),
+            dateTextColor = Color.Black,
             dateTextStyle = TextStyle(
                 color = Color.Black,
                 fontSize = 14.sp,
@@ -524,7 +811,7 @@ private fun DateAndTimeSection(
             showTimePicker = showTimePicker,
             onDismiss = { showTimePicker = false },
             onDoneClick = { time ->
-                selectedTime = time
+                cartViewModel.setSelectedTime(time)
                 showTimePicker = false
             },
             startTime = selectedTime,
@@ -545,6 +832,7 @@ private fun DateAndTimeSection(
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold
             ),
+            textColor = Color.Black,
             selectorProperties = selectorProperties(
                 enabled = true,
                 borderColor = MaterialTheme.colorScheme.primary
@@ -666,8 +954,10 @@ private fun DateAndTimeDisplay(
 @Composable
 private fun NoteSection(
     modifier: Modifier = Modifier,
+    cartViewModel: CartViewModel
 ) {
-    val temp = remember { mutableStateOf("") }
+    val orderNote by cartViewModel.orderNote.collectAsStateWithLifecycle(initialValue = "")
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -700,8 +990,10 @@ private fun NoteSection(
             modifier = Modifier.padding(bottom = 8.dp)
         )
         CustomTextInput(
-            value = temp.value,
-            onChange = { temp.value = it },
+            value = orderNote,
+            onChange = {
+                cartViewModel.setOrderNote(it)
+                       },
             placeholder = "Ex : Use purple color",
             horizontalPadding = 0.dp,
         )
@@ -710,17 +1002,28 @@ private fun NoteSection(
 
 @Composable
 private fun PaymentMethodSection(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onPaymentMethodClick: (String) -> Unit,
+    paymentMethod: String
 ) {
     Row(
         modifier = modifier
             .fillMaxWidth()
+            .clickable(
+                onClick = {
+                    onPaymentMethodClick(
+                        "Payment Method"
+                    )
+                },
+                indication = null,
+                interactionSource = remember { MutableInteractionSource() }
+            )
             .background(Color.White)
             .padding(horizontal = 20.dp, vertical = 12.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Text(
-            text = "Pickup Time",
+            text = "Payment Method",
             color = Color.Black,
             fontSize = 14.sp,
             fontWeight = FontWeight.Bold
@@ -729,7 +1032,7 @@ private fun PaymentMethodSection(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "Pickup Time",
+                text = paymentMethod,
                 color = Color.Black,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Normal
@@ -744,17 +1047,28 @@ private fun PaymentMethodSection(
         }
     }
 }
-
 @Composable
-private fun TotalPriceSection(
-    modifier: Modifier = Modifier
+private fun ConfirmOrderTotalPriceSection(
+    modifier: Modifier = Modifier,
+    deliveryMethod: DeliveryMethod,
+    selectedCartItem: DataCartItem
 ) {
+    // Calculate subtotal from all items
+    val subtotal = selectedCartItem.getTotalPrice()
+
+    // Set delivery fee based on selected method
+    val deliveryFee = if (deliveryMethod == DeliveryMethod.DELIVERY) 15000 else 0
+
+    // Calculate total payment
+    val totalPayment = subtotal + deliveryFee
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .background(Color.White)
             .padding(horizontal = 20.dp, vertical = 12.dp)
     ) {
+        // Column content remains the same
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
@@ -766,7 +1080,7 @@ private fun TotalPriceSection(
                 fontWeight = FontWeight.Normal
             )
             Text(
-                text = formatCurrency(10000),
+                text = formatCurrency(subtotal.toLong()),
                 color = Color.Black,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Normal
@@ -783,7 +1097,7 @@ private fun TotalPriceSection(
                 fontWeight = FontWeight.Normal
             )
             Text(
-                text = formatCurrency(10000),
+                text = formatCurrency(deliveryFee.toLong()),
                 color = Color.Black,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Normal
@@ -795,13 +1109,13 @@ private fun TotalPriceSection(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                text = "Pickup Time",
+                text = "Total",
                 color = Color.Black,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold
             )
             Text(
-                text = formatCurrency(10000),
+                text = formatCurrency(totalPayment.toLong()),
                 color = MaterialTheme.colorScheme.primary,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold
@@ -809,4 +1123,3 @@ private fun TotalPriceSection(
         }
     }
 }
-

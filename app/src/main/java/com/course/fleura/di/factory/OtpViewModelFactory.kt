@@ -7,7 +7,6 @@ import com.course.fleura.data.repository.OnBoardingRepository
 import com.course.fleura.data.repository.OtpRepository
 import com.course.fleura.di.Injection
 import com.course.fleura.ui.screen.authentication.otp.OtpScreenViewModel
-import com.course.fleura.ui.screen.onboarding.OnBoardingViewModel
 
 class OtpViewModelFactory private constructor(private val otpRepository: OtpRepository) :
     ViewModelProvider.NewInstanceFactory() {

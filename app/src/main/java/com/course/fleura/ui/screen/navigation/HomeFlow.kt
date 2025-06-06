@@ -18,11 +18,13 @@ import androidx.navigation.compose.composable
 import com.course.fleura.LocalNavAnimatedVisibilityScope
 import com.course.fleura.ui.components.HomeSections
 import com.course.fleura.ui.screen.dashboard.cart.Cart
+import com.course.fleura.ui.screen.dashboard.cart.CartViewModel
 import com.course.fleura.ui.screen.dashboard.home.Home
 import com.course.fleura.ui.screen.dashboard.home.HomeViewModel
 import com.course.fleura.ui.screen.dashboard.order.Order
 import com.course.fleura.ui.screen.dashboard.point.Point
 import com.course.fleura.ui.screen.dashboard.profile.Profile
+import com.course.fleura.ui.screen.dashboard.profile.ProfileViewModel
 import com.course.fleura.ui.screen.navigation.Screen.Cart
 
 fun <T> spatialExpressiveSpring() = spring<T>(
@@ -86,29 +88,39 @@ fun NavGraphBuilder.addHomeGraph(
     onSnackSelected: (Long, String, NavBackStackEntry) -> Unit,
     onStoreClick: (String, String, NavBackStackEntry) -> Unit,
     onFlowerClick: (String, String, NavBackStackEntry) -> Unit,
-    homeViewModel: HomeViewModel
+    onOrderDetail: (String, String, NavBackStackEntry) -> Unit,
+    onProfileDetail: (String, NavBackStackEntry) -> Unit,
+    homeViewModel: HomeViewModel,
+    cartViewModel: CartViewModel,
+    profileViewModel: ProfileViewModel
 ) {
     composable(HomeSections.Home.route) { from ->
         Home(
+            modifier = modifier,
             onSnackClick = { id, origin ->
                 onSnackSelected(id, origin, from)
             },
-            modifier = modifier,
             onStoreClick = { storeid, origin ->
                 onStoreClick(storeid, origin, from)
             },
             onFlowerClick = { flowerId, origin ->
                 onFlowerClick(flowerId, origin, from)
             },
-            homeViewModel = homeViewModel
+            homeViewModel = homeViewModel,
+            profileViewModel = profileViewModel,
         )
     }
     composable(HomeSections.Cart.route) { from ->
         Cart(
+            modifier = modifier,
             onSnackClick = { id, origin ->
                 onSnackSelected(id, origin, from)
             },
-            modifier = modifier
+            onOrderDetail = { id, origin ->
+                onOrderDetail(id, origin, from)
+            },
+            cartViewModel = cartViewModel,
+            profileViewModel = profileViewModel,
         )
     }
     composable(HomeSections.Point.route) { from ->
@@ -118,15 +130,19 @@ fun NavGraphBuilder.addHomeGraph(
     }
     composable(HomeSections.Order.route) { from ->
         Order(
+            modifier = modifier,
             onSnackClick = { id, origin ->
                 onSnackSelected(id, origin, from)
             },
-            modifier = modifier
         )
     }
-    composable(HomeSections.Profile.route) {
+    composable(HomeSections.Profile.route) { from ->
         Profile(
-            modifier = modifier
+            modifier = modifier,
+            onProfileDetailClick = { location ->
+                onProfileDetail(location, from)
+            },
+            profileViewModel = profileViewModel,
         )
     }
 }

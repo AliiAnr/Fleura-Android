@@ -21,6 +21,10 @@ object MainDestinations {
     const val SNACK_DETAIL_ROUTE = "snack"
     const val SNACK_ID_KEY = "snackId"
     const val STORE_ID_KEY = "storeId"
+    const val GENERAL_ORDER_ID_KEY = "generalOrderId"
+    const val GENERAL_PROFILE_ID_KEY = "generalProfileId"
+    const val DETAIL_ADDRESS_ID_KEY = "AddaddressId"
+    const val ADDRESS_ID_KEY = "addressId"
     const val FLOWER_ID_KEY = "flowerId"
     const val ORIGIN = "origin"
     const val OTP_ROUTE = "otp"
@@ -32,6 +36,7 @@ object DetailDestinations {
     const val DETAIL_GENERAL_ROUTE = "generalOrder"
     const val DETAIL_ADD_ADDRESS = "addAddress"
     const val DETAIL_MERCHANT = "merchant"
+    const val DETAIL_ADDRESS = "addressDetail"
     const val DETAIL_FLOWER = "flowerDetail"
     const val DETAIL_CONFIRM_ORDER = "confirmOrder"
     const val DETAIL_TRANSFER_ORDER = "orderDetail"
@@ -95,23 +100,43 @@ class FleuraNavController(
         }
     }
 
+    fun navigateToOrderDetail(id: String, origin: String, from: NavBackStackEntry) {
+        if (from.lifecycleIsResumed()) {
+            navController.navigate("${DetailDestinations.DETAIL_CONFIRM_ORDER}/$id?origin=$origin")
+        }
+    }
+
     fun navigateToFlowerDetail(id: String, origin: String, from: NavBackStackEntry) {
         if (from.lifecycleIsResumed()) {
             navController.navigate("${DetailDestinations.DETAIL_FLOWER}/$id?origin=$origin")
         }
     }
 
-    fun navigateToDetailProfile(id: Long, location: String, from: NavBackStackEntry) {
+    fun navigateToProfileDetail(location: String, from: NavBackStackEntry) {
         if (from.lifecycleIsResumed()) {
-            navController.navigate("${DetailDestinations.DETAIL_PROFILE_ROUTE}/$id/$location")
+            navController.navigate("${DetailDestinations.DETAIL_PROFILE_ROUTE}/$location")
         }
     }
 
-//    fun navigateToGeneral(origin: String, from: NavBackStackEntry,) {
-//        if (from.lifecycleIsResumed()) {
-//            navController.navigate("${DetailDestinations.DETAIL_GENERAL_ROUTE}/?origin=$origin")
-//        }
-//    }
+    fun navigateToGeneralOrder(location: String, from: NavBackStackEntry,) {
+        if (from.lifecycleIsResumed()) {
+            navController.navigate("${DetailDestinations.DETAIL_GENERAL_ROUTE}/$location")
+        }
+    }
+
+    fun navigateToAddressDetail(id: String, from: NavBackStackEntry) {
+        if (from.lifecycleIsResumed()) {
+            navController.navigate("${DetailDestinations.DETAIL_ADDRESS}/$id")
+        }
+    }
+
+    fun navigateToAddAddress(location: String, from: NavBackStackEntry) {
+        if (from.lifecycleIsResumed()) {
+            navController.navigate("${DetailDestinations.DETAIL_ADD_ADDRESS}/$location")
+        }
+    }
+
+
 
 }
 

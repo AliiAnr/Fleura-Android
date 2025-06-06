@@ -15,6 +15,7 @@ import com.course.fleura.data.model.remote.SaveProductToCartResponse
 import com.course.fleura.data.model.remote.StoreProduct
 import com.course.fleura.data.model.remote.StoreProductResponse
 import com.course.fleura.data.repository.HomeRepository
+import com.course.fleura.data.repository.ProfileRepository
 import com.course.fleura.ui.common.ResultResponse
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -22,7 +23,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class HomeViewModel(
-    private val homeRepository: HomeRepository
+    private val homeRepository: HomeRepository,
 ) : ViewModel() {
 
     private val _dataInitialized = MutableStateFlow(false)

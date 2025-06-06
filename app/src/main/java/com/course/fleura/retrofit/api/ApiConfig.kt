@@ -7,6 +7,7 @@ import com.course.fleura.retrofit.services.CartService
 import com.course.fleura.retrofit.services.HomeService
 import com.course.fleura.retrofit.services.LoginService
 import com.course.fleura.retrofit.services.OtpService
+import com.course.fleura.retrofit.services.ProfileService
 import com.course.fleura.retrofit.services.RegisterService
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -60,6 +61,10 @@ object ApiConfig {
 
     fun getCartService(context: Context): CartService {
         return provideRetrofit(context).create(CartService::class.java)
+    }
+
+    fun getProfileService(context: Context): ProfileService {
+        return provideRetrofit(context).create(ProfileService::class.java)
     }
 
 }

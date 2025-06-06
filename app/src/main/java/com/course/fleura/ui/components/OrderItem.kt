@@ -4,6 +4,8 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,6 +23,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -33,9 +36,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil3.compose.AsyncImage
 import com.course.fleura.R
+import com.course.fleura.data.model.remote.DataCartItem
+import com.course.fleura.data.model.remote.ItemFromCart
 import com.course.fleura.ui.common.formatCurrency
+import com.course.fleura.ui.common.formatCurrencyFromString
 import com.course.fleura.ui.common.formatNumber
+import com.course.fleura.ui.common.getTotalPrice
 import com.course.fleura.ui.theme.base100
 import com.course.fleura.ui.theme.base40
 import com.course.fleura.ui.theme.err
@@ -98,7 +106,9 @@ fun RedeemItemCard(item: OrderItem) {
 }
 
 @Composable
-fun OrderItemCard(item: OrderItem) {
+fun OrderItemCard(
+    item: ItemFromCart
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -106,21 +116,53 @@ fun OrderItemCard(item: OrderItem) {
             .height(100.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Image(
-            painter = painterResource(id = item.imageRes),
-            contentDescription = item.name,
-            modifier = Modifier
-                .padding(start = 12.dp)
-                .size(80.dp)
-                .clip(RoundedCornerShape(10.dp))
-        )
+
+        if (item.product.picture.isNullOrEmpty()) {
+//            Log.e("MerchantFlowerItem", "Image URL is null or empty")
+            Image(
+                painter = painterResource(id = R.drawable.placeholder),  // Use a placeholder image
+                contentDescription = "Store Image",
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .size(110.dp)
+                    .clip(RoundedCornerShape(10.dp))
+            )
+        } else {
+//            Log.d("MerchantFlowerItem", "Image URL: ${item.picture}")
+//            AsyncImage(
+//                model = ImageRequest.Builder(LocalContext.current)
+//                    .data(item.picture.firstOrNull()?.path)
+//                    .crossfade(true)
+//                    .memoryCachePolicy(CachePolicy.ENABLED)
+//                    .build(),
+//                contentDescription = "Store Image",
+////                contentScale = ContentScale.Crop,
+//                placeholder = painterResource(id = R.drawable.placeholder),
+//                error = painterResource(id = R.drawable.placeholder),
+//                modifier = Modifier
+//                    .size(110.dp)
+//                    .clip(RoundedCornerShape(10.dp))
+//            )
+            AsyncImage(
+                model = item.product.picture[0].path,
+                contentDescription = item.product.name,
+                placeholder = painterResource(R.drawable.placeholder),
+                error       = painterResource(R.drawable.placeholder),
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .padding(start = 12.dp)
+                    .size(80.dp)
+                    .clip(RoundedCornerShape(10.dp))
+            )
+        }
+
         Spacer(modifier = Modifier.width(8.dp))
         Column(modifier = Modifier.padding(start = 8.dp)) {
             Column(
                 verticalArrangement = Arrangement.SpaceBetween,
             ) {
                 Text(
-                    text = item.name,
+                    text = item.product.name,
                     fontWeight = FontWeight.Bold,
                     color = Color.Black,
                     fontSize = 16.sp
@@ -129,7 +171,7 @@ fun OrderItemCard(item: OrderItem) {
             }
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = formatCurrency(item.price),
+                text = formatCurrencyFromString(item.product.price),
                 color = MaterialTheme.colorScheme.primary,
                 fontWeight = FontWeight.Bold,
                 fontSize = 14.sp
@@ -255,7 +297,9 @@ fun OrderSummary(
                 if (order.isRedeemOrder) {
                     RedeemItemCard(item)
                 } else {
-                    OrderItemCard(item)
+//                    OrderItemCard(item)
+
+                    //INIII
                 }
                 Spacer(modifier = Modifier.height(8.dp))
             }
@@ -321,7 +365,8 @@ fun OrderSummary(
 
 @Composable
 fun CartSummary(
-    order: Order,
+    order: DataCartItem,
+    onOrderDetail: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -362,18 +407,26 @@ fun CartSummary(
                     painter = painterResource(id = R.drawable.back_arrow),
                     contentDescription = "Store Icon",
                     tint = Color.Black,
-                    modifier = Modifier.size(16.dp)
+                    modifier = Modifier
+                        .size(16.dp)
+                        .clickable(
+                            onClick = {
+                                onOrderDetail()
+                            },
+                            indication = null,
+                            interactionSource = remember { MutableInteractionSource() }
+                        ),
                 )
             }
 
             Spacer(modifier = Modifier.height(12.dp))
 
             order.items.forEach { item ->
-                if (order.isRedeemOrder) {
-                    RedeemItemCard(item)
-                } else {
-                    OrderItemCard(item)
-                }
+//                if (order.isRedeemOrder) {
+//                    RedeemItemCard(item)
+//                } else {
+                OrderItemCard(item)
+//                }
                 Spacer(modifier = Modifier.height(8.dp))
             }
 
@@ -389,34 +442,34 @@ fun CartSummary(
                     fontSize = 16.sp,
                     color = base100
                 )
-                if (order.isRedeemOrder) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(start = 8.dp)
-                    ) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.star_point), // Ikon bintang
-                            contentDescription = "Points",
-                            tint = Color.Unspecified,
-                            modifier = Modifier.size(20.dp),
-                        )
-                        Text(
-                            text = "${order.totalPoints}",
-                            color = MaterialTheme.colorScheme.primary,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 16.sp,
-                            modifier = Modifier.padding(start = 4.dp)
-                        )
-                    }
-                } else {
-                    Text(
-                        text = formatCurrency(order.totalPrice),
-                        color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 16.sp,
-                        modifier = Modifier.padding(start = 8.dp)
-                    )
-                }
+//                if (order.isRedeemOrder) {
+//                    Row(
+//                        verticalAlignment = Alignment.CenterVertically,
+//                        modifier = Modifier.padding(start = 8.dp)
+//                    ) {
+//                        Icon(
+//                            painter = painterResource(id = R.drawable.star_point), // Ikon bintang
+//                            contentDescription = "Points",
+//                            tint = Color.Unspecified,
+//                            modifier = Modifier.size(20.dp),
+//                        )
+//                        Text(
+//                            text = "${order.totalPoints}",
+//                            color = MaterialTheme.colorScheme.primary,
+//                            fontWeight = FontWeight.Bold,
+//                            fontSize = 16.sp,
+//                            modifier = Modifier.padding(start = 4.dp)
+//                        )
+//                    }
+//                } else {
+                Text(
+                    text = formatCurrencyFromString(order.getTotalPrice().toString()),
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp,
+                    modifier = Modifier.padding(start = 8.dp)
+                )
+//                }
             }
         }
     }
