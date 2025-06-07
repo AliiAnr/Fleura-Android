@@ -1,5 +1,5 @@
 // 3. Create a NotificationPermissionHandler to request permissions:
-package com.course.fleura.util
+package com.course.fleura.data.model.notification
 
 import android.Manifest
 import android.app.Activity

@@ -10,9 +10,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.course.fleura.data.model.notification.NotificationChannelUtil
-import com.course.fleura.data.resource.Resource
-import com.course.fleura.ui.common.NetworkUtils
-import com.course.fleura.util.NotificationPermissionHandler
+import com.course.fleura.data.model.notification.NotificationPermissionHandler
 
 class   MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

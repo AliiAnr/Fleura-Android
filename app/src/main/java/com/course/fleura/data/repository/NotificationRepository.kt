@@ -1,6 +1,7 @@
 package com.course.fleura.data.repository
 
 import android.content.Context
+import android.util.Log
 import com.course.fleura.data.model.remote.NotificationRequest
 import com.course.fleura.data.model.remote.NotificationResponse
 import com.course.fleura.data.store.DataStoreManager
@@ -20,11 +21,40 @@ class NotificationRepository private constructor(
     private val dataStoreManager = DataStoreManager(context)
 
 
+//    fun saveToken(token: String): Flow<ResultResponse<NotificationResponse>> = flow {
+//        emit(ResultResponse.Loading)
+//
+//        try {
+//            if (!dataStoreManager.isUserLoggedIn.first()) {
+//                emit(ResultResponse.Error("User not logged in"))
+//                return@flow
+//            }
+//
+//            val userToken = NotificationRequest(
+//                token = token,
+//            )
+//
+//            val response = notificationService.saveToken(token = userToken)
+//            if (response.isSuccessful) {
+//                response.body()?.let {
+//                    emit(ResultResponse.Success(it))
+//                } ?: emit(ResultResponse.Error("Empty response body"))
+//            } else {
+//                emit(ResultResponse.Error("Error: ${response.errorBody()?.string() ?: "Unknown error"}"))
+//            }
+//        } catch (e: Exception) {
+//            emit(ResultResponse.Error(e.localizedMessage ?: "Error saving token"))
+//        }
+//    }.flowOn(Dispatchers.IO)
+
     fun saveToken(token: String): Flow<ResultResponse<NotificationResponse>> = flow {
         emit(ResultResponse.Loading)
-
         try {
+            // Log the token that we're trying to save
+            Log.e("NotificationRepository", "Attempting to save FCM token: $token")
+
             if (!dataStoreManager.isUserLoggedIn.first()) {
+                Log.e("NotificationRepository", "User not logged in, cannot save token")
                 emit(ResultResponse.Error("User not logged in"))
                 return@flow
             }
@@ -33,15 +63,25 @@ class NotificationRepository private constructor(
                 token = token,
             )
 
+            Log.e("NotificationRepository", "Sending FCM token to backend API: $token")
             val response = notificationService.saveToken(token = userToken)
+
             if (response.isSuccessful) {
                 response.body()?.let {
+                    Log.e("NotificationRepository", "Token saved successfully: ${it.message}")
                     emit(ResultResponse.Success(it))
-                } ?: emit(ResultResponse.Error("Empty response body"))
+                } ?: run {
+                    Log.e("NotificationRepository", "Empty response body from server")
+                    emit(ResultResponse.Error("Empty response body"))
+                }
             } else {
-                emit(ResultResponse.Error("Error: ${response.errorBody()?.string() ?: "Unknown error"}"))
+                val errorMsg = response.errorBody()?.string() ?: "Unknown error"
+                Log.e("NotificationRepository", "Error saving token: $errorMsg")
+                emit(ResultResponse.Error("Error: $errorMsg"))
             }
         } catch (e: Exception) {
+            Log.e("NotificationRepository", "Exception while saving token", e)
+            Log.e("NotificationRepository", "Exception message: ${e.message}")
             emit(ResultResponse.Error(e.localizedMessage ?: "Error saving token"))
         }
     }.flowOn(Dispatchers.IO)

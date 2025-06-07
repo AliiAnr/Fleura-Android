@@ -1,5 +1,6 @@
 package com.course.fleura.ui.screen.authentication.login
 
+import android.util.Log
 import android.util.Patterns
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -232,8 +233,14 @@ class LoginScreenViewModel(
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     val token = task.result
+                    Log.e("TOKENN: ", token)
                     viewModelScope.launch {
                         notificationRepository.saveToken(token)
+                            .collect { result ->
+                                if(result is ResultResponse.Success) {
+                                    Log.e("Notification", "Token saved successfully: ${result.data.message}")
+                                }
+                            }
                     }
                 }
             }
