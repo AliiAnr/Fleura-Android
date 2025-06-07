@@ -10,14 +10,17 @@ import com.course.fleura.data.model.remote.GetUserResponse
 import com.course.fleura.data.model.remote.LoginResponse
 import com.course.fleura.data.model.remote.PersonalizeResponse
 import com.course.fleura.data.repository.LoginRepository
+import com.course.fleura.data.repository.NotificationRepository
 import com.course.fleura.ui.common.ResultResponse
+import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 class LoginScreenViewModel(
-    private val loginRepository: LoginRepository
+    private val loginRepository: LoginRepository,
+    private val notificationRepository: NotificationRepository
 ) : ViewModel() {
 
     private val _loginState =
@@ -78,6 +81,10 @@ class LoginScreenViewModel(
                     _loginState.value = ResultResponse.Loading
                     loginRepository.loginUser(emailValue, passwordValue)
                         .collect { result ->
+                            if(result is ResultResponse.Success) {
+                                // Sync FCM token after successful login
+                                saveToken()
+                            }
                             _loginState.value = result
                         }
 //                    delay(2000)
@@ -218,5 +225,17 @@ class LoginScreenViewModel(
         } else {
             onError("Invalid email or password")
         }
+    }
+
+    fun saveToken() {
+        FirebaseMessaging.getInstance().token
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    val token = task.result
+                    viewModelScope.launch {
+                        notificationRepository.saveToken(token)
+                    }
+                }
+            }
     }
 }

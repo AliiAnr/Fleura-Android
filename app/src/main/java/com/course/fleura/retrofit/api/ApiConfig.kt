@@ -6,6 +6,7 @@ import com.course.fleura.retrofit.AuthInterceptor
 import com.course.fleura.retrofit.services.CartService
 import com.course.fleura.retrofit.services.HomeService
 import com.course.fleura.retrofit.services.LoginService
+import com.course.fleura.retrofit.services.NotificationService
 import com.course.fleura.retrofit.services.OtpService
 import com.course.fleura.retrofit.services.ProfileService
 import com.course.fleura.retrofit.services.RegisterService
@@ -42,6 +43,11 @@ object ApiConfig {
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }
+
+    fun getNotificationService(context: Context): NotificationService {
+        return provideRetrofit(context).create(NotificationService::class.java)
+    }
+
 
     fun getRegisterService(context: Context): RegisterService {
         return provideRetrofit(context).create(RegisterService::class.java)

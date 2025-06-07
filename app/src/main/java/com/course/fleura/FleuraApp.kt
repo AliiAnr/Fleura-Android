@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -71,9 +72,11 @@ import com.course.fleura.ui.screen.navigation.spatialExpressiveSpring
 import com.course.fleura.ui.screen.onboarding.OnBoardingScreen
 import com.course.fleura.ui.screen.onboarding.OnBoardingViewModel
 import com.course.fleura.ui.theme.FleuraTheme
+import kotlinx.coroutines.flow.first
 
 @Composable
 fun FleuraApp() {
+
 
     val onBoardingViewModel: OnBoardingViewModel =
         viewModel(factory = OnBoardingViewModelFactory.getInstance(Resource.appContext))
@@ -115,6 +118,13 @@ fun FleuraApp() {
             Resource.appContext
         )
     )
+
+    LaunchedEffect(key1 = Unit) {
+        val isLoggedIn = loginViewModel.isUserLoggedIn().first()
+        if (isLoggedIn) {
+            loginViewModel.saveToken()
+        }
+    }
 
     FleuraTheme {
         val fleuraNavController = rememberFleuraNavController()

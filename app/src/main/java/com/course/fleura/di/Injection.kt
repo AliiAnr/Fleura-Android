@@ -4,6 +4,7 @@ import android.content.Context
 import com.course.fleura.data.repository.CartRepository
 import com.course.fleura.data.repository.HomeRepository
 import com.course.fleura.data.repository.LoginRepository
+import com.course.fleura.data.repository.NotificationRepository
 import com.course.fleura.data.repository.OnBoardingRepository
 import com.course.fleura.data.repository.OtpRepository
 import com.course.fleura.data.repository.ProfileRepository
@@ -11,6 +12,11 @@ import com.course.fleura.data.repository.RegisterRepository
 import com.course.fleura.data.repository.detail.StoreRepository
 
 object Injection {
+
+    fun provideNotificationRepository(context: Context): NotificationRepository {
+        return NotificationRepository.getInstance(context)
+    }
+
     fun provideOnBoardingRepository(context: Context): OnBoardingRepository {
         return OnBoardingRepository.getInstance(context)
     }
