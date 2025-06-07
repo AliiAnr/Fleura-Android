@@ -14,4 +14,8 @@ interface NotificationService {
         @Body token: NotificationRequest,
     ): Response<NotificationResponse>
 
+    @POST("api/notification/buyer/send")
+    suspend fun sendNotif(
+    ): Response<NotificationResponse>
+
 }

@@ -27,13 +27,13 @@ object NotificationChannelUtil {
                 NotificationChannel(
                     NotificationChannels.GENERAL_CHANNEL_ID,
                     NotificationChannels.GENERAL_CHANNEL_NAME,
-                    NotificationManager.IMPORTANCE_DEFAULT
+                    NotificationManager.IMPORTANCE_HIGH
                 ).apply { description = NotificationChannels.GENERAL_CHANNEL_DESC },
 
                 NotificationChannel(
                     NotificationChannels.PROMO_CHANNEL_ID,
                     NotificationChannels.PROMO_CHANNEL_NAME,
-                    NotificationManager.IMPORTANCE_LOW
+                    NotificationManager.IMPORTANCE_HIGH
                 ).apply { description = NotificationChannels.PROMO_CHANNEL_DESC },
 
                 NotificationChannel(

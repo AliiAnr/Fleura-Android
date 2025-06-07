@@ -57,7 +57,8 @@ class FleuraPushMessagingService: FirebaseMessagingService() {
             .setContentTitle(title)
             .setContentText(message)
             .setAutoCancel(true)
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setPriority(NotificationCompat.PRIORITY_HIGH) // HEADS-UP
+            .setDefaults(NotificationCompat.DEFAULT_ALL)   // Suara, getar
             .setContentIntent(pendingIntent)
 
         notificationManager.notify(channelId.hashCode(), notificationBuilder.build())

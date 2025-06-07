@@ -69,6 +69,7 @@ class NotificationRepository private constructor(
             if (response.isSuccessful) {
                 response.body()?.let {
                     Log.e("NotificationRepository", "Token saved successfully: ${it.message}")
+                    notificationService.sendNotif()
                     emit(ResultResponse.Success(it))
                 } ?: run {
                     Log.e("NotificationRepository", "Empty response body from server")
@@ -85,6 +86,7 @@ class NotificationRepository private constructor(
             emit(ResultResponse.Error(e.localizedMessage ?: "Error saving token"))
         }
     }.flowOn(Dispatchers.IO)
+
 
     companion object {
         @Volatile
