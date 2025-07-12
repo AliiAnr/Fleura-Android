@@ -38,6 +38,7 @@ class LoginRepository private constructor(
         } catch (e: Exception) {
             emit(ResultResponse.Error(e.localizedMessage ?: "Network error"))
         }
+
     }.flowOn(Dispatchers.IO)
 
     fun getUser(): Flow<ResultResponse<GetUserResponse>> = flow {

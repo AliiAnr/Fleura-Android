@@ -29,7 +29,9 @@ import androidx.compose.ui.unit.IntSize
 import androidx.core.view.WindowCompat
 import com.course.fleura.data.model.remote.Address
 import com.course.fleura.data.model.remote.DataCartItem
-import com.course.fleura.data.model.remote.ItemFromCart
+import kotlinx.datetime.Instant
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import java.text.NumberFormat
 import java.util.Locale
 
@@ -153,6 +155,9 @@ fun DataCartItem.getTotalPrice(): Int {
     }
 }
 
+fun String.toInstant(): Instant =
+    Instant.parse(this) // "2025-06-14T09:55:33.000Z"
+
 object NetworkUtils {
     fun isNetworkAvailable(context: Context): Boolean {
         val connectivityManager =
@@ -169,4 +174,15 @@ object NetworkUtils {
             return networkInfo.isConnected
         }
     }
+}
+
+fun extractOrderId(input: String): String {
+    val digits = input.filter { it.isDigit() }
+    return digits.toList().sorted().take(4).joinToString("")
+}
+
+fun parseDateTime(dateTimeString: String): Pair<kotlinx.datetime.LocalDate, kotlinx.datetime.LocalTime> {
+    val instant = Instant.parse(dateTimeString)
+    val localDateTime = instant.toLocalDateTime(TimeZone.currentSystemDefault())
+    return localDateTime.date to localDateTime.time
 }

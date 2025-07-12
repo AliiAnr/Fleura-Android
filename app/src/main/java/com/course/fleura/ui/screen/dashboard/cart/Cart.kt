@@ -31,9 +31,6 @@ import com.course.fleura.ui.components.CustomTopAppBar
 import com.course.fleura.ui.components.EmptyCart
 import com.course.fleura.ui.components.FakeCategory
 import com.course.fleura.ui.components.HomeSections
-import com.course.fleura.ui.components.Order
-import com.course.fleura.ui.components.OrderItemCard
-import com.course.fleura.ui.components.OrderSummary
 import com.course.fleura.ui.screen.dashboard.profile.ProfileViewModel
 import com.course.fleura.ui.screen.navigation.FleuraSurface
 import com.course.fleura.ui.screen.navigation.MainDestinations
@@ -54,7 +51,7 @@ fun Cart(
 
     val listCartData by cartViewModel.cartListState.collectAsStateWithLifecycle(initialValue = ResultResponse.None)
 
-    var showCircularProgress by remember { mutableStateOf(false) }
+    var showCircularProgress by remember { mutableStateOf(true) }
 
     LaunchedEffect(Unit) {
         // This ensures the API calls happen after the composable is fully set up

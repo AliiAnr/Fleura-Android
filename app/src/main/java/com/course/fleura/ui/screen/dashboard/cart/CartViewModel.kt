@@ -145,10 +145,10 @@ class CartViewModel (
 
 
     fun loadInitialData() {
-        if (!_dataInitialized.value) {
+//        if (!_dataInitialized.value) {
             getCartList()
-            _dataInitialized.value = true
-        }
+//            _dataInitialized.value = true
+//        }
     }
 
     fun setSelectedCartItem(cartItem: DataCartItem) {
@@ -165,7 +165,7 @@ class CartViewModel (
                         _cartListState.value = result
                     }
             } catch (e: Exception) {
-                _cartListState.value = ResultResponse.Error("Failed to get user: ${e.message}")
+                _cartListState.value = ResultResponse.Error("Failed to get Cart List: ${e.message}")
             }
         }
     }

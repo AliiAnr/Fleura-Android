@@ -25,6 +25,7 @@ object MainDestinations {
     const val GENERAL_PROFILE_ID_KEY = "generalProfileId"
     const val DETAIL_ADDRESS_ID_KEY = "AddaddressId"
     const val ADDRESS_ID_KEY = "addressId"
+    const val ORDER_ID_KEY = "orderId"
     const val FLOWER_ID_KEY = "flowerId"
     const val ORIGIN = "origin"
     const val OTP_ROUTE = "otp"
@@ -40,6 +41,8 @@ object DetailDestinations {
     const val DETAIL_FLOWER = "flowerDetail"
     const val DETAIL_CONFIRM_ORDER = "confirmOrder"
     const val DETAIL_TRANSFER_ORDER = "orderDetail"
+    const val DETAIL_QR_ORDER = "qrOrder"
+    const val DETAIL_QR_CREATED_ORDER = "qrCreatedOrder"
     const val DETAIL_CASH_ORDER = "cashOrder"
     const val DETAIL_CART = "detailCart"
 }
@@ -124,6 +127,18 @@ class FleuraNavController(
         }
     }
 
+    fun navigateToQrOrder(from: NavBackStackEntry) {
+        if (from.lifecycleIsResumed()) {
+            navController.navigate(DetailDestinations.DETAIL_QR_ORDER)
+        }
+    }
+
+    fun navigateToQrCreatedOrder(from: NavBackStackEntry) {
+        if (from.lifecycleIsResumed()) {
+            navController.navigate(DetailDestinations.DETAIL_QR_CREATED_ORDER)
+        }
+    }
+
     fun navigateToAddressDetail(id: String, from: NavBackStackEntry) {
         if (from.lifecycleIsResumed()) {
             navController.navigate("${DetailDestinations.DETAIL_ADDRESS}/$id")
@@ -133,6 +148,12 @@ class FleuraNavController(
     fun navigateToAddAddress(location: String, from: NavBackStackEntry) {
         if (from.lifecycleIsResumed()) {
             navController.navigate("${DetailDestinations.DETAIL_ADD_ADDRESS}/$location")
+        }
+    }
+
+    fun navigateToCreatedOrder(id: String, origin: String, from: NavBackStackEntry) {
+        if (from.lifecycleIsResumed()) {
+            navController.navigate("${DetailDestinations.DETAIL_TRANSFER_ORDER}/$id?origin=$origin")
         }
     }
 

@@ -69,7 +69,7 @@ class NotificationRepository private constructor(
             if (response.isSuccessful) {
                 response.body()?.let {
                     Log.e("NotificationRepository", "Token saved successfully: ${it.message}")
-                    notificationService.sendNotif()
+//                    notificationService.sendNotif()
                     emit(ResultResponse.Success(it))
                 } ?: run {
                     Log.e("NotificationRepository", "Empty response body from server")

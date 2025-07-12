@@ -27,12 +27,18 @@ class FleuraPushMessagingService: FirebaseMessagingService() {
 
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         super.onMessageReceived(remoteMessage)
-        // Misal: dari backend, data["type"] = "promo" / "order" / "general"
-        val notifType = remoteMessage.data["type"] ?: "general"
-        val title = remoteMessage.data["title"] ?: "Fleura"
-        val body = remoteMessage.data["body"] ?: "Ada notifikasi baru dari Fleura"
 
-        // Tentukan channel berdasarkan type
+        // Priority: Baca dari data payload dulu, lalu fallback ke notification payload
+        val notifType = remoteMessage.data["type"] ?: "general"
+
+        val title = remoteMessage.data["title"]
+            ?: remoteMessage.notification?.title
+            ?: "Fleura"
+
+        val body = remoteMessage.data["body"]
+            ?: remoteMessage.notification?.body
+            ?: "Ada notifikasi baru dari Fleura"
+
         val channelId = when (notifType) {
             "promo" -> NotificationChannels.PROMO_CHANNEL_ID
             "order" -> NotificationChannels.ORDER_CHANNEL_ID
@@ -57,12 +63,16 @@ class FleuraPushMessagingService: FirebaseMessagingService() {
             .setContentTitle(title)
             .setContentText(message)
             .setAutoCancel(true)
-            .setPriority(NotificationCompat.PRIORITY_HIGH) // HEADS-UP
-            .setDefaults(NotificationCompat.DEFAULT_ALL)   // Suara, getar
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setDefaults(NotificationCompat.DEFAULT_ALL)
             .setContentIntent(pendingIntent)
 
         notificationManager.notify(channelId.hashCode(), notificationBuilder.build())
     }
+
+
+
+
 
 //    override fun onMessageReceived(remoteMessage: RemoteMessage) {
 //        super.onMessageReceived(remoteMessage)

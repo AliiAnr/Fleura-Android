@@ -7,6 +7,7 @@ import com.course.fleura.retrofit.services.CartService
 import com.course.fleura.retrofit.services.HomeService
 import com.course.fleura.retrofit.services.LoginService
 import com.course.fleura.retrofit.services.NotificationService
+import com.course.fleura.retrofit.services.OrderService
 import com.course.fleura.retrofit.services.OtpService
 import com.course.fleura.retrofit.services.ProfileService
 import com.course.fleura.retrofit.services.RegisterService
@@ -71,6 +72,10 @@ object ApiConfig {
 
     fun getProfileService(context: Context): ProfileService {
         return provideRetrofit(context).create(ProfileService::class.java)
+    }
+
+    fun getOrderService(context: Context): OrderService {
+        return provideRetrofit(context).create(OrderService::class.java)
     }
 
 }

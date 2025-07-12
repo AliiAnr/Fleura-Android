@@ -40,6 +40,8 @@ import coil3.compose.AsyncImage
 import com.course.fleura.R
 import com.course.fleura.data.model.remote.DataCartItem
 import com.course.fleura.data.model.remote.ItemFromCart
+import com.course.fleura.data.model.remote.OrderDataItem
+import com.course.fleura.data.model.remote.OrderItemsItem
 import com.course.fleura.ui.common.formatCurrency
 import com.course.fleura.ui.common.formatCurrencyFromString
 import com.course.fleura.ui.common.formatNumber
@@ -471,6 +473,189 @@ fun CartSummary(
                 )
 //                }
             }
+        }
+    }
+}
+
+
+@Composable
+fun CreatedOrderSummary(
+    orderItem: OrderDataItem,
+    onCreatedOrderDetail: () -> Unit
+) {
+    val isCompleted: Boolean = orderItem.payment.status == "paid"
+
+    Column(
+        modifier = Modifier
+            .padding(top = 8.dp)
+            .background(
+                Color.White
+            )
+            .clickable(
+                onClick = {
+                    onCreatedOrderDetail()
+                },
+                indication = null,
+                interactionSource = remember { MutableInteractionSource() }
+            )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 12.dp),
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.shop),
+                        contentDescription = "Store Icon",
+                        tint = Color.Black,
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = orderItem.orderItems[0].product.store.name,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp,
+                        color = Color.Black
+                    )
+                }
+                Icon(
+                    painter = painterResource(id = R.drawable.back_arrow),
+                    contentDescription = "Store Icon",
+                    tint = Color.Black,
+                    modifier = Modifier.size(16.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            orderItem.orderItems.forEach { item ->
+                    CreatedOrderItemCard(item)
+                Spacer(modifier = Modifier.height(8.dp))
+            }
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Start
+            ) {
+                Text(
+                    text = "Total Pesanan:",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp,
+                    color = base100
+                )
+
+                Text(
+                    text = formatCurrencyFromString(orderItem.total.toString()),
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp,
+                    modifier = Modifier.padding(start = 8.dp)
+                )
+
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(5.dp))
+                    .height(25.dp)
+                    .width(120.dp)
+                    .background(if (isCompleted) tert else err),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = if (isCompleted) "Paid" else "Unpaid",
+                    color = Color.White,
+                    fontSize = 14.sp,
+                )
+            }
+        }
+    }
+}
+
+
+@Composable
+fun CreatedOrderItemCard(
+    item: OrderItemsItem
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .border(1.dp, base40, shape = RoundedCornerShape(10.dp))
+            .height(100.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+
+        if (item.product.picture.isNullOrEmpty()) {
+//            Log.e("MerchantFlowerItem", "Image URL is null or empty")
+            Image(
+                painter = painterResource(id = R.drawable.placeholder),  // Use a placeholder image
+                contentDescription = "Store Image",
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .size(110.dp)
+                    .clip(RoundedCornerShape(10.dp))
+            )
+        } else {
+//            Log.d("MerchantFlowerItem", "Image URL: ${item.picture}")
+//            AsyncImage(
+//                model = ImageRequest.Builder(LocalContext.current)
+//                    .data(item.picture.firstOrNull()?.path)
+//                    .crossfade(true)
+//                    .memoryCachePolicy(CachePolicy.ENABLED)
+//                    .build(),
+//                contentDescription = "Store Image",
+////                contentScale = ContentScale.Crop,
+//                placeholder = painterResource(id = R.drawable.placeholder),
+//                error = painterResource(id = R.drawable.placeholder),
+//                modifier = Modifier
+//                    .size(110.dp)
+//                    .clip(RoundedCornerShape(10.dp))
+//            )
+            AsyncImage(
+                model = item.product.picture[0].path,
+                contentDescription = item.product.name,
+                placeholder = painterResource(R.drawable.placeholder),
+                error       = painterResource(R.drawable.placeholder),
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .padding(start = 12.dp)
+                    .size(80.dp)
+                    .clip(RoundedCornerShape(10.dp))
+            )
+        }
+
+        Spacer(modifier = Modifier.width(8.dp))
+        Column(modifier = Modifier.padding(start = 8.dp)) {
+            Column(
+                verticalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Text(
+                    text = item.product.name,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black,
+                    fontSize = 16.sp
+                )
+                Text(text = "${item.quantity} item", color = base100, fontSize = 14.sp)
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = formatCurrencyFromString(item.product.price),
+                color = MaterialTheme.colorScheme.primary,
+                fontWeight = FontWeight.Bold,
+                fontSize = 14.sp
+            )
         }
     }
 }

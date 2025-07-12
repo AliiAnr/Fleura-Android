@@ -22,6 +22,7 @@ import com.course.fleura.ui.screen.dashboard.cart.CartViewModel
 import com.course.fleura.ui.screen.dashboard.home.Home
 import com.course.fleura.ui.screen.dashboard.home.HomeViewModel
 import com.course.fleura.ui.screen.dashboard.order.Order
+import com.course.fleura.ui.screen.dashboard.order.OrderViewModel
 import com.course.fleura.ui.screen.dashboard.point.Point
 import com.course.fleura.ui.screen.dashboard.profile.Profile
 import com.course.fleura.ui.screen.dashboard.profile.ProfileViewModel
@@ -89,9 +90,11 @@ fun NavGraphBuilder.addHomeGraph(
     onStoreClick: (String, String, NavBackStackEntry) -> Unit,
     onFlowerClick: (String, String, NavBackStackEntry) -> Unit,
     onOrderDetail: (String, String, NavBackStackEntry) -> Unit,
+    onCreatedOrderDetail: (String, String, NavBackStackEntry) -> Unit,
     onProfileDetail: (String, NavBackStackEntry) -> Unit,
     homeViewModel: HomeViewModel,
     cartViewModel: CartViewModel,
+    orderViewModel: OrderViewModel,
     profileViewModel: ProfileViewModel
 ) {
     composable(HomeSections.Home.route) { from ->
@@ -134,6 +137,10 @@ fun NavGraphBuilder.addHomeGraph(
             onSnackClick = { id, origin ->
                 onSnackSelected(id, origin, from)
             },
+            orderViewModel = orderViewModel,
+            onCreatedOrderDetail = { id, origin ->
+                onCreatedOrderDetail(id, origin, from)
+            }
         )
     }
     composable(HomeSections.Profile.route) { from ->

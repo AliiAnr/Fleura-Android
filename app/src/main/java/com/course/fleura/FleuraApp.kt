@@ -4,6 +4,7 @@
 
 package com.course.fleura
 
+import androidx.activity.ComponentActivity
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
@@ -24,6 +25,7 @@ import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavBackStackEntry
@@ -31,11 +33,13 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navArgument
+import com.course.fleura.data.model.notification.DownloadPermissionHandler
 import com.course.fleura.data.resource.Resource
 import com.course.fleura.di.factory.CartViewModelFactory
 import com.course.fleura.di.factory.HomeViewModelFactory
 import com.course.fleura.di.factory.LoginViewModelFactory
 import com.course.fleura.di.factory.OnBoardingViewModelFactory
+import com.course.fleura.di.factory.OrderViewModelFactory
 import com.course.fleura.di.factory.StoreViewModelFactory
 import com.course.fleura.ui.components.FleuraBottomBar
 import com.course.fleura.ui.components.HomeSections
@@ -54,12 +58,16 @@ import com.course.fleura.ui.screen.dashboard.detail.order.ConfirmOrder
 import com.course.fleura.ui.screen.dashboard.detail.order.DetailTransferOrder
 import com.course.fleura.ui.screen.dashboard.detail.order.FlowerDetail
 import com.course.fleura.ui.screen.dashboard.detail.order.GeneralOrder
+import com.course.fleura.ui.screen.dashboard.detail.order.QrCreatedOrder
+import com.course.fleura.ui.screen.dashboard.detail.order.QrOrder
 import com.course.fleura.ui.screen.dashboard.detail.profile.AddAdress
 import com.course.fleura.ui.screen.dashboard.detail.profile.AddressDetail
 import com.course.fleura.ui.screen.dashboard.detail.profile.GeneralDetail
 import com.course.fleura.ui.screen.dashboard.home.HomeViewModel
+import com.course.fleura.ui.screen.dashboard.order.OrderViewModel
 import com.course.fleura.ui.screen.dashboard.profile.ProfileViewModel
 import com.course.fleura.ui.screen.navigation.DetailDestinations
+import com.course.fleura.ui.screen.navigation.FleuraNavController
 import com.course.fleura.ui.screen.navigation.FleuraScaffold
 import com.course.fleura.ui.screen.navigation.MainDestinations
 import com.course.fleura.ui.screen.navigation.QueryKeys
@@ -109,6 +117,12 @@ fun FleuraApp() {
 
     val cartViewModel: CartViewModel = viewModel(
         factory = CartViewModelFactory.getInstance(
+            Resource.appContext
+        )
+    )
+
+    val orderViewModel: OrderViewModel = viewModel(
+        factory = OrderViewModelFactory.getInstance(
             Resource.appContext
         )
     )
@@ -213,9 +227,11 @@ fun FleuraApp() {
                             onStoreSelected = fleuraNavController::navigateToStoreDetail,
                             onFlowerSelected = fleuraNavController::navigateToFlowerDetail,
                             onOrderDetail = fleuraNavController::navigateToOrderDetail,
+                            onCreatedOrderDetail = fleuraNavController::navigateToCreatedOrder,
                             onProfileDetail = fleuraNavController::navigateToProfileDetail,
                             homeViewModel = homeViewModel,
                             cartViewModel = cartViewModel,
+                            orderViewModel = orderViewModel,
                             profileViewModel = profileViewModel,
                         )
                     }
@@ -502,17 +518,118 @@ fun FleuraApp() {
                                         backStackEntry
                                     )
                                 },
+                                onOrderSuccess = {
+                                    fleuraNavController.navigateToQrOrder(backStackEntry)
+                                }
                             )
                         }
                     }
 
                     composableWithCompositionLocal(
-                        route = DetailDestinations.DETAIL_TRANSFER_ORDER
+                        route = "${DetailDestinations.DETAIL_TRANSFER_ORDER}/" +
+                                "{${MainDestinations.ORDER_ID_KEY}}" +
+                                "?origin={${MainDestinations.ORIGIN}}",
+                        arguments = listOf(
+                            navArgument(MainDestinations.ORDER_ID_KEY) {
+                                type = NavType.StringType
+                            }
+                        )
                     ) { backStackEntry ->
-                        DetailTransferOrder(
-                            id = 0
+
+                        val arguments = requireNotNull(backStackEntry.arguments)
+                        val id = arguments.getLong(MainDestinations.ORDER_ID_KEY)
+                        val origin = arguments.getString(MainDestinations.ORIGIN)
+
+                        val selectedOrderItem by orderViewModel.selectedOrderItem.collectAsStateWithLifecycle()
+
+                        selectedOrderItem?.let {
+                            DetailTransferOrder(
+                                id = 0,
+                                selectedOrderItem = it,
+                                orderViewModel = orderViewModel,
+                                onBackClick = fleuraNavController::upPress,
+                                onPaymentClick = {
+                                    orderViewModel.setSelectedCreatedOrderItem(it)
+                                    fleuraNavController.navigateToQrCreatedOrder(backStackEntry)
+                                }
+                            )
+                        }
+                    }
+
+                    composableWithCompositionLocal(
+                        route = DetailDestinations.DETAIL_QR_ORDER
+
+                        ) { backStackEntry ->
+                        val arguments = requireNotNull(backStackEntry.arguments)
+                        QrOrder(
+                            cartViewModel = cartViewModel,
+                            onDownloadQr = { url, filename ->
+                                val context = Resource.appContext
+                                DownloadPermissionHandler.requestDownload(context, url, filename)
+                            },
+                            onBack = fleuraNavController::upPress
                         )
                     }
+
+                    composableWithCompositionLocal(
+                        route = DetailDestinations.DETAIL_QR_CREATED_ORDER,
+
+                        enterTransition = {
+                            // Muncul dari kanan
+                            slideInHorizontally(
+                                initialOffsetX = { it },
+                                animationSpec = tween(durationMillis = 350)
+                            )
+                        },
+                        exitTransition = {
+                            // Keluar ke kanan
+                            slideOutHorizontally(
+                                targetOffsetX = { it },
+                                animationSpec = tween(durationMillis = 350)
+                            )
+                        },
+                        popEnterTransition = {
+                            // Jika balik (back), bisa juga dari kiri ke posisi normal
+                            slideInHorizontally(
+                                initialOffsetX = { it },
+                                animationSpec = tween(durationMillis = 350)
+                            )
+                        },
+                        popExitTransition = {
+                            // Jika back, keluar ke kanan
+                            slideOutHorizontally(
+                                targetOffsetX = { it },
+                                animationSpec = tween(durationMillis = 350)
+                            )
+                        }
+
+
+                    ) { backStackEntry ->
+
+
+                        val arguments = requireNotNull(backStackEntry.arguments)
+                        val id = arguments.getLong(MainDestinations.ORDER_ID_KEY)
+                        val origin = arguments.getString(MainDestinations.ORIGIN)
+
+                        val selectedCreatedOrderItem by orderViewModel.selectedCreatedOrderItem.collectAsStateWithLifecycle()
+
+                        selectedCreatedOrderItem?.let {
+                            QrCreatedOrder(
+                                selectedCreatedOrderItem = it,
+                                onDownloadQr = { url, filename ->
+                                    val context = Resource.appContext
+                                    DownloadPermissionHandler.requestDownload(
+                                        context,
+                                        url,
+                                        filename
+                                    )
+                                },
+                                onBack = fleuraNavController::upPress
+                            )
+                        }
+                    }
+
+
 
 
                     composableWithCompositionLocal(
@@ -548,9 +665,11 @@ fun MainContainer(
     onStoreSelected: (String, String, NavBackStackEntry) -> Unit,
     onFlowerSelected: (String, String, NavBackStackEntry) -> Unit,
     onOrderDetail: (String, String, NavBackStackEntry) -> Unit,
+    onCreatedOrderDetail: (String, String, NavBackStackEntry) -> Unit,
     onProfileDetail: (String, NavBackStackEntry) -> Unit,
     homeViewModel: HomeViewModel,
     cartViewModel: CartViewModel,
+    orderViewModel: OrderViewModel,
     profileViewModel: ProfileViewModel
 ) {
     val fleuraScaffoldState = rememberFleuraScaffoldState()
@@ -602,9 +721,11 @@ fun MainContainer(
                 onStoreClick = onStoreSelected,
                 onFlowerClick = onFlowerSelected,
                 onOrderDetail = onOrderDetail,
+                onCreatedOrderDetail = onCreatedOrderDetail,
                 onProfileDetail = onProfileDetail,
                 homeViewModel = homeViewModel,
                 cartViewModel = cartViewModel,
+                orderViewModel = orderViewModel,
                 profileViewModel = profileViewModel,
                 modifier = Modifier
                     .padding(padding)

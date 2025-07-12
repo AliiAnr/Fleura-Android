@@ -6,6 +6,7 @@ import com.course.fleura.data.repository.HomeRepository
 import com.course.fleura.data.repository.LoginRepository
 import com.course.fleura.data.repository.NotificationRepository
 import com.course.fleura.data.repository.OnBoardingRepository
+import com.course.fleura.data.repository.OrderRepository
 import com.course.fleura.data.repository.OtpRepository
 import com.course.fleura.data.repository.ProfileRepository
 import com.course.fleura.data.repository.RegisterRepository
@@ -43,6 +44,10 @@ object Injection {
 
     fun provideProfileRepository(context: Context): ProfileRepository {
         return ProfileRepository.getInstance(context)
+    }
+
+    fun provideOrderRepository(context: Context): OrderRepository {
+        return OrderRepository.getInstance(context)
     }
 
 //    DETAIL REPOSITORY

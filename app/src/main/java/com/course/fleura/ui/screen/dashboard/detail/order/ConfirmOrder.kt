@@ -53,6 +53,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
 import com.course.fleura.R
 import com.course.fleura.data.model.remote.AddressItem
@@ -70,6 +71,7 @@ import com.course.fleura.ui.components.CustomTopAppBar
 import com.course.fleura.ui.components.Profile
 import com.course.fleura.ui.screen.dashboard.cart.CartViewModel
 import com.course.fleura.ui.screen.dashboard.cart.DeliveryMethod
+import com.course.fleura.ui.screen.dashboard.cart.PaymentMethod
 import com.course.fleura.ui.screen.navigation.FleuraSurface
 import com.course.fleura.ui.theme.base100
 import com.course.fleura.ui.theme.base20
@@ -97,7 +99,8 @@ fun ConfirmOrder(
     cartViewModel: CartViewModel,
     selectedCartItem: DataCartItem,
     onChooseClick: (String) -> Unit,
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    onOrderSuccess: () -> Unit
 ) {
 
     val selectedDeliveryMethod by cartViewModel.deliveryMethod.collectAsStateWithLifecycle()
@@ -169,8 +172,10 @@ fun ConfirmOrder(
         showSuccessDialog = showSuccessDialog,
         onSuccessDialogDismiss = {
             showSuccessDialog = false
-            onBackClick()
         },
+        onQrisPayment = {
+            onOrderSuccess()
+        }
     )
 }
 
@@ -187,7 +192,8 @@ private fun ConfirmOrder(
     totalPayment: Long,
     showCircularProgress: Boolean,
     showSuccessDialog: Boolean,
-    onSuccessDialogDismiss: () -> Unit
+    onSuccessDialogDismiss: () -> Unit,
+    onQrisPayment: () -> Unit
 ) {
 
     val focusManager = LocalFocusManager.current
@@ -370,7 +376,15 @@ private fun ConfirmOrder(
 
             if (showSuccessDialog) {
                 CustomPopUpDialog(
-                    onDismiss = onSuccessDialogDismiss,
+                    onDismiss = {
+                        if (cartViewModel.getSelectedPaymentMethod() == PaymentMethod.QRIS.displayName) {
+                            onSuccessDialogDismiss()
+                            onQrisPayment()
+                        } else {
+                            onSuccessDialogDismiss()
+                            onBackClick()
+                        }
+                    },
                     isShowIcon = true,
                     isShowTitle = true,
                     isShowDescription = true,
@@ -1047,6 +1061,7 @@ private fun PaymentMethodSection(
         }
     }
 }
+
 @Composable
 private fun ConfirmOrderTotalPriceSection(
     modifier: Modifier = Modifier,
