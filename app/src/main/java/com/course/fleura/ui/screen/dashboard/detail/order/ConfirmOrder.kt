@@ -799,6 +799,7 @@ private fun DateAndTimeSection(
                 showDatePicker = false
             },
             minDate = LocalDate.now(),
+            startDate = selectedDate,
             title = "Pick Date",
             titleStyle = TextStyle(
                 color = MaterialTheme.colorScheme.primary,
