@@ -29,6 +29,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -67,6 +68,7 @@ import com.course.fleura.ui.theme.base60
 import com.course.fleura.ui.theme.err
 import com.course.fleura.ui.theme.primaryLight
 import com.course.fleura.ui.theme.secColor
+import com.course.fleura.ui.theme.tert
 
 @Composable
 fun DetailTransferOrder(
@@ -78,6 +80,9 @@ fun DetailTransferOrder(
     id: Long,
 ) {
 
+    val realtimeOrderStatus by orderViewModel.realtimeOrderStatus.collectAsStateWithLifecycle()
+    val realtimePaymentStatus by orderViewModel.realtimePaymentStatus.collectAsStateWithLifecycle()
+
     //call API here
 
     var showCircularProgress by remember { mutableStateOf(true) }
@@ -86,9 +91,33 @@ fun DetailTransferOrder(
         initialValue = ResultResponse.None
     )
 
+    LaunchedEffect(selectedOrderItem.id) {
+        orderViewModel.startWebSocketConnection(selectedOrderItem.id)
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            orderViewModel.stopWebSocketConnection()
+        }
+    }
+
     LaunchedEffect(Unit) {
         orderViewModel.loadInitialOrderData()
     }
+
+    val updatedOrderItem = selectedOrderItem.copy(
+        payment = selectedOrderItem.payment.copy(
+            status = realtimePaymentStatus ?: selectedOrderItem.payment.status,
+            successAt = selectedOrderItem.payment.successAt ?: "",
+            qrisUrl = selectedOrderItem.payment.qrisUrl ?: "",
+            qrisExpiredAt = selectedOrderItem.payment.qrisExpiredAt ?: "",
+            methode = selectedOrderItem.payment.methode ?: ""
+        ),
+        status = realtimeOrderStatus ?: selectedOrderItem.status,
+        note = selectedOrderItem.note ?: "",
+        addressId = selectedOrderItem.addressId ?: ""
+    )
+
 
     LaunchedEffect(orderAddressState) {
         when (orderAddressState) {
@@ -141,20 +170,13 @@ fun DetailTransferOrder(
     }
 
     DetailTransferOrder(
-//        orderData = listOf(
-//            CartItem(
-//                quantity = 5,
-//                cartOrder = CartOrder(
-//                    name = "Sunflower Bouquet",
-//                    description = "Lorem ipsulor sit amet. Nam voluptatem tenetur et voluptas nesciunt a quia voluptatem. tenetur et voluptas nesciunt a quia voluptatem.",
-//                    price = 10000
-//                )
-//            )
-//        ),
         orderAddressData = orderAddressData,
-        selectedOrderItem = selectedOrderItem,
+        selectedOrderItem = updatedOrderItem, // Use updated item
         showCircularProgress = showCircularProgress,
-        onBackClick = onBackClick,
+        onBackClick = {
+            orderViewModel.stopWebSocketConnection()
+            onBackClick()
+                      },
         onPaymentClick = onPaymentClick
     )
 }
@@ -223,7 +245,7 @@ private fun DetailTransferOrder(
                         LazyColumn(
                             modifier = Modifier.fillMaxSize()
                         ) {
-                            if (!isPaid) {
+                            if (!isPaid && selectedOrderItem.payment.methode != "cash") {
                                 item {
                                     Spacer(modifier = Modifier.height(8.dp))
                                     PaymentStatusSection(
@@ -237,7 +259,6 @@ private fun DetailTransferOrder(
                                 DetailOrderStatus(
                                     isDelivery = isDelivery,
                                     currentStatus = currentStatus
-
                                 )
                             }
 
@@ -473,7 +494,7 @@ private fun DetailOrderAddressSection(
 private fun DetailOrderStatus(
     modifier: Modifier = Modifier,
     currentStatus: String = "completed",
-    isDelivery: Boolean
+    isDelivery: Boolean,
 ) {
 
     val statuses = if (isDelivery) {
@@ -826,7 +847,7 @@ private fun DetailOrderTotalPriceSection(
             )
             Text(
                 text = paymentStatus,
-                color = err,
+                color = if (selectedOrderItem.payment.status == "paid") tert else err,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold
             )

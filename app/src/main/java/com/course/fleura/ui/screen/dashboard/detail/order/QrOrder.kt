@@ -20,6 +20,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -44,6 +45,7 @@ import com.course.fleura.ui.common.ResultResponse
 import com.course.fleura.ui.components.CustomButton
 import com.course.fleura.ui.components.CustomTopAppBar
 import com.course.fleura.ui.screen.dashboard.cart.CartViewModel
+import com.course.fleura.ui.screen.dashboard.order.OrderViewModel
 import com.course.fleura.ui.screen.navigation.FleuraSurface
 import com.course.fleura.ui.theme.base20
 import com.course.fleura.ui.theme.err
@@ -70,16 +72,44 @@ fun QrOrder(
     onBack: () -> Unit = { /* Default no-op */ },
 ) {
     val orderResponse by cartViewModel.orderState.collectAsStateWithLifecycle(ResultResponse.None)
+    val realtimePaymentStatus by cartViewModel.realtimePaymentStatus.collectAsStateWithLifecycle()
+
+    LaunchedEffect(orderResponse) {
+        if (orderResponse is ResultResponse.Success) {
+            val orderId = (orderResponse as ResultResponse.Success<CartOrderResponse>).data.data.orderId
+            cartViewModel.startWebSocketConnection(orderId)
+        }
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            cartViewModel.stopWebSocketConnection()
+        }
+    }
 
     val orderData = when (orderResponse) {
-        is ResultResponse.Success -> (orderResponse as ResultResponse.Success<CartOrderResponse>).data.data
+        is ResultResponse.Success -> {
+            val data = (orderResponse as ResultResponse.Success<CartOrderResponse>).data.data
+            // Use realtime status if available, otherwise use original status
+            // Handle potential null successAt
+            data.copy(
+                status = realtimePaymentStatus ?: data.status,
+                successAt = data.successAt ?: "", // Ensure not null
+                qrisUrl = data.qrisUrl ?: "", // Ensure not null
+                qrisExpiredAt = data.qrisExpiredAt ?: Clock.System.now().toString(), // Ensure not null
+                methode = data.methode ?: "", // Ensure not null
+                orderId = data.orderId ?: "", // Ensure not null
+                createdAt = data.createdAt ?: "", // Ensure not null
+                id = data.id ?: "error" // Ensure not null
+            )
+        }
         is ResultResponse.Loading -> null
         else -> CartOrderResponseData(
             methode = "Error",
             qrisUrl = "Error",
             orderId = "Error",
             createdAt = "Error",
-            successAt = "Error",
+            successAt = "", // Ensure this is not null
             id = "error",
             qrisExpiredAt = Clock.System.now().toString(),
             status = "error"
@@ -99,7 +129,10 @@ fun QrOrder(
             order = orderData,
             onDownloadQr = onDownloadQr,
             nowProvider = nowProvider,
-            onBack = onBack
+            onBack = {
+                cartViewModel.stopWebSocketConnection()
+                onBack()
+            }
         )
     }
 }
@@ -236,7 +269,7 @@ private fun QrOrder(
                                             model = order.qrisUrl,
                                             contentDescription = "QR Code",
                                             placeholder = painterResource(R.drawable.placeholder),
-                                            error       = painterResource(R.drawable.placeholder),
+                                            error = painterResource(R.drawable.placeholder),
                                             contentScale = ContentScale.Crop,
                                             modifier = Modifier
                                                 .padding(16.dp)
@@ -328,18 +361,49 @@ private fun QrOrder(
 @Composable
 fun QrCreatedOrder(
     modifier: Modifier = Modifier,
-    selectedCreatedOrderItem : OrderDataItem,
+    selectedCreatedOrderItem: OrderDataItem,
     onDownloadQr: (String, String) -> Unit,
     nowProvider: () -> Instant = { Clock.System.now() },
     onBack: () -> Unit = { /* Default no-op */ },
+    orderViewModel: OrderViewModel
 ) {
-           QrCreatedOrder(
-            order = selectedCreatedOrderItem,
-            onDownloadQr = onDownloadQr,
-            nowProvider = nowProvider,
-            onBack = onBack,
-            id = selectedCreatedOrderItem.id
-        )
+
+    val realtimePaymentStatus by orderViewModel.realtimePaymentStatus.collectAsStateWithLifecycle()
+
+    LaunchedEffect(selectedCreatedOrderItem.id) {
+        orderViewModel.stopWebSocketConnection()
+        orderViewModel.startWebSocketConnection(selectedCreatedOrderItem.id)
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            orderViewModel.stopWebSocketConnection()
+        }
+    }
+
+    val updatedOrderItem = selectedCreatedOrderItem.copy(
+        payment = selectedCreatedOrderItem.payment.copy(
+            status = realtimePaymentStatus ?: selectedCreatedOrderItem.payment.status,
+            successAt = selectedCreatedOrderItem.payment.successAt ?: "",
+            qrisUrl = selectedCreatedOrderItem.payment.qrisUrl ?: "",
+            qrisExpiredAt = selectedCreatedOrderItem.payment.qrisExpiredAt ?: "",
+            methode = selectedCreatedOrderItem.payment.methode ?: ""
+        ),
+        // Ensure other nullable fields are handled
+        note = selectedCreatedOrderItem.note ?: "",
+        addressId = selectedCreatedOrderItem.addressId ?: ""
+    )
+
+    QrCreatedOrder(
+        order = updatedOrderItem,
+        onDownloadQr = onDownloadQr,
+        nowProvider = nowProvider,
+        onBack = {
+            orderViewModel.stopWebSocketConnection()
+            onBack()
+        },
+        id = selectedCreatedOrderItem.id
+    )
 }
 
 @Composable
@@ -349,7 +413,7 @@ private fun QrCreatedOrder(
     onDownloadQr: (String, String) -> Unit,
     nowProvider: () -> Instant = { Clock.System.now() },
     onBack: () -> Unit = {},
-    id: String ,
+    id: String,
 ) {
     val tz = TimeZone.currentSystemDefault() // Asia/Jakarta
 
@@ -381,7 +445,7 @@ private fun QrCreatedOrder(
     }
 
     val isExpired = remaining.inWholeMilliseconds <= 0
-    val isPaid = order.status.lowercase() == "paid"
+    val isPaid = order.payment.status.lowercase() == "paid"
 
     // Format hh:mm:ss
     val hours = if (remaining.inWholeMilliseconds > 0) remaining.inWholeHours else 0
@@ -474,7 +538,7 @@ private fun QrCreatedOrder(
                                             model = order.payment.qrisUrl,
                                             contentDescription = "QR Code",
                                             placeholder = painterResource(R.drawable.placeholder),
-                                            error       = painterResource(R.drawable.placeholder),
+                                            error = painterResource(R.drawable.placeholder),
                                             contentScale = ContentScale.Crop,
                                             modifier = Modifier
                                                 .padding(16.dp)

@@ -20,11 +20,24 @@ import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 import android.util.Log
+import com.course.fleura.BuildConfig
+import com.course.fleura.socket.WebSocketManager
+import kotlinx.datetime.Clock
 import network.chaintech.kmp_date_time_picker.utils.now
 
 class CartViewModel (
     private val cartRepository: CartRepository
 ) : ViewModel() {
+
+    private val webSocketManager = WebSocketManager.getInstance()
+
+    private val socketUrl = BuildConfig.SOCKET_URL
+
+    private val _realtimeOrderStatus = MutableStateFlow<String?>(null)
+    val realtimeOrderStatus: StateFlow<String?> = _realtimeOrderStatus.asStateFlow()
+
+    private val _realtimePaymentStatus = MutableStateFlow<String?>(null)
+    val realtimePaymentStatus: StateFlow<String?> = _realtimePaymentStatus.asStateFlow()
 
     private val _dataInitialized = MutableStateFlow(false)
     val dataInitialized: StateFlow<Boolean> = _dataInitialized
@@ -149,6 +162,61 @@ class CartViewModel (
             getCartList()
 //            _dataInitialized.value = true
 //        }
+    }
+
+    fun startWebSocketConnection(orderId: String) {
+        viewModelScope.launch {
+            webSocketManager.connect(orderId, socketUrl)
+
+            // Listen for order status updates
+            webSocketManager.orderStatusUpdates.collect { update ->
+                if (update.orderId == orderId) {
+                    _realtimeOrderStatus.value = update.status
+                    Log.d("CartViewModel", "Order status updated: ${update.status}")
+                }
+            }
+        }
+
+        viewModelScope.launch {
+            // Listen for payment status updates
+            webSocketManager.paymentStatusUpdates.collect { update ->
+                if (update.orderId == orderId) {
+                    _realtimePaymentStatus.value = update.status
+                    Log.d("CartViewModel", "Payment status updated: ${update.status}")
+
+                    // If payment is successful, update order state
+                    if (update.status.lowercase() == "paid") {
+                        // Trigger any additional logic for successful payment
+                        updateLocalOrderPaymentStatus(update.status)
+                    }
+                }
+            }
+        }
+    }
+
+    private fun updateLocalOrderPaymentStatus(status: String) {
+        _orderState.value.let { currentState ->
+            if (currentState is ResultResponse.Success) {
+                val currentData = currentState.data.data
+                val updatedData = currentData.copy(
+                    status = status,
+                    successAt = currentData.successAt ?: "" // Ensure successAt is never null
+                )
+                val updatedResponse = currentState.data.copy(data = updatedData)
+                _orderState.value = ResultResponse.Success(updatedResponse)
+            }
+        }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        stopWebSocketConnection()
+    }
+
+    fun stopWebSocketConnection() {
+        webSocketManager.disconnect()
+        _realtimeOrderStatus.value = null
+        _realtimePaymentStatus.value = null
     }
 
     fun setSelectedCartItem(cartItem: DataCartItem) {

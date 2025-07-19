@@ -1,5 +1,6 @@
 package com.course.fleura.ui.screen.navigation
 
+import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.remember
@@ -19,6 +20,8 @@ object MainDestinations {
     const val USERNAME_ROUTE = "username"
     const val ORDER_HISTORY_ROUTE = "orderHistory"
     const val SNACK_DETAIL_ROUTE = "snack"
+    const val PAYMENT_SUCCESS_ROUTE = "paymentSuccess"
+    const val ORDER_PAYMENT_ID_KEY = "orderPaymentId"
     const val SNACK_ID_KEY = "snackId"
     const val STORE_ID_KEY = "storeId"
     const val GENERAL_ORDER_ID_KEY = "generalOrderId"
@@ -154,6 +157,24 @@ class FleuraNavController(
     fun navigateToCreatedOrder(id: String, origin: String, from: NavBackStackEntry) {
         if (from.lifecycleIsResumed()) {
             navController.navigate("${DetailDestinations.DETAIL_TRANSFER_ORDER}/$id?origin=$origin")
+        }
+    }
+
+    fun navigateToPaymentSuccess(orderId: String) {
+        if (navController.currentDestination?.route != null) {
+            try {
+                navController.navigate("${MainDestinations.PAYMENT_SUCCESS_ROUTE}/$orderId") {
+                    // Clear back stack sampai dashboard agar user tidak bisa kembali ke payment
+                    popUpTo(MainDestinations.DASHBOARD_ROUTE) {
+                        inclusive = false
+                        saveState = false // Jangan save state untuk payment flow
+                    }
+                    launchSingleTop = true
+                    restoreState = false // Payment success tidak perlu restore state
+                }
+            } catch (e: Exception) {
+                Log.e("Navigation", "Failed to navigate to payment success: ${e.message}")
+            }
         }
     }
 

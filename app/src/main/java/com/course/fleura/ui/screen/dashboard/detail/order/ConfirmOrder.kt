@@ -369,6 +369,12 @@ private fun ConfirmOrder(
                     modifier = Modifier
                         .fillMaxSize()
                         .background(Color.Black.copy(alpha = 0.3f))
+                        .clickable(
+                            indication = null,
+                            interactionSource = remember { MutableInteractionSource() }
+                        ) {
+                            // Do nothing - this prevents clicks from passing through
+                        }
                 ) {
                     CircularProgressIndicator(color = primaryLight)
                 }

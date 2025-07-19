@@ -4,6 +4,7 @@
 
 package com.course.fleura
 
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
@@ -41,6 +42,7 @@ import com.course.fleura.di.factory.LoginViewModelFactory
 import com.course.fleura.di.factory.OnBoardingViewModelFactory
 import com.course.fleura.di.factory.OrderViewModelFactory
 import com.course.fleura.di.factory.StoreViewModelFactory
+//import com.course.fleura.socket.SocketManager
 import com.course.fleura.ui.components.FleuraBottomBar
 import com.course.fleura.ui.components.HomeSections
 import com.course.fleura.ui.screen.authentication.login.LoginScreen
@@ -58,6 +60,7 @@ import com.course.fleura.ui.screen.dashboard.detail.order.ConfirmOrder
 import com.course.fleura.ui.screen.dashboard.detail.order.DetailTransferOrder
 import com.course.fleura.ui.screen.dashboard.detail.order.FlowerDetail
 import com.course.fleura.ui.screen.dashboard.detail.order.GeneralOrder
+import com.course.fleura.ui.screen.dashboard.detail.order.PaymentSuccessScreen
 import com.course.fleura.ui.screen.dashboard.detail.order.QrCreatedOrder
 import com.course.fleura.ui.screen.dashboard.detail.order.QrOrder
 import com.course.fleura.ui.screen.dashboard.detail.profile.AddAdress
@@ -146,6 +149,18 @@ fun FleuraApp() {
             CompositionLocalProvider(
                 LocalSharedTransitionScope provides this
             ) {
+//
+//                LaunchedEffect(Unit) {
+//                    SocketManager.paymentEvents.collect { data ->
+//                        // Validasi apakah navigasi aman
+//                        try {
+//                            fleuraNavController.navigateToPaymentSuccess(data.orderId)
+//                        } catch (e: Exception) {
+//                            Log.e("Navigation", "Failed to navigate: ${e.message}")
+//                        }
+//                    }
+//                }
+
 //                if(onBoardingStatus.value) MainDestinations.WELCOME_ROUTE else MainDestinations.ONBOARDING_ROUTE
                 NavHost(
                     navController = fleuraNavController.navController,
@@ -624,9 +639,29 @@ fun FleuraApp() {
                                         filename
                                     )
                                 },
-                                onBack = fleuraNavController::upPress
+                                onBack = fleuraNavController::upPress,
+                                orderViewModel = orderViewModel
                             )
                         }
+                    }
+
+                    composableWithCompositionLocal(
+                        "${MainDestinations.PAYMENT_SUCCESS_ROUTE}/" +
+                                "{${MainDestinations.ORDER_PAYMENT_ID_KEY}}",
+                        arguments = listOf(
+                            navArgument(MainDestinations.ORDER_PAYMENT_ID_KEY) {
+                                type = NavType.StringType
+                            }
+                        ),
+
+                        ) { backStackEntry ->
+                        val arguments = requireNotNull(backStackEntry.arguments)
+                        val id = arguments.getString(MainDestinations.ORDER_PAYMENT_ID_KEY)
+                        val origin = arguments.getString(MainDestinations.ORIGIN)
+                        PaymentSuccessScreen(
+                            orderId = id ?: "Order ID tidak ditemukan",
+                            upPress = fleuraNavController::upPress
+                        )
                     }
 
 

@@ -25,6 +25,7 @@ android {
             load(FileInputStream(rootProject.file("local.properties")))
         }
         buildConfigField("String", "BASE_URL", "\"${properties["BASE_URL"]}\"")
+        buildConfigField("String", "SOCKET_URL", "\"${properties["SOCKET_URL"]}\"")
     }
 
     buildTypes {
@@ -114,5 +115,13 @@ dependencies {
 
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.messaging)
+
+    // di module build.gradle
+    implementation("io.socket:socket.io-client:2.1.2") {
+        // required untuk OkHttp
+        exclude(group = "org.json", module = "json")
+    }
+    implementation(libs.json)
+
 
 }

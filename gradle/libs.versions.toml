@@ -1,6 +1,6 @@
 [versions]
 accompanistPager = "0.36.0"
-agp = "8.10.1"
+agp = "8.11.1"
 animation = "1.8.2"
 coilCompose = "3.1.0"
 converterGson = "2.11.0"
@@ -8,6 +8,7 @@ coreSplashscreen = "1.2.0-beta02"
 datastorePreferencesRxjava2 = "1.1.7"
 firebaseBom = "33.15.0"
 foundationVersion = "1.8.2"
+json = "20250517"
 kmpDateTimePicker = "1.0.7"
 kotlin = "2.0.0"
 coreKtx = "1.16.0"
@@ -46,6 +47,7 @@ converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
 firebase-messaging = { module = "com.google.firebase:firebase-messaging" }
 foundation = { module = "androidx.compose.foundation:foundation", version.ref = "foundationVersion" }
+json = { module = "org.json:json", version.ref = "json" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
