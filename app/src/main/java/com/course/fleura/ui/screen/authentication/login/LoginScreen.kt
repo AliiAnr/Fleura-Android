@@ -25,6 +25,7 @@ import androidx.compose.material.icons.rounded.Email
 import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -262,10 +263,10 @@ private fun LoginScreen(
                         .fillMaxWidth()
                         .padding(vertical = 24.dp)
                 ) {
-                    Divider(
-                        color = Color.Gray,
+                    HorizontalDivider(
+                        modifier = Modifier.weight(1f),
                         thickness = 1.5.dp,
-                        modifier = Modifier.weight(1f)
+                        color = Color.Gray
                     )
                     Text(
                         text = " Or Login with ",
@@ -273,10 +274,10 @@ private fun LoginScreen(
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.padding(horizontal = 8.dp)
                     )
-                    Divider(
-                        color = Color.Gray,
+                    HorizontalDivider(
+                        modifier = Modifier.weight(1f),
                         thickness = 1.5.dp,
-                        modifier = Modifier.weight(1f)
+                        color = Color.Gray
                     )
                 }
 

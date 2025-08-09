@@ -1,3 +1,4 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import java.io.FileInputStream
 import java.util.Properties
 
@@ -46,8 +47,10 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    kotlinOptions {
-        jvmTarget = "17"
+    kotlin {
+        compilerOptions {
+            jvmTarget.set(JvmTarget.JVM_17)
+        }
     }
     buildFeatures {
         buildConfig = true
@@ -56,7 +59,7 @@ android {
     sourceSets {
         getByName("main") {
             res {
-                srcDirs("src\\main\\res", "src\\main\\res\\values-23")
+                srcDirs("src/main/res")
             }
         }
     }

@@ -24,6 +24,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
@@ -370,7 +371,7 @@ fun EditProfileItem(
             color = Color.Black,
             modifier = Modifier.padding(bottom = 4.dp)
         )
-        Divider(
+        HorizontalDivider(
             modifier = Modifier
                 .fillMaxWidth(),
             color = dividerColor
@@ -406,7 +407,7 @@ fun FlatInputText(
                 color = Color.Black,
                 modifier = Modifier
             )
-            Divider(
+            HorizontalDivider(
                 modifier = Modifier
                     .fillMaxWidth(),
                 color = dividerColor
@@ -430,7 +431,7 @@ fun FlatInputText(
                 decorationBox = { innerTextField ->
                     Column {
                         innerTextField()
-                        Divider(
+                        HorizontalDivider(
                             thickness = 1.dp,
                             color = Color.LightGray,
                         )
@@ -480,7 +481,7 @@ fun PhoneNumberItem(
                         color = Color.Black
                     )
                 }
-                Divider(
+                HorizontalDivider(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 4.dp),
@@ -498,7 +499,7 @@ fun PhoneNumberItem(
                     color = Color.Black,
                     modifier = Modifier.padding(bottom = 4.dp)
                 )
-                Divider(
+                HorizontalDivider(
                     modifier = Modifier
                         .fillMaxWidth(),
                     color = dividerColor
@@ -545,7 +546,7 @@ fun FlatPhoneNumberInput(
                         color = Color.Black
                     )
                 }
-                Divider(
+                HorizontalDivider(
                     modifier = Modifier
                         .fillMaxWidth(),
                     color = Color.LightGray
@@ -576,7 +577,7 @@ fun FlatPhoneNumberInput(
                             }
                             innerTextField()
                         }
-                        Divider(
+                        HorizontalDivider(
                             thickness = 1.dp,
                             color = Color.LightGray
                         )

@@ -22,6 +22,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Divider
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -678,7 +679,7 @@ private fun AddressListItem(
             .padding(horizontal = 20.dp, vertical = 12.dp)
     ) {
         // Garis pemisah atas
-        Divider(color = Color.LightGray, thickness = 1.dp)
+        HorizontalDivider(color = Color.LightGray, thickness = 1.dp)
 
         // Baris ikon + nama & telepon
         Row(

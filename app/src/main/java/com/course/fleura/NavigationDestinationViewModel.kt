@@ -60,5 +60,4 @@ class StartupNavigationViewModelFactory(
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }
-
 }

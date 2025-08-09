@@ -21,6 +21,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -232,7 +233,7 @@ fun MenuItem(
                     .size(16.dp)
             )
         }
-        Divider(color = base40, thickness = 1.dp)
+        HorizontalDivider(color = base40, thickness = 1.dp)
     }
 }
 

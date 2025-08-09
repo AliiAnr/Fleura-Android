@@ -20,7 +20,7 @@ class RegisterRepository private constructor(
     private val registerService: RegisterService = ApiConfig.getRegisterService(context)
 
     fun registerBuyer(email: String, password: String): Flow<ResultResponse<RegisterResponse>> = flow {
-        emit(ResultResponse.Loading) // Emit loading sebelum request
+        emit(ResultResponse.Loading)
 
         try {
             val response = registerService.registerBuyer(RegisterRequest(email, password))

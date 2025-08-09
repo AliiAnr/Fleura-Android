@@ -416,7 +416,7 @@ private fun SelectAddressListItem(
             .padding(horizontal = 20.dp, vertical = 12.dp)
     ) {
         // Garis pemisah atas
-        Divider(thickness = 1.dp, color = Color.LightGray)
+        HorizontalDivider(thickness = 1.dp, color = Color.LightGray)
 
         Row(
             modifier = Modifier
