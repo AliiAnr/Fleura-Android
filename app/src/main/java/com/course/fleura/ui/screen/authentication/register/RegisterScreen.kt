@@ -120,6 +120,7 @@ private fun Register(
                 )
                 Log.e("tempLog" , "${registerViewModel.tempLog}")
                 navigateToRoute("${MainDestinations.OTP_ROUTE}?" + "email=$emailValue", true)
+                registerViewModel.resetState()
             }
 
             is ResultResponse.Loading -> {

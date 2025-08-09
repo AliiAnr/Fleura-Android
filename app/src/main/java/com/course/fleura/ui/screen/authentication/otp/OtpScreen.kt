@@ -150,7 +150,10 @@ fun OtpScreen(
             countdown = 60
             // Call your resend OTP function here
         },
-        countdown = countdown
+        countdown = countdown,
+        resetState = {
+            otpViewModel.resetState()
+        },
     )
 }
 
@@ -165,6 +168,7 @@ private fun OtpScreen(
     navigateToRoute: (String, Boolean) -> Unit,
     onBackClick: () -> Unit,
     onResendClick: () -> Unit,
+    resetState: () -> Unit,
     countdown: Int
 ) {
     val focusManager = LocalFocusManager.current
@@ -188,6 +192,8 @@ private fun OtpScreen(
                     "Otp Sukses: ${(otpState as ResultResponse.Success).data}"
                 )
                 navigateToRoute(MainDestinations.LOGIN_ROUTE, true)
+                resetState()
+
             }
 
             is ResultResponse.Loading -> {

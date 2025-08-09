@@ -191,4 +191,11 @@ class OtpScreenViewModel(
         }
         return currentFocusedIndex
     }
+
+    fun resetState() {
+        _state.value = OtpState()
+        _verifyOtpState.value = ResultResponse.None
+        emailValue = ""
+        otpData = VerifyOtpRequest("", "")
+    }
 }

@@ -220,5 +220,23 @@ class RegisterScreenViewModel(
         }
     }
 
+    fun resetState() {
+        usernameValue = ""
+        usernameError = ""
+        emailValue = ""
+        emailError = ""
+        passwordValue = ""
+        passwordError = ""
+        confirmPasswordValue = ""
+        confirmPasswordError = ""
+        isButtonEnabled = true
+        tempLog = false
+        _loading.value = false
+        _errorMessage.value = null
+        _registerState.value = ResultResponse.None
+        _otpState.value = ResultResponse.None
+        _isValid.value = false
+    }
+
 
 }
