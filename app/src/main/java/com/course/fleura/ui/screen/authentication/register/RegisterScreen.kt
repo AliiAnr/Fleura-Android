@@ -212,7 +212,7 @@ private fun Register(
                 CustomButton(
                     text = "Register",
                     isOutlined = true,
-                    isAvailable = registerViewModel.emailError.isEmpty() && registerViewModel.emailValue.isNotEmpty() && registerViewModel.passwordError.isEmpty() && registerViewModel.passwordValue.isNotEmpty() && registerViewModel.confirmPasswordError.isEmpty() && registerViewModel.confirmPasswordValue.isNotEmpty() || !showCircularProgress,
+                    isAvailable = registerViewModel.emailError.isEmpty() && registerViewModel.emailValue.isNotEmpty() && registerViewModel.passwordError.isEmpty() && registerViewModel.passwordValue.isNotEmpty() && registerViewModel.confirmPasswordError.isEmpty() && registerViewModel.confirmPasswordValue.isNotEmpty() && !showCircularProgress,
                     outlinedColor = Color.Black,
                     fontSize = 18.sp,
 //                    isAvailable = registerViewModel.isButtonEnabled,
@@ -297,6 +297,12 @@ private fun Register(
                     modifier = Modifier
                         .fillMaxSize()
                         .background(Color.Black.copy(alpha = 0.3f))
+                        .clickable(
+                            indication = null,
+                            interactionSource = remember { MutableInteractionSource() }
+                        ) {
+                            // Do nothing - this prevents clicks from passing through
+                        }
                 ) {
                     CircularProgressIndicator(color = primaryLight)
                 }
