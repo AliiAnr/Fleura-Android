@@ -158,7 +158,10 @@ private fun Register(
                     title = "",
                     showNavigationIcon = true,
                     horizontalPadding = 0.dp,
-                    onBackClick = onBackClick
+                    onBackClick = {
+                        onBackClick()
+                        registerViewModel.resetState()
+                    }
                 )
                 Text(
                     text = title,
@@ -283,6 +286,7 @@ private fun Register(
                             .clickable(
                                 onClick = {
                                     navigateToRoute(MainDestinations.LOGIN_ROUTE, true)
+                                    registerViewModel.resetState()
                                 },
                                 indication = null,
                                 interactionSource = remember { MutableInteractionSource() }

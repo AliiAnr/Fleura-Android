@@ -245,4 +245,17 @@ class LoginScreenViewModel(
                 }
             }
     }
+
+    fun resetState() {
+        _loginState.value = ResultResponse.None
+        _userState.value = ResultResponse.None
+        _personalizeState.value = ResultResponse.None
+        emailValue = ""
+        emailError = ""
+        passwordValue = ""
+        passwordError = ""
+        usernameValue = ""
+        usernameError = ""
+        _loading.value = false
+    }
 }

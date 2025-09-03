@@ -61,6 +61,7 @@ import com.course.fleura.ui.screen.navigation.FleuraSurface
 import com.course.fleura.ui.screen.navigation.MainDestinations
 import com.course.fleura.ui.theme.primaryLight
 import kotlinx.coroutines.delay
+import kotlin.math.log
 
 @Composable
 fun LoginScreen(
@@ -196,7 +197,10 @@ private fun LoginScreen(
                     title = "",
                     showNavigationIcon = true,
                     horizontalPadding = 0.dp,
-                    onBackClick = onBackClick
+                    onBackClick = {
+                        onBackClick()
+                        loginViewModel.resetState()
+                    }
                 )
                 Text(
                     text = title,
@@ -312,6 +316,7 @@ private fun LoginScreen(
                             .clickable(
                                 onClick = {
                                     navigateToRoute(MainDestinations.REGISTER_ROUTE, true)
+                                    loginViewModel.resetState()
                                 },
                                 indication = null,
                                 interactionSource = remember { MutableInteractionSource() }
