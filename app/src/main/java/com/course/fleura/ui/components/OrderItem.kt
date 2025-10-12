@@ -529,7 +529,7 @@ fun CreatedOrderSummary(
                 }
                 Icon(
                     painter = painterResource(id = R.drawable.back_arrow),
-                    contentDescription = "Store Icon",
+                    contentDescription = "Back Icon",
                     tint = Color.Black,
                     modifier = Modifier.size(16.dp)
                 )

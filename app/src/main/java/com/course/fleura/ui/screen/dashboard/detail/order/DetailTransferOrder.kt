@@ -234,7 +234,6 @@ private fun DetailTransferOrder(
                         contentAlignment = Alignment.Center,
                         modifier = Modifier
                             .fillMaxSize()
-                            .background(Color.Black.copy(alpha = 0.3f))
                             .clickable(
                                 indication = null,
                                 interactionSource = remember { MutableInteractionSource() }
@@ -607,7 +606,7 @@ private fun NoteSection(
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
-            text = if (note.isEmpty()) "-" else note,
+            text = note.ifEmpty { "-" },
             color = Color.Black,
             fontSize = 12.sp,
             lineHeight = 20.sp,
