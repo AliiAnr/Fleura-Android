@@ -580,12 +580,19 @@ fun RatingsSection(
         if (isLoading) {
             RatingListSkeleton()
         } else if (reviewData.isNullOrEmpty()) {
-            Text(
-                text = "No ratings yet",
-                fontSize = 12.sp,
-                color = base500,
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
+            Box(
+                modifier = Modifier
+                    .height(80.dp)
+                    .width(240.dp)
+                    .clip(RoundedCornerShape(10.dp))
+            ) {
+                Text(
+                    text = "No ratings yet",
+                    fontSize = 12.sp,
+                    color = base500,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+            }
         } else {
             LazyRow(
                 modifier = Modifier.fillMaxWidth(),
