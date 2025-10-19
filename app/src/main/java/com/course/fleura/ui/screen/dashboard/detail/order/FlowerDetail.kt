@@ -402,7 +402,7 @@ private fun DescFlower(
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = "${item.rating} | 100",
+                        text = "${item.rating} | ${item.reviewCount}",
                         fontSize = 18.sp,
                         color = Color.Black,
                         fontWeight = FontWeight.W700,
@@ -519,7 +519,7 @@ fun StoreItemLogo(
                 ),
             verticalAlignment = Alignment.CenterVertically
         ){
-            if (item.picture.isNullOrEmpty()) {
+            if (item.picture.isEmpty()) {
                 Image(
                     painter = painterResource(id = R.drawable.placeholder),
                     contentDescription = "Store Image",
