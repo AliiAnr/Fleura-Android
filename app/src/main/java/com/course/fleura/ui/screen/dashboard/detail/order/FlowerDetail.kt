@@ -568,7 +568,6 @@ fun RatingsSection(
             .background(Color.White)
             .padding(20.dp)
     ) {
-        // Header "Ratings"
         Text(
             text = "Ratings",
             fontSize = 20.sp,
