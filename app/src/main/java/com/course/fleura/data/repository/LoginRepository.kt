@@ -2,6 +2,7 @@ package com.course.fleura.data.repository
 
 import android.content.Context
 import com.course.fleura.data.model.remote.GetUserResponse
+import com.course.fleura.data.model.remote.ListAddressResponse
 import com.course.fleura.data.model.remote.LoginRequest
 import com.course.fleura.data.model.remote.LoginResponse
 import com.course.fleura.data.model.remote.NameRequest
@@ -66,6 +67,23 @@ class LoginRepository private constructor(
             val response = loginService.setUsername(NameRequest(username))
             if (response.isSuccessful) {
                 response.body()?.let {
+                    emit(ResultResponse.Success(it))
+                } ?: emit(ResultResponse.Error("Empty response body"))
+            } else {
+                emit(ResultResponse.Error("Error: ${response.errorBody()?.string() ?: "Unknown error"}"))
+            }
+        } catch (e: Exception) {
+            emit(ResultResponse.Error(e.localizedMessage ?: "Network error"))
+        }
+    }.flowOn(Dispatchers.IO)
+
+    fun getUserAddressList(): Flow<ResultResponse<ListAddressResponse>> = flow {
+        emit(ResultResponse.Loading)
+        try {
+            val response = loginService.getAllUserAddress()
+            if (response.isSuccessful) {
+                response.body()?.let {
+                    dataStoreManager.saveAddressList(it.data)
                     emit(ResultResponse.Success(it))
                 } ?: emit(ResultResponse.Error("Empty response body"))
             } else {

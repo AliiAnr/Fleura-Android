@@ -24,12 +24,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Email
 import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Divider
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -48,11 +46,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.course.fleura.R
-import com.course.fleura.data.model.remote.LoginResponse
-import com.course.fleura.data.resource.Resource
-import com.course.fleura.di.factory.LoginViewModelFactory
 import com.course.fleura.ui.common.ResultResponse
 import com.course.fleura.ui.components.CustomButton
 import com.course.fleura.ui.components.CustomTextField
@@ -61,7 +55,6 @@ import com.course.fleura.ui.screen.navigation.FleuraSurface
 import com.course.fleura.ui.screen.navigation.MainDestinations
 import com.course.fleura.ui.theme.primaryLight
 import kotlinx.coroutines.delay
-import kotlin.math.log
 
 @Composable
 fun LoginScreen(
@@ -77,6 +70,8 @@ fun LoginScreen(
     val loginState by loginViewModel.loginState.collectAsStateWithLifecycle(initialValue = ResultResponse.None)
 
     val userState by loginViewModel.userState.collectAsStateWithLifecycle(initialValue = ResultResponse.None)
+
+    val addressListState by loginViewModel.userAddressListState.collectAsStateWithLifecycle(initialValue = ResultResponse.None)
 
     LaunchedEffect(loginState) {
         when (loginState) {
@@ -113,16 +108,49 @@ fun LoginScreen(
     LaunchedEffect(userState) {
         when (userState) {
             is ResultResponse.Success -> {
-                showCircularProgress = false
                 val detail = (userState as ResultResponse.Success).data.data
                 Log.e("LoginScreen", "User detail: $detail")
 
                 if (detail.isProfileComplete()) {
+                    loginViewModel.getUserAddressList()
+                } else {
+                    showCircularProgress = false
+                    navigateToRoute(MainDestinations.USERNAME_ROUTE, true)
+                }
+                loginViewModel.setPersonalizeState(ResultResponse.None)
+            }
+
+            is ResultResponse.Loading -> {
+                showCircularProgress = true
+            }
+
+            is ResultResponse.Error -> {
+                showCircularProgress = false
+                Log.e("LoginScreen", "Get user error: ${(userState as ResultResponse.Error).error}")
+            }
+
+            else -> {}
+        }
+    }
+
+    //launchedEffect untuk addressState
+    // nanti jika ada address maka akan ke dashboard
+    // jika tidak ada address maka ke address screen
+
+    LaunchedEffect(addressListState) {
+        when (addressListState) {
+            is ResultResponse.Success -> {
+                showCircularProgress = false
+                val addressList = (addressListState as ResultResponse.Success).data.data
+                Log.e("LoginScreen", "User addressList: $addressList")
+
+                if (addressList.isNotEmpty() && addressList.first().isAddressCompleted()) {
                     loginViewModel.setPersonalizeCompleted()
                     navigateToRoute(MainDestinations.DASHBOARD_ROUTE, true)
                 } else {
-                    navigateToRoute(MainDestinations.USERNAME_ROUTE, true)
+                    navigateToRoute(MainDestinations.ADDRESS_ROUTE, true)
                 }
+                loginViewModel.resetAllState()
             }
 
             is ResultResponse.Loading -> {
@@ -199,7 +227,7 @@ private fun LoginScreen(
                     horizontalPadding = 0.dp,
                     onBackClick = {
                         onBackClick()
-                        loginViewModel.resetState()
+                        loginViewModel.resetAllState()
                     }
                 )
                 Text(
@@ -316,7 +344,7 @@ private fun LoginScreen(
                             .clickable(
                                 onClick = {
                                     navigateToRoute(MainDestinations.REGISTER_ROUTE, true)
-                                    loginViewModel.resetState()
+                                    loginViewModel.resetAllState()
                                 },
                                 indication = null,
                                 interactionSource = remember { MutableInteractionSource() }

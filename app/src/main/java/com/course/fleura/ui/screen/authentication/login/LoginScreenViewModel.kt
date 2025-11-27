@@ -8,6 +8,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.course.fleura.data.model.remote.GetUserResponse
+import com.course.fleura.data.model.remote.ListAddressResponse
 import com.course.fleura.data.model.remote.LoginResponse
 import com.course.fleura.data.model.remote.PersonalizeResponse
 import com.course.fleura.data.repository.LoginRepository
@@ -36,6 +37,10 @@ class LoginScreenViewModel(
         MutableStateFlow<ResultResponse<PersonalizeResponse>>(ResultResponse.None)
     val personalizeState: StateFlow<ResultResponse<PersonalizeResponse>> = _personalizeState
 
+    private val _userAddressListState =
+        MutableStateFlow<ResultResponse<ListAddressResponse>>(ResultResponse.None)
+    val userAddressListState: StateFlow<ResultResponse<ListAddressResponse>> = _userAddressListState
+
     private val _loading = MutableStateFlow(false)
     val loading: StateFlow<Boolean> = _loading
 
@@ -58,9 +63,52 @@ class LoginScreenViewModel(
         private set
 
 
+    var streetNameValue by mutableStateOf("")
+        private set
+
+    var subDistrictValue by mutableStateOf("")
+        private set
+
+
+    var cityValue by mutableStateOf("")
+        private set
+
+    var provinceValue by mutableStateOf("")
+        private set
+
+    var postalCodeValue by mutableStateOf("")
+        private set
+
+    var additionalDetailValue by mutableStateOf("")
+        private set
+
     fun setUsername(value: String) {
         usernameValue = value
         validateUsername()
+    }
+
+    fun setStreetName(value: String) {
+        streetNameValue = value
+    }
+
+    fun setSubDistrict(value: String) {
+        subDistrictValue = value
+    }
+
+    fun setCity(value: String) {
+        cityValue = value
+    }
+
+    fun setProvince(value: String) {
+        provinceValue = value
+    }
+
+    fun setPostalCode(value: String) {
+        postalCodeValue = value
+    }
+
+    fun setAdditionalDetail(value: String) {
+        additionalDetailValue = value
     }
 
 
@@ -126,6 +174,22 @@ class LoginScreenViewModel(
         }
     }
 
+    fun getUserAddressList() {
+        viewModelScope.launch {
+            try {
+                _userAddressListState.value = ResultResponse.Loading
+
+                loginRepository.getUserAddressList()
+                    .collect { result ->
+                        _userAddressListState.value = result
+                    }
+            } catch (e: Exception) {
+                _userAddressListState.value =
+                    ResultResponse.Error("Failed to fetch address list: ${e.message}")
+            }
+        }
+    }
+
     fun getUser() {
         viewModelScope.launch {
             try {
@@ -138,6 +202,10 @@ class LoginScreenViewModel(
                 _userState.value = ResultResponse.Error("Failed to get user: ${e.message}")
             }
         }
+    }
+
+    fun setPersonalizeState(value: ResultResponse<PersonalizeResponse>) {
+        _personalizeState.value = value
     }
 
     fun setPersonalizeCompleted() {
@@ -246,7 +314,7 @@ class LoginScreenViewModel(
             }
     }
 
-    fun resetState() {
+    fun resetAllState() {
         _loginState.value = ResultResponse.None
         _userState.value = ResultResponse.None
         _personalizeState.value = ResultResponse.None
@@ -257,5 +325,17 @@ class LoginScreenViewModel(
         usernameValue = ""
         usernameError = ""
         _loading.value = false
+        streetNameValue = ""
+        subDistrictValue = ""
+        cityValue = ""
+        provinceValue = ""
+        postalCodeValue = ""
+        additionalDetailValue = ""
+    }
+
+    fun resetState() {
+        _loginState.value = ResultResponse.None
+        _userState.value = ResultResponse.None
+        _personalizeState.value = ResultResponse.None
     }
 }

@@ -15,7 +15,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -53,7 +52,7 @@ fun UsernameScreen(
     val personalizeState by loginScreenViewModel.personalizeState.collectAsStateWithLifecycle(initialValue = ResultResponse.None)
     val userState by loginScreenViewModel.userState.collectAsStateWithLifecycle(initialValue = ResultResponse.None)
 
-
+    val addressListState by loginScreenViewModel.userAddressListState.collectAsStateWithLifecycle(initialValue = ResultResponse.None)
 // Then add a LaunchedEffect to respond to state changes
     LaunchedEffect(personalizeState) {
         Log.e("UsernameScreen", "PersonalizeState changed: $personalizeState")
@@ -79,16 +78,15 @@ fun UsernameScreen(
     LaunchedEffect(userState) {
         when (userState) {
             is ResultResponse.Success -> {
-                showCircularProgress = false
                 val detail = (userState as ResultResponse.Success).data.data
                 Log.e("GoalScreen", "User detail: $detail")
                 // Cek langsung pada detail yang diterima
                 if (detail.isProfileComplete()) {
-                    loginScreenViewModel.setPersonalizeCompleted()
-                    navigateToRoute(MainDestinations.DASHBOARD_ROUTE, true)
+                    loginScreenViewModel.getUserAddressList()
                 } else {
                     navigateToRoute(MainDestinations.USERNAME_ROUTE, true)
                 }
+                loginScreenViewModel.setPersonalizeState(ResultResponse.None)
             }
             is ResultResponse.Loading -> {
                 showCircularProgress = true
@@ -97,6 +95,35 @@ fun UsernameScreen(
                 showCircularProgress = false
                 Log.e("LoginScreen", "Get user error: ${(userState as ResultResponse.Error).error}")
             }
+            else -> {}
+        }
+    }
+
+    LaunchedEffect(addressListState) {
+        when (addressListState) {
+            is ResultResponse.Success -> {
+                showCircularProgress = false
+                val addressList = (addressListState as ResultResponse.Success).data.data
+                Log.e("LoginScreen", "User addressList: $addressList")
+
+                if (addressList.isNotEmpty() && addressList.first().isAddressCompleted()) {
+                    loginScreenViewModel.setPersonalizeCompleted()
+                    navigateToRoute(MainDestinations.DASHBOARD_ROUTE, true)
+                } else {
+                    navigateToRoute(MainDestinations.ADDRESS_ROUTE, true)
+                }
+                loginScreenViewModel.resetAllState()
+            }
+
+            is ResultResponse.Loading -> {
+                showCircularProgress = true
+            }
+
+            is ResultResponse.Error -> {
+                showCircularProgress = false
+                Log.e("LoginScreen", "Get user error: ${(userState as ResultResponse.Error).error}")
+            }
+
             else -> {}
         }
     }

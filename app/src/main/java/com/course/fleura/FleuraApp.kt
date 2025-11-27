@@ -45,6 +45,7 @@ import com.course.fleura.di.factory.StoreViewModelFactory
 //import com.course.fleura.socket.SocketManager
 import com.course.fleura.ui.components.FleuraBottomBar
 import com.course.fleura.ui.components.HomeSections
+import com.course.fleura.ui.screen.authentication.address.AuthAddress
 import com.course.fleura.ui.screen.authentication.login.LoginScreen
 import com.course.fleura.ui.screen.authentication.login.LoginScreenViewModel
 import com.course.fleura.ui.screen.authentication.newpassword.NewPasswordScreen
@@ -450,6 +451,15 @@ fun FleuraApp() {
                         AddAdress(
                             onBackClick = fleuraNavController::upPress,
                             profileViewModel = profileViewModel
+                        )
+                    }
+
+                    composableWithCompositionLocal(
+                        route = MainDestinations.ADDRESS_ROUTE
+                    ) { backStackEntry ->
+                        AuthAddress(
+                            navigateToRoute = fleuraNavController::navigateToNonBottomBarRoute,
+                            loginViewModel = loginViewModel
                         )
                     }
 

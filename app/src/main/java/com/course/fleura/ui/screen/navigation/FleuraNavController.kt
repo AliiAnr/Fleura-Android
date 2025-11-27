@@ -33,6 +33,7 @@ object MainDestinations {
     const val ORIGIN = "origin"
     const val OTP_ROUTE = "otp"
     const val NEW_PASSWORD_ROUTE = "newPassword"
+    const val ADDRESS_ROUTE = "addAddress"
 }
 
 object DetailDestinations {

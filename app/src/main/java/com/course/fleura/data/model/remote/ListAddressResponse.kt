@@ -136,4 +136,17 @@ data class AddressItem(
 	@field:SerializedName("longitude")
 	val longitude: Double
 
-)
+) {
+
+	fun isAddressCompleted(): Boolean {
+		return name.isNotBlank() &&
+				phone.isNotBlank() &&
+				province.isNotBlank() &&
+				road.isNotBlank() &&
+				city.isNotBlank() &&
+				district.isNotBlank() &&
+				postcode.isNotBlank() &&
+				detail.isNotBlank()
+	}
+
+}
