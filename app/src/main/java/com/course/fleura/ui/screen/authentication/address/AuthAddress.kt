@@ -9,10 +9,12 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -28,12 +30,14 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.course.fleura.ui.common.ResultResponse
+import com.course.fleura.ui.common.formatCurrency
 import com.course.fleura.ui.components.CustomButton
 import com.course.fleura.ui.components.CustomTextField
 import com.course.fleura.ui.components.CustomTopAppBar
@@ -169,82 +173,132 @@ private fun AddressScreen(
                     title = "",
                     showNavigationIcon = false
                 )
-                LazyColumn(
-                    horizontalAlignment = Alignment.CenterHorizontally,
+                Box(
+                    modifier = Modifier.weight(1f) // Membuat LazyColumn fleksibel
                 ) {
-                    item {
-                        Text(
-                            text = title,
-                            textAlign = TextAlign.Start,
-                            fontSize = 36.sp,
-                            color = primaryLight,
-                            fontWeight = FontWeight.ExtraBold,
-                            lineHeight = 50.sp,
-                            modifier = Modifier
-                                .padding(horizontal = 20.dp)
-                                .align(Alignment.Start)
-                        )
-                        Spacer(modifier = Modifier.height(20.dp))
-                    }
+                    LazyColumn(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        item {
+                            Text(
+                                text = title,
+                                textAlign = TextAlign.Start,
+                                fontSize = 36.sp,
+                                color = primaryLight,
+                                fontWeight = FontWeight.ExtraBold,
+                                lineHeight = 50.sp,
+                                modifier = Modifier
+                                    .padding(horizontal = 20.dp)
+                            )
+//                        Spacer(modifier = Modifier.height(20.dp))
+                        }
 
-                    item {
-                        CustomTextField(
-                            value = loginViewModel.streetNameValue,
-                            onChange = loginViewModel::setStreetName,
-                            placeholder = "Street Name, Building, House No.",
-                            isError = false,
-                            errorMessage = "",
-                            modifier = Modifier.padding(horizontal = 20.dp)
-                        )
-                    }
+                        item {
+                            Text(
+                                text = "Please enter name & phone in this address where we can deliver your order:",
+                                textAlign = TextAlign.Start,
+                                fontSize = 15.sp,
+                                color = Color.Black,
+                                fontWeight = FontWeight.Medium,
+                                modifier = Modifier.padding(vertical = 15.dp ,horizontal = 20.dp)
+                            )
+//                        Spacer(modifier = Modifier.height(20.dp))
+                        }
 
-                    item {
-                        CustomTextField(
-                            value = loginViewModel.subDistrictValue,
-                            onChange = loginViewModel::setSubDistrict,
-                            placeholder = "Sub-District",
-                            isError = false,
-                            errorMessage = "",
-                            modifier = Modifier.padding(horizontal = 20.dp)
-                        )
-                        Spacer(modifier = Modifier.height(6.dp))
-                    }
+                        item {
+                            CustomTextField(
+                                value = loginViewModel.addressNameValue,
+                                onChange = loginViewModel::setAddressName,
+                                placeholder = "Name",
+                                isError = false,
+                                errorMessage = "",
+                                modifier = Modifier.padding(horizontal = 20.dp)
+                            )
+                        }
 
-                    item {
-                        CustomTextField(
-                            value = loginViewModel.cityValue,
-                            onChange = loginViewModel::setCity,
-                            placeholder = "City/District",
-                            isError = false,
-                            errorMessage = "",
-                            modifier = Modifier.padding(horizontal = 20.dp)
-                        )
-                        Spacer(modifier = Modifier.height(6.dp))
-                    }
+                        item {
+                            CustomTextField(
+                                value = loginViewModel.phonNumberValue,
+                                onChange = loginViewModel::setPhonNumber,
+                                placeholder = "Phone Number",
+                                isError = false,
+                                keyboardType = KeyboardType.NumberPassword,
+                                errorMessage = "",
+                                modifier = Modifier.padding(horizontal = 20.dp)
+                            )
+                            Spacer(modifier = Modifier.height(6.dp))
+                        }
 
-                    item {
-                        CustomTextField(
-                            value = loginViewModel.provinceValue,
-                            onChange = loginViewModel::setProvince,
-                            placeholder = "Province",
-                            isError = false,
-                            errorMessage = "",
-                            modifier = Modifier.padding(horizontal = 20.dp)
-                        )
-                        Spacer(modifier = Modifier.height(6.dp))
-                    }
+                        item {
+                            Text(
+                                text = "Please enter your address:",
+                                textAlign = TextAlign.Start,
+                                fontSize = 15.sp,
+                                color = Color.Black,
+                                fontWeight = FontWeight.Medium,
+                                modifier = Modifier.padding(vertical = 15.dp,horizontal = 20.dp).fillMaxWidth()
+                            )
+//                        Spacer(modifier = Modifier.height(20.dp))
+                        }
 
-                    item {
-                        CustomTextField(
-                            value = loginViewModel.postalCodeValue,
-                            onChange = loginViewModel::setPostalCode,
-                            placeholder = "Postal Code",
-                            isError = false,
-                            errorMessage = "",
-                            modifier = Modifier.padding(horizontal = 20.dp)
-                        )
-                        Spacer(modifier = Modifier.height(6.dp))
-                    }
+                        item {
+                            CustomTextField(
+                                value = loginViewModel.provinceValue,
+                                onChange = loginViewModel::setProvince,
+                                placeholder = "Province",
+                                isError = false,
+                                errorMessage = "",
+                                modifier = Modifier.padding(horizontal = 20.dp)
+                            )
+                            Spacer(modifier = Modifier.height(6.dp))
+                        }
+
+                        item {
+                            CustomTextField(
+                                value = loginViewModel.cityValue,
+                                onChange = loginViewModel::setCity,
+                                placeholder = "City/District",
+                                isError = false,
+                                errorMessage = "",
+                                modifier = Modifier.padding(horizontal = 20.dp)
+                            )
+                            Spacer(modifier = Modifier.height(6.dp))
+                        }
+
+                        item {
+                            CustomTextField(
+                                value = loginViewModel.subDistrictValue,
+                                onChange = loginViewModel::setSubDistrict,
+                                placeholder = "Sub-District",
+                                isError = false,
+                                errorMessage = "",
+                                modifier = Modifier.padding(horizontal = 20.dp)
+                            )
+                            Spacer(modifier = Modifier.height(6.dp))
+                        }
+
+                        item {
+                            CustomTextField(
+                                value = loginViewModel.postalCodeValue,
+                                onChange = loginViewModel::setPostalCode,
+                                placeholder = "Postal Code",
+                                isError = false,
+                                errorMessage = "",
+                                modifier = Modifier.padding(horizontal = 20.dp)
+                            )
+                            Spacer(modifier = Modifier.height(6.dp))
+                        }
+
+                        item {
+                            CustomTextField(
+                                value = loginViewModel.streetNameValue,
+                                onChange = loginViewModel::setStreetName,
+                                placeholder = "Street Name, Building, House No.",
+                                isError = false,
+                                errorMessage = "",
+                                modifier = Modifier.padding(horizontal = 20.dp)
+                            )
+                        }
 
 //                    item {
 //                        Column(modifier = Modifier.padding(horizontal = 20.dp)) {
@@ -259,41 +313,47 @@ private fun AddressScreen(
 //                        Spacer(modifier = Modifier.height(20.dp))
 //                    }
 
-                    item {
-                        CustomTextField(
-                            value = loginViewModel.additionalDetailValue,
-                            onChange = loginViewModel::setAdditionalDetail,
-                            placeholder = "Additional Detail",
-                            isError = false,
-                            errorMessage = "",
-                            modifier = Modifier.padding(horizontal = 20.dp)
-                        )
-                        Spacer(modifier = Modifier.height(6.dp))
-                    }
+                        item {
+                            CustomTextField(
+                                value = loginViewModel.additionalDetailValue,
+                                onChange = loginViewModel::setAdditionalDetail,
+                                placeholder = "Additional Detail",
+                                isError = false,
+                                errorMessage = "",
+                                modifier = Modifier.padding(horizontal = 20.dp)
+                            )
+                            Spacer(modifier = Modifier.height(6.dp))
+                        }
 
-                    item {
-                        CustomButton(
-                            text = "Register",
-                            isOutlined = true,
-                            outlinedColor = Color.Black,
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold,
-                            isAvailable = loginViewModel.streetNameValue.isNotEmpty() &&
-                                    loginViewModel.subDistrictValue.isNotEmpty() &&
-                                    loginViewModel.cityValue.isNotEmpty() &&
-                                    loginViewModel.provinceValue.isNotEmpty() &&
-                                    loginViewModel.postalCodeValue.isNotEmpty() &&
-                                    loginViewModel.additionalDetailValue.isNotEmpty() &&
-                                    !showCircularProgress,
-                            onClick = {
-                                setCircularProgress(true)
-                                focusManager.clearFocus()
-//                                loginViewModel.inputAddressData()
-                            },
-                            modifier = Modifier.padding(top = 30.dp)
-                        )
-                        Spacer(modifier = Modifier.height(100.dp))
                     }
+                }
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(Color.White)
+                        .height(90.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CustomButton(
+                        text = "Register",
+                        isOutlined = true,
+                        outlinedColor = Color.Black,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        isAvailable = loginViewModel.streetNameValue.isNotEmpty() &&
+                                loginViewModel.subDistrictValue.isNotEmpty() &&
+                                loginViewModel.cityValue.isNotEmpty() &&
+                                loginViewModel.provinceValue.isNotEmpty() &&
+                                loginViewModel.postalCodeValue.isNotEmpty() &&
+                                loginViewModel.additionalDetailValue.isNotEmpty() &&
+                                !showCircularProgress,
+                        onClick = {
+                            setCircularProgress(true)
+                            focusManager.clearFocus()
+                            loginViewModel.addUserAddress()
+                        },
+                    )
                 }
             }
 

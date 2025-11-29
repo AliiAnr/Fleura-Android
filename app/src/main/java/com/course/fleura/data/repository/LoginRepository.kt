@@ -1,6 +1,8 @@
 package com.course.fleura.data.repository
 
 import android.content.Context
+import com.course.fleura.data.model.remote.AddAddressRequest
+import com.course.fleura.data.model.remote.AddAddressResponse
 import com.course.fleura.data.model.remote.GetUserResponse
 import com.course.fleura.data.model.remote.ListAddressResponse
 import com.course.fleura.data.model.remote.LoginRequest
@@ -86,6 +88,46 @@ class LoginRepository private constructor(
                     dataStoreManager.saveAddressList(it.data)
                     emit(ResultResponse.Success(it))
                 } ?: emit(ResultResponse.Error("Empty response body"))
+            } else {
+                emit(ResultResponse.Error("Error: ${response.errorBody()?.string() ?: "Unknown error"}"))
+            }
+        } catch (e: Exception) {
+            emit(ResultResponse.Error(e.localizedMessage ?: "Network error"))
+        }
+    }.flowOn(Dispatchers.IO)
+
+    fun addUserAddress(
+        name: String = "",
+        phone: String = "",
+        province: String = "",
+        road: String = "",
+        city: String = "",
+        district: String = "",
+        postcode: String = "",
+        detail: String = "",
+        latitude: Double = 0.0,
+        longitude: Double = 0.0,
+    ): Flow<ResultResponse<PersonalizeResponse>> = flow {
+        emit(ResultResponse.Loading)
+        try {
+            val response = loginService.addUserAddress(
+                request = AddAddressRequest(
+                    name = name,
+                    phone = phone,
+                    province = province,
+                    road = road,
+                    city = city,
+                    district = district,
+                    postcode = postcode,
+                    detail = detail,
+                    latitude = latitude,
+                    longitude = longitude
+                )
+            )
+            if (response.isSuccessful) {
+                response.body()?.let {
+                    emit(ResultResponse.Success(it))
+                } ?: emit(ResultResponse.Error("Add Address failed, response body is empty"))
             } else {
                 emit(ResultResponse.Error("Error: ${response.errorBody()?.string() ?: "Unknown error"}"))
             }

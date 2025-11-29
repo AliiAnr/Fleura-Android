@@ -62,6 +62,11 @@ class LoginScreenViewModel(
     var usernameError by mutableStateOf("")
         private set
 
+    var addressNameValue by mutableStateOf("")
+        private set
+
+    var phonNumberValue by mutableStateOf("")
+        private set
 
     var streetNameValue by mutableStateOf("")
         private set
@@ -85,6 +90,14 @@ class LoginScreenViewModel(
     fun setUsername(value: String) {
         usernameValue = value
         validateUsername()
+    }
+
+    fun setAddressName(value: String) {
+        addressNameValue = value
+    }
+
+    fun setPhonNumber(value: String) {
+        phonNumberValue = value
     }
 
     fun setStreetName(value: String) {
@@ -171,6 +184,35 @@ class LoginScreenViewModel(
             }
         } else {
             _personalizeState.value = ResultResponse.Error("Please correct the errors above.")
+        }
+    }
+
+    fun addUserAddress() {
+        viewModelScope.launch {
+            try {
+                _personalizeState.value = ResultResponse.Loading
+
+                loginRepository.addUserAddress(
+                    name = addressNameValue,
+                    phone = phonNumberValue,
+                    province = provinceValue,
+                    road = streetNameValue,
+                    city = cityValue,
+                    district = subDistrictValue,
+                    postcode = postalCodeValue,
+                    detail = additionalDetailValue,
+                    latitude = 0.0,
+                    longitude = 0.0
+                ).collect { result ->
+                    _personalizeState.value = result
+                    if (result is ResultResponse.Success) {
+                        getUserAddressList()
+                    }
+                }
+            } catch (e: Exception) {
+                _personalizeState.value =
+                    ResultResponse.Error("Failed to add address: ${e.message}")
+            }
         }
     }
 

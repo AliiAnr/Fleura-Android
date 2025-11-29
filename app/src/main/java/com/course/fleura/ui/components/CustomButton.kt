@@ -73,7 +73,7 @@ fun CustomButton(
         Box(
             contentAlignment = Alignment.Center,
             modifier = buttonModifier
-                .border(width = borderWidth, color = outlinedColor, shape = shape)
+                .border(width = borderWidth, color = if (isAvailable) outlinedColor else outlinedColor.copy(alpha = 0.3F), shape = shape)
                 .clickable(
                     enabled = isAvailable,
                     onClick = onClick,
@@ -95,7 +95,7 @@ fun CustomButton(
                 }
                 Text(
                     text = text,
-                    color = outlinedColor,
+                    color = if (isAvailable) outlinedColor else outlinedColor.copy(alpha = 0.3F),
                     fontSize = fontSize,
                     fontWeight = fontWeight
                 )

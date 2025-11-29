@@ -36,6 +36,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -343,7 +344,8 @@ private fun FirstContent(
         EditItem(
             label = "Phone Number",
             value = phone,
-            onChage = onPhoneChange
+            onChage = onPhoneChange,
+            keyBoardType = KeyboardType.NumberPassword
         )
     }
 }
@@ -393,7 +395,8 @@ private fun SecondContent(
         EditItem(
             label = "Postal Code",
             value = postalCode,
-            onChage = onPostalCodeChange
+            onChage = onPostalCodeChange,
+            keyBoardType = KeyboardType.NumberPassword
         )
         EditItem(
             label = "Street Name, Building, House No.",
@@ -468,6 +471,7 @@ private fun EditItem(
     placeHolder: String = "",
     isError: Boolean = false,
     errorMessage: String = "",
+    keyBoardType: KeyboardType = KeyboardType.Text,
     onChage: (String) -> Unit
 ) {
     Column(
@@ -487,6 +491,7 @@ private fun EditItem(
             placeholder = placeHolder,
             isError = isError,
             errorMessage = errorMessage,
+            keyboardType = keyBoardType
         )
     }
 }

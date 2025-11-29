@@ -1,5 +1,7 @@
 package com.course.fleura.retrofit.services
 
+import com.course.fleura.data.model.remote.AddAddressRequest
+import com.course.fleura.data.model.remote.AddAddressResponse
 import com.course.fleura.data.model.remote.GetUserResponse
 import com.course.fleura.data.model.remote.ListAddressResponse
 import com.course.fleura.data.model.remote.LoginRequest
@@ -24,5 +26,8 @@ interface LoginService {
 
     @GET("api/buyer/address")
     suspend fun getAllUserAddress(): Response<ListAddressResponse>
+
+    @POST("api/buyer/address")
+    suspend fun addUserAddress(@Body request: AddAddressRequest): Response<PersonalizeResponse>
 
 }
