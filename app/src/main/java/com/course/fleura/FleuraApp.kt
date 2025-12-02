@@ -57,6 +57,7 @@ import com.course.fleura.ui.screen.dashboard.cart.CartViewModel
 import com.course.fleura.ui.screen.dashboard.detail.history.OrderHistory
 import com.course.fleura.ui.screen.dashboard.detail.home.DetailTest
 import com.course.fleura.ui.screen.dashboard.detail.home.Merchant
+import com.course.fleura.ui.screen.dashboard.detail.order.CompletedOrder
 import com.course.fleura.ui.screen.dashboard.detail.order.ConfirmOrder
 import com.course.fleura.ui.screen.dashboard.detail.order.DetailTransferOrder
 import com.course.fleura.ui.screen.dashboard.detail.order.FlowerDetail
@@ -245,6 +246,7 @@ fun FleuraApp() {
                             onOrderDetail = fleuraNavController::navigateToOrderDetail,
                             onCreatedOrderDetail = fleuraNavController::navigateToCreatedOrder,
                             onProfileDetail = fleuraNavController::navigateToProfileDetail,
+                            onOrderHistroy = fleuraNavController::navigateToOrderHistory,
                             homeViewModel = homeViewModel,
                             cartViewModel = cartViewModel,
                             orderViewModel = orderViewModel,
@@ -256,6 +258,14 @@ fun FleuraApp() {
                         route = MainDestinations.ORDER_HISTORY_ROUTE
                     ) { backStackEntry ->
                         OrderHistory(
+                            orderViewModel = orderViewModel,
+                            onBackClick = fleuraNavController::upPress,
+                            onOrderHistoryDetail = { _,_ ->
+
+                            },
+                            onCompletedOrderClick = { id ->
+                                fleuraNavController.navigateToCompletedOrder(id = id, from = backStackEntry)
+                            }
 
                         )
                     }
@@ -461,6 +471,58 @@ fun FleuraApp() {
                             navigateToRoute = fleuraNavController::navigateToNonBottomBarRoute,
                             loginViewModel = loginViewModel
                         )
+                    }
+
+                    composableWithCompositionLocal(
+                        route = "${DetailDestinations.DETAIL_COMPLETED_ORDER}/" + "{${MainDestinations.ORDER_ID_KEY}}",
+                        arguments = listOf(
+                            navArgument(MainDestinations.ORDER_ID_KEY) {
+                                type = NavType.StringType
+                            }
+                        ),
+                        enterTransition = {
+                            // Muncul dari kanan
+                            slideInHorizontally(
+                                initialOffsetX = { it },
+                                animationSpec = tween(durationMillis = 350)
+                            )
+                        },
+                        exitTransition = {
+                            // Keluar ke kanan
+                            slideOutHorizontally(
+                                targetOffsetX = { it },
+                                animationSpec = tween(durationMillis = 350)
+                            )
+                        },
+                        popEnterTransition = {
+                            // Jika balik (back), bisa juga dari kiri ke posisi normal
+                            slideInHorizontally(
+                                initialOffsetX = { it },
+                                animationSpec = tween(durationMillis = 350)
+                            )
+                        },
+                        popExitTransition = {
+                            // Jika back, keluar ke kanan
+                            slideOutHorizontally(
+                                targetOffsetX = { it },
+                                animationSpec = tween(durationMillis = 350)
+                            )
+                        }
+                    ) { backStackEntry ->
+
+                        val arguments = requireNotNull(backStackEntry.arguments)
+                        val id = arguments.getLong(MainDestinations.ORDER_ID_KEY)
+
+                        val selectedCompletedOrderItem by orderViewModel.selectedCompletedOrderItem.collectAsStateWithLifecycle()
+
+                        selectedCompletedOrderItem?.let {
+                            CompletedOrder(
+                                id = it.id,
+                                orderViewModel = orderViewModel,
+                                onBackClick = fleuraNavController::upPress,
+                                selectedCompletedOrderItem = it
+                            )
+                        }
                     }
 
                     composableWithCompositionLocal(
@@ -712,6 +774,7 @@ fun MainContainer(
     onOrderDetail: (String, String, NavBackStackEntry) -> Unit,
     onCreatedOrderDetail: (String, String, NavBackStackEntry) -> Unit,
     onProfileDetail: (String, NavBackStackEntry) -> Unit,
+    onOrderHistroy: (NavBackStackEntry) -> Unit,
     homeViewModel: HomeViewModel,
     cartViewModel: CartViewModel,
     orderViewModel: OrderViewModel,
@@ -768,6 +831,7 @@ fun MainContainer(
                 onOrderDetail = onOrderDetail,
                 onCreatedOrderDetail = onCreatedOrderDetail,
                 onProfileDetail = onProfileDetail,
+                onOrderHistory = onOrderHistroy,
                 homeViewModel = homeViewModel,
                 cartViewModel = cartViewModel,
                 orderViewModel = orderViewModel,

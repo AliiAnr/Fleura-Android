@@ -49,6 +49,7 @@ object DetailDestinations {
     const val DETAIL_QR_CREATED_ORDER = "qrCreatedOrder"
     const val DETAIL_CASH_ORDER = "cashOrder"
     const val DETAIL_CART = "detailCart"
+    const val DETAIL_COMPLETED_ORDER = "completedOrder"
 }
 
 object QueryKeys {
@@ -131,6 +132,12 @@ class FleuraNavController(
         }
     }
 
+    fun navigateToOrderHistory(from: NavBackStackEntry) {
+        if (from.lifecycleIsResumed()) {
+            navController.navigate(MainDestinations.ORDER_HISTORY_ROUTE)
+        }
+    }
+
     fun navigateToQrOrder(from: NavBackStackEntry) {
         if (from.lifecycleIsResumed()) {
             navController.navigate(DetailDestinations.DETAIL_QR_ORDER)
@@ -158,6 +165,12 @@ class FleuraNavController(
     fun navigateToCreatedOrder(id: String, origin: String, from: NavBackStackEntry) {
         if (from.lifecycleIsResumed()) {
             navController.navigate("${DetailDestinations.DETAIL_TRANSFER_ORDER}/$id?origin=$origin")
+        }
+    }
+
+    fun navigateToCompletedOrder(id: String, from: NavBackStackEntry) {
+        if (from.lifecycleIsResumed()) {
+            navController.navigate("${DetailDestinations.DETAIL_COMPLETED_ORDER}/$id")
         }
     }
 

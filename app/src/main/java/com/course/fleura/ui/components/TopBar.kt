@@ -90,6 +90,7 @@ fun CustomTopAppBar(
 fun HistoryTopBar(
     modifier: Modifier = Modifier,
     title: String,
+    onHistoryClick: () -> Unit
 ) {
     Box(
         modifier = Modifier
@@ -118,7 +119,7 @@ fun HistoryTopBar(
                 )
                 .clickable(
                     onClick = {
-                        //navigate to history
+                        onHistoryClick()
                     },
                     indication = null,
                     interactionSource = remember { MutableInteractionSource() }

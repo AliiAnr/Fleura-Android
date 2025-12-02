@@ -62,33 +62,34 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
+import androidx.compose.material3.pulltorefresh.PullToRefreshState
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.ui.unit.TextUnit
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.course.fleura.data.model.remote.Detail
-import com.course.fleura.data.model.remote.ItemProductList
-import com.course.fleura.data.model.remote.ListProductResponse
 import com.course.fleura.data.model.remote.ListStoreResponse
 import com.course.fleura.data.model.remote.StoreItem
 import com.course.fleura.data.model.remote.StoreProduct
 import com.course.fleura.data.model.remote.StoreProductResponse
-import com.course.fleura.ui.common.ArticleCategoryLoading
 import com.course.fleura.ui.common.ProductListLoading
 import com.course.fleura.ui.common.ResultResponse
 import com.course.fleura.ui.common.StoreListLoading
 import com.course.fleura.ui.components.Common
 import com.course.fleura.ui.components.CommonItem
-import com.course.fleura.ui.components.Flower
 import com.course.fleura.ui.components.FlowerItem
 import com.course.fleura.ui.components.ListStoreItem
-import com.course.fleura.ui.components.Store
 import com.course.fleura.ui.screen.dashboard.profile.ProfileViewModel
-import com.course.fleura.ui.screen.navigation.MainDestinations
+import com.course.fleura.ui.theme.base20
 import com.course.fleura.ui.theme.base60
-import kotlinx.coroutines.Delay
-import kotlinx.coroutines.delay
+import com.course.fleura.ui.theme.primaryLight
 
+@OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun Home(
     modifier: Modifier,
@@ -98,6 +99,11 @@ fun Home(
     homeViewModel: HomeViewModel,
     profileViewModel: ProfileViewModel
 ) {
+
+    val isRefreshing by homeViewModel.isRefreshing.collectAsStateWithLifecycle()
+
+    val pullToRefreshState = rememberPullToRefreshState()
+
 
     // call API in this section
     LaunchedEffect(Unit) {
@@ -248,17 +254,20 @@ fun Home(
 
     Home(
         modifier = modifier,
-        data = 0,
         userData = userData,
         storeData = storeData,
         productData = productData,
         isLoding = isLoading,
         onStoreClick = onStoreClick,
         onFlowerClick = onFlowerClick,
-        setSelectedProduct = homeViewModel::setSelectedProduct
+        setSelectedProduct = homeViewModel::setSelectedProduct,
+        pullToRefreshState = pullToRefreshState,
+        isRefreshing = isRefreshing,
+        onRefresh = { homeViewModel.refreshData() }
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 @Composable
 private fun Home(
     modifier: Modifier = Modifier,
@@ -269,15 +278,35 @@ private fun Home(
     productData: List<StoreProduct>,
     storeData: List<StoreItem>,
     isLoding: Boolean = false,
-    data: Int = 0
+    isRefreshing: Boolean = false,
+    pullToRefreshState: PullToRefreshState,
+    onRefresh: () -> Unit
 ) {
     var textState by remember { mutableStateOf("") } // Menggunakan remember untuk state
 
     FleuraSurface(
         modifier = modifier.fillMaxSize()
     ) {
-        Box(
-            modifier = Modifier.fillMaxSize()
+//        Box(
+//            modifier = Modifier.fillMaxSize()
+//        ) {
+
+        PullToRefreshBox(
+            isRefreshing = isRefreshing,
+            onRefresh = onRefresh,
+            state = pullToRefreshState,
+            modifier = Modifier
+                .fillMaxSize(),
+            indicator = {
+                PullToRefreshDefaults.Indicator(
+                    modifier = Modifier.align(Alignment.TopCenter),
+                    isRefreshing = isRefreshing,
+                    state = pullToRefreshState,
+                    threshold = 100.dp,
+                    color = primaryLight,
+                    containerColor = Color.White
+                )
+            }
         ) {
             LazyColumn(
                 modifier = Modifier

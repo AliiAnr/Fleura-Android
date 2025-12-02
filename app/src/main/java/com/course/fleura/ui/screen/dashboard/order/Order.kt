@@ -39,9 +39,9 @@ import com.course.fleura.ui.theme.primaryLight
 @Composable
 fun Order(
     modifier: Modifier,
-    onSnackClick: (Long, String) -> Unit,
     orderViewModel: OrderViewModel,
-    onCreatedOrderDetail: (String, String) -> Unit
+    onCreatedOrderDetail: (String, String) -> Unit,
+    onOrderHistory: () -> Unit
 ) {
 
     val orderListState by orderViewModel.orderListState.collectAsStateWithLifecycle(initialValue = ResultResponse.None)
@@ -92,11 +92,11 @@ fun Order(
 
     Order(
         modifier = modifier,
-        data = 12,
         orderList = orderList,
         showCircularProgress = showCircularProgress,
         orderViewModel = orderViewModel,
-        onCreatedOrderClick = onCreatedOrderDetail
+        onCreatedOrderClick = onCreatedOrderDetail,
+        onOrderHistory = onOrderHistory
     )
 
 }
@@ -108,10 +108,10 @@ private fun Order(
     showCircularProgress: Boolean,
     orderViewModel: OrderViewModel,
     onCreatedOrderClick: (String, String) -> Unit,
-    data: Int = 0
+    onOrderHistory: () -> Unit,
 ) {
 
-    val validOrderList = orderList.filter { it.orderItems.isNotEmpty() }
+    val validOrderList = orderList.filter { it.orderItems.isNotEmpty() && it.status != "completed" }
 
     FleuraSurface(
         modifier = modifier.fillMaxSize(),
@@ -130,6 +130,7 @@ private fun Order(
             ) {
                 HistoryTopBar(
                     title = "Order",
+                    onHistoryClick = onOrderHistory
                 )
 
                 if (showCircularProgress){

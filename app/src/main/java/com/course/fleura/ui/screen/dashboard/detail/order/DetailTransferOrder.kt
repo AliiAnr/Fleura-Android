@@ -866,6 +866,7 @@ private fun DetailOrderTotalPriceSection(
 fun StarSection(
     modifier: Modifier = Modifier,
     rating: Int,
+    hasReviewed: Boolean = false,
     onRatingChanged: (Int) -> Unit
 ) {
     Column(
@@ -876,7 +877,7 @@ fun StarSection(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = "Rate the Product!",
+            text = if (hasReviewed) "Your Rating!" else "Rate the Product!",
             color = Color.Black,
             fontSize = 14.sp,
             fontWeight = FontWeight.Bold
@@ -960,6 +961,34 @@ fun AddReviewSection(
         )
     }
 }
+
+@Composable
+fun UserReviewSection(
+    modifier: Modifier = Modifier,
+    reviewComment: String
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(Color.White)
+            .padding(start = 20.dp, end = 20.dp, top = 12.dp, bottom = 30.dp),
+    ) {
+        Text(
+            text = "Your review",
+            color = Color.Black,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Bold
+        )
+
+        Text(
+            text = reviewComment.ifEmpty { "-" },
+            color = Color.Black,
+            fontSize = 12.sp,
+            lineHeight = 20.sp
+        )
+    }
+}
+
 
 @Composable
 fun DetailOrderMerchantProfileSection(

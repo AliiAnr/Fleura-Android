@@ -1,11 +1,14 @@
 package com.course.fleura.ui.screen.dashboard.order
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.course.fleura.BuildConfig
+import com.course.fleura.data.model.remote.Detail
 import com.course.fleura.data.model.remote.OrderAddressResponse
 import com.course.fleura.data.model.remote.OrderDataItem
 import com.course.fleura.data.model.remote.OrderListResponse
+import com.course.fleura.data.model.remote.ProductReviewResponse
 import com.course.fleura.data.repository.OrderRepository
 import com.course.fleura.socket.WebSocketManager
 import com.course.fleura.ui.common.ResultResponse
@@ -27,6 +30,10 @@ class OrderViewModel (
     private val _realtimePaymentStatus = MutableStateFlow<String?>(null)
     val realtimePaymentStatus: StateFlow<String?> = _realtimePaymentStatus.asStateFlow()
 
+    private val _userDetailState =
+        MutableStateFlow<ResultResponse<Detail?>>(ResultResponse.None)
+    val userDetailState: StateFlow<ResultResponse<Detail?>> = _userDetailState
+
 
     private val _dataInitialized = MutableStateFlow(false)
     val dataInitialized: StateFlow<Boolean> = _dataInitialized
@@ -42,11 +49,23 @@ class OrderViewModel (
     private val _selectedOrderItem = MutableStateFlow<OrderDataItem?>(null)
     val selectedOrderItem: StateFlow<OrderDataItem?> = _selectedOrderItem.asStateFlow()
 
+    private val _selectedCompletedOrderItem = MutableStateFlow<OrderDataItem?>(null)
+    val selectedCompletedOrderItem: StateFlow<OrderDataItem?> = _selectedCompletedOrderItem
+
     private val _selectedCreatedOrderItem = MutableStateFlow<OrderDataItem?>(null)
     val selectedCreatedOrderItem: StateFlow<OrderDataItem?> = _selectedCreatedOrderItem.asStateFlow()
 
+    private val _productReviewState =
+        MutableStateFlow<ResultResponse<ProductReviewResponse>>(ResultResponse.None)
+    val productReviewState: StateFlow<ResultResponse<ProductReviewResponse>> = _productReviewState
+
+
     fun setSelectedOrderItem(orderItem: OrderDataItem) {
         _selectedOrderItem.value = orderItem
+    }
+
+    fun setSelectedCompletedOrderItem(orderItem: OrderDataItem) {
+        _selectedCompletedOrderItem.value = orderItem
     }
 
     fun setSelectedCreatedOrderItem(orderItem: OrderDataItem) {
@@ -175,4 +194,83 @@ class OrderViewModel (
             }
         }
     }
+
+     fun getSelectedOrderBuyerAddress(){
+        require(_selectedCompletedOrderItem.value?.addressId != null) { return }
+        viewModelScope.launch {
+            try {
+                _orderAddressState.value = ResultResponse.Loading
+                orderRepository.getOrderBuyerAddress(
+                        addressId = _selectedCompletedOrderItem.value?.addressId ?: "Unknown"
+                    )
+                    .collect { result ->
+                        _orderAddressState.value = result
+                        Log.e("Address Order", result.toString())
+                    }
+            } catch (e: Exception) {
+                _orderAddressState.value = ResultResponse.Error(e.localizedMessage ?: "Error fetching order list")
+            }
+        }
+    }
+
+    fun getProductReview() {
+        require(_selectedCompletedOrderItem.value?.orderItems?.get(0)?.product?.id?.isNotEmpty() == true) {
+            return
+        }
+        viewModelScope.launch {
+            try {
+                _productReviewState.value = ResultResponse.Loading
+                orderRepository.getProductReview(productId = _selectedCompletedOrderItem.value?.orderItems?.get(0)?.product?.id ?: "Unknown")
+                    .collect { result ->
+                        _productReviewState.value = result
+                        if (result is ResultResponse.Success) {
+                            if (!result.data.data.isEmpty()) {
+                                getUserDetail()
+                            }
+                        }
+                        Log.e("product Review", result.toString())
+                    }
+            } catch (e: Exception) {
+                _productReviewState.value = ResultResponse.Error("Failed to get user: ${e.message}")
+            }
+        }
+    }
+
+    fun getUserDetail() {
+        viewModelScope.launch {
+            try {
+                _userDetailState.value = ResultResponse.Loading
+                orderRepository.getUserDetail()
+                    .collect { result ->
+                        _userDetailState.value = result
+                    }
+            } catch (e: Exception) {
+                _userDetailState.value =
+                    ResultResponse.Error("Failed to generate OTP: ${e.message}")
+            }
+        }
+    }
+
+    fun getBuyerReview(buyerId: String): com.course.fleura.data.model.remote.ReviewItem? {
+        val currentState = _productReviewState.value
+        if (currentState !is ResultResponse.Success) return null
+
+        val reviews = currentState.data.data
+        if (reviews.isNullOrEmpty()) return null
+
+        return reviews.firstOrNull { it.buyerId == buyerId }
+    }
+
+    fun getCurrentUserReview(): com.course.fleura.data.model.remote.ReviewItem? {
+        val userState = _userDetailState.value
+        if (userState !is ResultResponse.Success || userState.data?.id.isNullOrEmpty()) {
+            return null
+        }
+        val buyerId = userState.data!!.id
+        return getBuyerReview(buyerId)
+    }
+
+
+
+
 }

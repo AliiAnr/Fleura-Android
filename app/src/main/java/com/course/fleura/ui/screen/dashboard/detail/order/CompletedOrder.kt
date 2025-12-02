@@ -1,5 +1,6 @@
 package com.course.fleura.ui.screen.dashboard.detail.order
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -21,13 +22,16 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -44,14 +48,24 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import com.course.fleura.R
 import com.course.fleura.data.model.remote.DataCartItem
+import com.course.fleura.data.model.remote.OrderAddressData
+import com.course.fleura.data.model.remote.OrderAddressResponse
+import com.course.fleura.data.model.remote.OrderDataItem
+import com.course.fleura.ui.common.ResultResponse
+import com.course.fleura.ui.common.extractOrderId
 import com.course.fleura.ui.common.formatCurrency
+import com.course.fleura.ui.common.parseDateTime
 import com.course.fleura.ui.components.CartItem
 import com.course.fleura.ui.components.CartOrder
 import com.course.fleura.ui.components.CustomButton
 import com.course.fleura.ui.components.CustomTopAppBar
+import com.course.fleura.ui.components.OrderItem
+import com.course.fleura.ui.screen.dashboard.home.HomeViewModel
+import com.course.fleura.ui.screen.dashboard.order.OrderViewModel
 import com.course.fleura.ui.screen.navigation.FleuraSurface
 import com.course.fleura.ui.theme.base100
 import com.course.fleura.ui.theme.base20
@@ -59,46 +73,144 @@ import com.course.fleura.ui.theme.base40
 import com.course.fleura.ui.theme.base500
 import com.course.fleura.ui.theme.base60
 import com.course.fleura.ui.theme.err
+import com.course.fleura.ui.theme.primaryLight
 import com.course.fleura.ui.theme.secColor
-import kotlinx.datetime.LocalDate
-import kotlinx.datetime.LocalTime
-import kotlinx.datetime.format
-import kotlinx.datetime.format.char
-import network.chaintech.kmp_date_time_picker.ui.date_range_picker.formatToString
-import network.chaintech.kmp_date_time_picker.utils.now
+import com.course.fleura.ui.theme.tert
 
 @Composable
 fun CompletedOrder(
     modifier: Modifier = Modifier,
-    id: Long,
+    orderViewModel: OrderViewModel,
+    id: String,
+    onBackClick: () -> Unit,
+    selectedCompletedOrderItem: OrderDataItem
 ) {
 
-    //call API here
+    var showCircularProgress by remember { mutableStateOf(true) }
+
+    val orderAddressState by orderViewModel.orderAddressState.collectAsStateWithLifecycle(
+        initialValue = ResultResponse.None
+    )
+
+    val productReviewState by orderViewModel.productReviewState.collectAsStateWithLifecycle(initialValue = ResultResponse.None)
+
+    val userDetailState by orderViewModel.userDetailState.collectAsStateWithLifecycle(
+        initialValue = ResultResponse.None
+    )
+
+    val currentUserReview = remember(productReviewState, userDetailState) {
+        orderViewModel.getCurrentUserReview()
+    }
+
+    var rating by remember { mutableIntStateOf(currentUserReview?.rate ?: 0) }
+    var reviewComment by remember { mutableStateOf(currentUserReview?.message ?: "") }
+
+    val hasReviewed = currentUserReview != null
+
+    LaunchedEffect(Unit) {
+        Log.e("SELECTED COMPLETED ORDER ITEM", "JDLKSAJD $selectedCompletedOrderItem")
+    }
+
+    LaunchedEffect(rating, reviewComment, hasReviewed) {
+        Log.e("COMPLETED_ORDER_DEBUG", "rating=$rating, reviewComment=$reviewComment, hasReviewed=$hasReviewed")
+    }
+
+    LaunchedEffect(Unit) {
+        orderViewModel.getSelectedOrderBuyerAddress()
+        orderViewModel.getProductReview()
+    }
+
+//    LaunchedEffect(orderAddressState) {
+//        when (orderAddressState) {
+//            is ResultResponse.Success -> {
+//                showCircularProgress = false
+//                Log.e(
+//                    "ORDER SCREEN",
+//                    "SUGSESS ADDRESS: ${(orderAddressState as ResultResponse.Success).data}"
+//                )
+////                navigateToRoute(MainDestinations.LOGIN_ROUTE, true)
+//            }
+//
+//            is ResultResponse.Loading -> {
+//                showCircularProgress = true
+//                Log.e(
+//                    "CART SCREEN",
+//                    "LOADING"
+//                )
+//            }
+//
+//            is ResultResponse.Error -> {
+//                showCircularProgress = false
+//                Log.e(
+//                    "ERRROOR",
+//                    "ORDER error: ${(orderAddressState as ResultResponse.Error).error}"
+//                )
+//                // Display error message to the user
+//                // Toast.makeText(context, otpState.message, Toast.LENGTH_SHORT).show()
+//            }
+//
+//            else -> {}
+//        }
+//    }
+
+
+    val isLoading = orderAddressState is ResultResponse.Loading ||
+            productReviewState is ResultResponse.Loading ||
+            userDetailState is ResultResponse.Loading ||
+            (orderAddressState is ResultResponse.None && productReviewState is ResultResponse.None && userDetailState is ResultResponse.None)
+
+
+
+
+    val completedOrderAddressData = when (orderAddressState) {
+        is ResultResponse.Success -> (orderAddressState as ResultResponse.Success<OrderAddressResponse>).data.data
+        else -> OrderAddressData(
+            name = "John Doe",
+            phone = "1234567890",
+            detail = "123 Main St",
+            road = "Main St",
+            district = "Downtown",
+            city = "Cityville",
+            province = "Province",
+            postcode = "12345",
+            latitude = 0.0,
+            longitude = 0.0,
+            id = "2344"
+        )
+    }
 
     CompletedOrder(
-        orderData = listOf(
-            CartItem(
-                quantity = 5,
-                cartOrder = CartOrder(
-                    name = "Sunflower Bouquet",
-                    description = "Lorem ipsulor sit amet. Nam voluptatem tenetur et voluptas nesciunt a quia voluptatem. tenetur et voluptas nesciunt a quia voluptatem.",
-                    price = 10000
-                )
-            )
-        )
+        modifier = modifier,
+        rating = rating,
+        reviewComment = reviewComment,
+        hasReviewed = hasReviewed,
+        showCircularProgress = isLoading,
+        onBackClick = onBackClick,
+        completedOrderAddressData = completedOrderAddressData,
+        completedOrderData = selectedCompletedOrderItem
     )
 }
 
 @Composable
 private fun CompletedOrder(
     modifier: Modifier = Modifier,
-    isPaid: Boolean = true,
-    orderData: List<CartItem>? = null
+    rating: Int,
+    reviewComment: String,
+    hasReviewed: Boolean,
+    onBackClick: () -> Unit,
+    showCircularProgress: Boolean,
+    completedOrderAddressData: OrderAddressData,
+    completedOrderData: OrderDataItem
 ) {
     val focusManager = LocalFocusManager.current
-    var rating by remember { mutableIntStateOf(0) }
-    var reviewComment by remember { mutableStateOf("") }
+    var ratingValue by remember { mutableIntStateOf(0) }
+    var reviewCommentValue by remember { mutableStateOf("") }
     val isButtonEnabled = rating > 0 && reviewComment.isNotEmpty()
+
+    val isDelivery = completedOrderData.takenMethod == "delivery"
+
+    val currentStatus = completedOrderData.status
+
     FleuraSurface(
         modifier = modifier.fillMaxSize(),
     ) {
@@ -122,126 +234,166 @@ private fun CompletedOrder(
             ) {
                 CustomTopAppBar(
                     title = "Detail Order",
-                    showNavigationIcon = true
+                    showNavigationIcon = true,
+                    onBackClick = onBackClick
                 )
-                Box(
-                    modifier = Modifier.weight(1f)
-                ) {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize()
+                if (showCircularProgress) {
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clickable(
+                                indication = null,
+                                interactionSource = remember { MutableInteractionSource() }
+                            ) {
+                                // Do nothing - this prevents clicks from passing through
+                            }
                     ) {
-                        if (isPaid) {
+                        CircularProgressIndicator(color = primaryLight)
+                    }
+                } else {
+                    Box(
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+//                            if (isPaid) {
+//                                item {
+//                                    Spacer(modifier = Modifier.height(8.dp))
+//                                    CompletedPaymentStatusSection()
+//                                }
+//                            }
+
                             item {
                                 Spacer(modifier = Modifier.height(8.dp))
-                                CompletedPaymentStatusSection()
-                            }
-                        }
-
-                        item {
-                            Spacer(modifier = Modifier.height(8.dp))
-                            CompletedDetailOrderStatus(
-                                isDelivery = true
-                            )
-                        }
-
-                        item {
-                            Spacer(modifier = Modifier.height(8.dp))
-//                            DetailOrderAddressSection()
-                        }
-
-                        item {
-                            Spacer(modifier = Modifier.height(8.dp))
-//                            DetailOrderMerchantProfileSection()
-                        }
-
-                        item {
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .background(Color.White)
-                                    .padding(horizontal = 20.dp, vertical = 12.dp),
-                            ) {
-                                Text(
-                                    text = "Order Summary",
-                                    color = Color.Black,
-                                    fontSize = 14.sp,
-                                    fontWeight = FontWeight.Bold
+                                CompletedDetailOrderStatus(
+                                    isDelivery = isDelivery,
+                                    currentStatus = currentStatus
                                 )
+                            }
 
-                                orderData?.forEachIndexed { index, item ->
-                                    val isLastItem = index == orderData.size - 1
-//                                    OrderSummaryItem(
-//                                        quantity = item.quantity,
-//                                        name = item.cartOrder.name,
-//                                        description = item.cartOrder.description,
-//                                        price = item.cartOrder.price
-//                                    )
+                            item {
+                                Spacer(modifier = Modifier.height(8.dp))
+                                CompletedDetailOrderAddressSection(selectedAddress = completedOrderAddressData)
+                            }
 
-                                    if (!isLastItem) {
-                                        HorizontalDivider(
-                                            color = base40,
+                            item {
+                                Spacer(modifier = Modifier.height(8.dp))
+                                DetailOrderMerchantProfileSection(storeData = completedOrderData)
+                            }
+
+                            item {
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .background(Color.White)
+                                        .padding(horizontal = 20.dp, vertical = 12.dp),
+                                ) {
+                                    Text(
+                                        text = "Order Summary",
+                                        color = Color.Black,
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
+
+                                    completedOrderData.orderItems.forEachIndexed { index, item ->
+                                        val isLastItem =
+                                            index == completedOrderData.orderItems.size - 1
+                                        OrderSummaryItem(
+                                            quantity = item.quantity,
+                                            name = item.product.name,
+                                            description = item.product.description,
+                                            price = item.product.price
                                         )
+
+                                        if (!isLastItem) {
+                                            HorizontalDivider(
+                                                color = base40,
+                                            )
+                                        }
                                     }
                                 }
                             }
-                        }
 
-                        item {
-                            Spacer(modifier = Modifier.height(8.dp))
-                            CompletedDateAndTimeDisplay(
-                                date = LocalDate.now(),
-                                time = LocalTime.now()
-                            )
-                        }
+                            item {
+                                Spacer(modifier = Modifier.height(8.dp))
+                                CompletedDateAndTimeDisplay(
+                                  selectedOrderItem = completedOrderData
+                                )
+                            }
 
-                        item {
-                            Spacer(modifier = Modifier.height(8.dp))
-                            CompletedNoteSection(
-                                note = "Lorem ipsesciunt a quia voluptatem."
-                            )
-                        }
+                            item {
+                                Spacer(modifier = Modifier.height(8.dp))
+                                CompletedNoteSection(
+                                    note = completedOrderData.note ?: "-"
+                                )
+                            }
 
-                        item {
-                            Spacer(modifier = Modifier.height(8.dp))
-                            CompletedPaymentSummary()
-                        }
+                            item {
+                                Spacer(modifier = Modifier.height(8.dp))
+                                CompletedPaymentSummary(
+                                    selectedOrderItem = completedOrderData
+                                )
+                            }
 
-                        item {
-                            Spacer(modifier = Modifier.height(8.dp))
-                            CompletedDetailOrderTotalPriceSection()
-                        }
+                            item {
+                                Spacer(modifier = Modifier.height(8.dp))
+                                CompletedDetailOrderTotalPriceSection(
+                                    selectedOrderItem = completedOrderData
+                                )
+                            }
 
-                        item {
-                            Spacer(modifier = Modifier.height(8.dp))
-                            StarSection(
-                                rating = rating,
-                                onRatingChanged = { rating = it },
-                            )
-                        }
+                            item {
+                                Spacer(modifier = Modifier.height(8.dp))
+                                if (hasReviewed) {
+                                    StarSection(
+                                        rating = rating,
+                                        onRatingChanged = {
 
-                        item {
-                            Spacer(modifier = Modifier.height(8.dp))
-                            AddReviewSection(
-                                reviewComment = reviewComment,
-                                onRatingChanged = { reviewComment = it }
-                            )
-                        }
+                                        },
+                                        hasReviewed = true
+                                    )
+                                } else {
+                                    StarSection(
+                                        rating = ratingValue,
+                                        onRatingChanged = { ratingValue = it },
+                                    )
+                                }
+                            }
 
+                            item {
+                                Spacer(modifier = Modifier.height(8.dp))
+                                if (hasReviewed) {
+                                    UserReviewSection(
+                                        reviewComment = reviewComment
+                                    )
+                                } else {
+                                    AddReviewSection(
+                                        reviewComment = reviewCommentValue,
+                                        onRatingChanged = {
+                                            reviewCommentValue = it
+                                        }
+                                    )
+                                }
+                            }
+
+                        }
                     }
-                }
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(Color.White)
-                        .height(90.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CustomButton(
-                        text = "Add Review",
-                        onClick = { },
-                        isAvailable = isButtonEnabled
-                    )
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(Color.White)
+                            .height(90.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CustomButton(
+                            text = if (hasReviewed) "You already reviewed" else "Add Review",
+                            onClick = { /* kirim / update review */ },
+                            isAvailable = !hasReviewed && ratingValue > 0 && reviewCommentValue.isNotEmpty()
+                        )
+                    }
                 }
             }
         }
@@ -291,17 +443,11 @@ private fun CompletedPaymentStatusSection(
 @Composable
 private fun CompletedDetailOrderAddressSection(
     modifier: Modifier = Modifier,
-    onAddressClick: (String) -> Unit
+    selectedAddress: OrderAddressData
 ) {
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .clickable(
-                indication = null,
-                interactionSource = remember { MutableInteractionSource() }
-            ) {
-                onAddressClick("")
-            }
             .background(Color.White)
             .padding(horizontal = 20.dp, vertical = 12.dp),
         horizontalArrangement = Arrangement.SpaceBetween
@@ -325,19 +471,39 @@ private fun CompletedDetailOrderAddressSection(
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold
                 )
-
-                Text(
-                    text = "Lorem ipsulor sit amet. Nam voluptatem tenetur et voluptas nesciunt a quia voluptatem. tenetur et voluptas nesciunt a quia voluptatem.",
-                    color = Color.Black,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                    fontSize = 12.sp,
-                    lineHeight = 20.sp,
-                    fontWeight = FontWeight.Normal,
-                    modifier = Modifier
-                        .height(50.dp)
-                        .padding(end = 20.dp)
-                )
+                Column {
+                    Text(
+                        text = selectedAddress.name,
+                        color = Color.Black,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Normal
+                    )
+                    Text(
+                        text = selectedAddress.phone,
+                        color = Color.DarkGray,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Normal
+                    )
+                    Text(
+                        text = buildString {
+                            append(selectedAddress.detail)
+                            if (selectedAddress.detail != "") append(", ")
+                            append(selectedAddress.road)
+                            append(", ")
+                            append(selectedAddress.district)
+                            append(", ")
+                            append(selectedAddress.city)
+                            append(", ")
+                            append(selectedAddress.province)
+                            append(" ")
+                            append(selectedAddress.postcode)
+                        },
+                        color = Color.Black,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Normal,
+                        modifier = Modifier.padding(vertical = 4.dp)
+                    )
+                }
             }
         }
     }
@@ -352,7 +518,7 @@ private fun CompletedDetailOrderStatus(
     val statuses = if (isDelivery) {
         listOf("process", "delivery", "completed")
     } else {
-        listOf("process", "ready_to_pickup", "completed")
+        listOf("process", "pickup", "completed")
     }
 
     Box(
@@ -378,12 +544,62 @@ private fun CompletedDetailOrderStatus(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 statuses.forEach { status ->
-                    CompletedStatusItem(status = status, currentStatus = currentStatus)
+                    StatusItem(status = status, currentStatus = currentStatus)
                 }
             }
         }
     }
 }
+
+
+@Composable
+private fun StatusItem(
+    modifier: Modifier = Modifier,
+    status: String,
+    currentStatus: String
+) {
+    val iconRes = when (status) {
+        "process" -> if (currentStatus == "process") R.drawable.check_circle else R.drawable.elipse
+        "delivery" -> if (currentStatus == "delivery") R.drawable.check_circle else R.drawable.elipse
+        "pickup" -> if (currentStatus == "pickup") R.drawable.check_circle else R.drawable.elipse
+        "completed" -> if (currentStatus == "completed") R.drawable.check_circle else R.drawable.elipse
+        else -> R.drawable.elipse
+    }
+
+    val statusText = when (status) {
+        "process" -> "Processed"
+        "delivery" -> "Delivery"
+        "pickup" -> "Ready to Pickup"
+        "completed" -> "Completed"
+        else -> ""
+    }
+
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Box(
+            modifier = Modifier
+                .width(40.dp)
+                .height(25.dp)
+                .background(Color.White),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                painter = painterResource(id = iconRes),
+                contentDescription = null,
+                tint = if (currentStatus == status) MaterialTheme.colorScheme.primary else Color.Unspecified,
+                modifier = Modifier.size(if (currentStatus == status) 24.dp else 10.dp)
+            )
+        }
+        Text(
+            text = statusText,
+            color = if (currentStatus == status) Color.Black else base40,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Normal
+        )
+    }
+}
+
 
 @Composable
 private fun CompletedStatusItem(
@@ -467,9 +683,11 @@ private fun CompletedNoteSection(
 @Composable
 private fun CompletedDateAndTimeDisplay(
     modifier: Modifier = Modifier,
-    date: LocalDate,
-    time: LocalTime,
+    selectedOrderItem: OrderDataItem
 ) {
+
+    val (pickupDate, pickupTime) = parseDateTime(selectedOrderItem.takenDate)
+
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -500,7 +718,7 @@ private fun CompletedDateAndTimeDisplay(
                     )
                     Spacer(modifier = Modifier.size(8.dp))
                     Text(
-                        text = date.formatToString(formatType = "MMMM dd yyyy"),
+                        text = "$pickupDate",
                         color = base100,
                         fontSize = 12.sp,
                     )
@@ -534,11 +752,7 @@ private fun CompletedDateAndTimeDisplay(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = time.format(LocalTime.Format {
-                            hour()
-                            char(':')
-                            minute()
-                        }),
+                        text = "$pickupTime",
                         color = base100,
                         fontSize = 12.sp,
                         modifier = Modifier
@@ -551,8 +765,16 @@ private fun CompletedDateAndTimeDisplay(
 
 @Composable
 private fun CompletedPaymentSummary(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    selectedOrderItem: OrderDataItem
 ) {
+
+    val paymentMethod = when (selectedOrderItem.payment.methode) {
+        "qris" -> "QRIS"
+        "cash" -> "CASH"
+        else -> "Unknown Payment Method"
+    }
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -576,7 +798,7 @@ private fun CompletedPaymentSummary(
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(
-                text = "QRIS",
+                text = paymentMethod,
                 color = Color.Black,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Bold
@@ -599,7 +821,7 @@ private fun CompletedPaymentSummary(
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(
-                text = "#1239",
+                text = "#${extractOrderId(selectedOrderItem.id)}",
                 color = Color.Black,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Bold
@@ -608,10 +830,24 @@ private fun CompletedPaymentSummary(
     }
 }
 
+
 @Composable
 private fun CompletedDetailOrderTotalPriceSection(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    selectedOrderItem: OrderDataItem
 ) {
+
+    val subtotal = selectedOrderItem.total
+
+    val deliveryFee = if (selectedOrderItem.takenMethod == "delivery") 15000 else 0
+
+
+    val paymentStatus = when (selectedOrderItem.payment.status) {
+        "paid" -> "Paid"
+        "unpaid" -> "Unpaid"
+        else -> "Unknown Status"
+    }
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -629,7 +865,7 @@ private fun CompletedDetailOrderTotalPriceSection(
                 fontWeight = FontWeight.Normal
             )
             Text(
-                text = formatCurrency(10000),
+                text = formatCurrency(subtotal.toLong()),
                 color = Color.Black,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Normal
@@ -646,7 +882,7 @@ private fun CompletedDetailOrderTotalPriceSection(
                 fontWeight = FontWeight.Normal
             )
             Text(
-                text = formatCurrency(10000),
+                text = formatCurrency(deliveryFee.toLong()),
                 color = Color.Black,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Normal
@@ -664,7 +900,7 @@ private fun CompletedDetailOrderTotalPriceSection(
                 fontWeight = FontWeight.Bold
             )
             Text(
-                text = formatCurrency(10000),
+                text = formatCurrency(subtotal.toLong()),
                 color = MaterialTheme.colorScheme.primary,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold
@@ -681,14 +917,16 @@ private fun CompletedDetailOrderTotalPriceSection(
                 fontWeight = FontWeight.Bold
             )
             Text(
-                text = "Unpaid",
-                color = err,
+                text = paymentStatus,
+                color = if (selectedOrderItem.payment.status == "paid") tert else err,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold
             )
         }
+        Spacer(modifier = Modifier.height(26.dp))
     }
 }
+
 
 @Composable
 private fun CompletedStarSection(

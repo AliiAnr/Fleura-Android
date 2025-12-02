@@ -26,6 +26,9 @@ class HomeViewModel(
     private val homeRepository: HomeRepository,
 ) : ViewModel() {
 
+    private val _isRefreshing = MutableStateFlow(false)
+    val isRefreshing: StateFlow<Boolean> = _isRefreshing
+
     private val _dataInitialized = MutableStateFlow(false)
     val dataInitialized: StateFlow<Boolean> = _dataInitialized
 
@@ -155,10 +158,53 @@ class HomeViewModel(
         }
     }
 
+    private suspend fun fetchUserDetail() {
+        _userDetailState.value = ResultResponse.Loading
+        try {
+            homeRepository.getUserDetail().collect { result ->
+                _userDetailState.value = result
+            }
+        } catch (e: Exception) {
+            _userDetailState.value =
+                ResultResponse.Error("Failed to get user detail: ${e.message}")
+        }
+    }
+
+    private suspend fun fetchListStore() {
+        _storeListState.value = ResultResponse.Loading
+        try {
+            homeRepository.getAllStore().collect { result ->
+                _storeListState.value = result
+            }
+        } catch (e: Exception) {
+            _storeListState.value =
+                ResultResponse.Error("Failed to get store list: ${e.message}")
+        }
+    }
+
+    private suspend fun fetchListProduct() {
+        _productListState.value = ResultResponse.Loading
+        try {
+            homeRepository.getAllProdcut().collect { result ->
+                _productListState.value = result
+            }
+        } catch (e: Exception) {
+            _productListState.value =
+                ResultResponse.Error("Failed to get product list: ${e.message}")
+        }
+    }
+
+
     fun refreshData() {
-        // Force refresh data regardless of initialization state
-        getUserDetail()
-        getListStore()
-        getListProduct()
+        viewModelScope.launch {
+            _isRefreshing.value = true
+            try {
+                fetchUserDetail()
+                fetchListStore()
+                fetchListProduct()
+            } finally {
+                _isRefreshing.value = false
+            }
+        }
     }
 }
