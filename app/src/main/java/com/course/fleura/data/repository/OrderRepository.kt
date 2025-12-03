@@ -3,6 +3,8 @@ package com.course.fleura.data.repository
 import android.content.Context
 import android.util.Log
 import com.course.fleura.data.model.remote.CartListResponse
+import com.course.fleura.data.model.remote.CreateReviewRequest
+import com.course.fleura.data.model.remote.CreateReviewResponse
 import com.course.fleura.data.model.remote.Detail
 import com.course.fleura.data.model.remote.OrderAddressResponse
 import com.course.fleura.data.model.remote.OrderListResponse
@@ -93,6 +95,25 @@ class OrderRepository private constructor(
             emit(ResultResponse.Error(e.localizedMessage ?: "Error retrieving user details"))
         }
     }.flowOn(Dispatchers.IO)
+
+    fun createProductReview(
+        request: CreateReviewRequest
+    ) : Flow<ResultResponse<CreateReviewResponse>> = flow {
+        emit(ResultResponse.Loading)
+
+        try {
+            val response = orderService.createProductReview(request = request)
+            if (response.isSuccessful) {
+                response.body()?.let {
+                    emit(ResultResponse.Success(it))
+                } ?: emit(ResultResponse.Error("Empty response body"))
+            } else {
+                emit(ResultResponse.Error("Error: ${response.errorBody()?.string() ?: "Unknown error"}"))
+            }
+        } catch (e: Exception) {
+            emit(ResultResponse.Error(e.localizedMessage ?: "Network error"))
+        }
+    }
 
     companion object {
         @Volatile

@@ -4,6 +4,8 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.course.fleura.BuildConfig
+import com.course.fleura.data.model.remote.CreateReviewRequest
+import com.course.fleura.data.model.remote.CreateReviewResponse
 import com.course.fleura.data.model.remote.Detail
 import com.course.fleura.data.model.remote.OrderAddressResponse
 import com.course.fleura.data.model.remote.OrderDataItem
@@ -58,6 +60,11 @@ class OrderViewModel (
     private val _productReviewState =
         MutableStateFlow<ResultResponse<ProductReviewResponse>>(ResultResponse.None)
     val productReviewState: StateFlow<ResultResponse<ProductReviewResponse>> = _productReviewState
+
+    private val _createReviewState =
+        MutableStateFlow<ResultResponse<CreateReviewResponse>>(ResultResponse.None)
+    val createReviewState: StateFlow<ResultResponse<CreateReviewResponse>> = _createReviewState
+
 
 
     fun setSelectedOrderItem(orderItem: OrderDataItem) {
@@ -270,7 +277,28 @@ class OrderViewModel (
         return getBuyerReview(buyerId)
     }
 
-
-
+    fun createProductReview(
+        productId: String,
+        rate: Int,
+        message: String
+    ) {
+        viewModelScope.launch {
+            try {
+                _createReviewState.value = ResultResponse.Loading
+                orderRepository.createProductReview(
+                    CreateReviewRequest (
+                    productId = productId,
+                    rate = rate,
+                    message = message
+                    )
+                ).collect { result ->
+                    _createReviewState.value = result
+                    Log.e("Create Review", result.toString())
+                }
+            } catch (e: Exception) {
+                _createReviewState.value = ResultResponse.Error("Failed to create review: ${e.message}")
+            }
+        }
+    }
 
 }

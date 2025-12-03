@@ -187,7 +187,14 @@ fun CompletedOrder(
         showCircularProgress = isLoading,
         onBackClick = onBackClick,
         completedOrderAddressData = completedOrderAddressData,
-        completedOrderData = selectedCompletedOrderItem
+        completedOrderData = selectedCompletedOrderItem,
+        onAddReviewClick = {productId, rating, message ->
+            orderViewModel.createProductReview(
+                productId = productId,
+                rate = rating,
+                message = message
+            )
+        }
     )
 }
 
@@ -200,7 +207,8 @@ private fun CompletedOrder(
     onBackClick: () -> Unit,
     showCircularProgress: Boolean,
     completedOrderAddressData: OrderAddressData,
-    completedOrderData: OrderDataItem
+    completedOrderData: OrderDataItem,
+    onAddReviewClick: (String, Int, String) -> Unit
 ) {
     val focusManager = LocalFocusManager.current
     var ratingValue by remember { mutableIntStateOf(0) }
@@ -390,7 +398,15 @@ private fun CompletedOrder(
                     ) {
                         CustomButton(
                             text = if (hasReviewed) "You already reviewed" else "Add Review",
-                            onClick = { /* kirim / update review */ },
+                            onClick = {
+                                if (!hasReviewed) {
+                                    onAddReviewClick(
+                                        completedOrderData.orderItems.first().product.id,
+                                        ratingValue,
+                                        reviewCommentValue
+                                    )
+                                }
+                            },
                             isAvailable = !hasReviewed && ratingValue > 0 && reviewCommentValue.isNotEmpty()
                         )
                     }

@@ -1,11 +1,14 @@
 package com.course.fleura.retrofit.services
 
+import com.course.fleura.data.model.remote.CreateReviewRequest
+import com.course.fleura.data.model.remote.CreateReviewResponse
 import com.course.fleura.data.model.remote.OrderAddressResponse
 import com.course.fleura.data.model.remote.OrderListResponse
 import com.course.fleura.data.model.remote.ProductReviewResponse
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
+import retrofit2.http.POST
 import retrofit2.http.Path
 
 interface OrderService {
@@ -18,6 +21,9 @@ interface OrderService {
 
     @GET("api/product/review/product/{productId}")
     suspend fun getProductReview(@Path("productId") productId: String): Response<ProductReviewResponse>
+
+    @POST("api/product/review")
+    suspend fun createProductReview(@Body request: CreateReviewRequest): Response<CreateReviewResponse>
 
 //    @GET("api/payment/detail/{orderId}")
 //    suspend fun getBuyerAddress(@Path("orderId") orderId: String): Response<OrderAddressResponse>
