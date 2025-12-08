@@ -109,13 +109,11 @@ fun CompletedOrder(
     val currentUserReview = remember(productReviewState, userDetailState) {
         orderViewModel.getCurrentUserReview()
     }
-
-    var rating by remember { mutableIntStateOf(currentUserReview?.rate ?: 0) }
-    var reviewComment by remember { mutableStateOf(currentUserReview?.message ?: "") }
+    val hasReviewed = currentUserReview != null
+    val rating = currentUserReview?.rate ?: 0
+    val reviewComment = currentUserReview?.message ?: ""
 
     var showSuccessDialog by remember { mutableStateOf(false) }
-
-    val hasReviewed = currentUserReview != null
 
     LaunchedEffect(Unit) {
         Log.e("SELECTED COMPLETED ORDER ITEM", "JDLKSAJD $selectedCompletedOrderItem")
@@ -223,8 +221,8 @@ fun CompletedOrder(
         completedOrderAddressData = completedOrderAddressData,
         completedOrderData = selectedCompletedOrderItem,
         onSuccessDialogDismiss = {
-            orderViewModel.loadInitialData()
             showSuccessDialog = false
+            orderViewModel.resetState()
             onBackClick()
         },
         onAddReviewClick = { productId, rating, message ->

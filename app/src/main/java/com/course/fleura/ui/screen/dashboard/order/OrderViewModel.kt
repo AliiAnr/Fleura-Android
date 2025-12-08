@@ -301,4 +301,8 @@ class OrderViewModel (
         }
     }
 
+    fun resetState() {
+        _createReviewState.value = ResultResponse.None
+    }
+
 }
