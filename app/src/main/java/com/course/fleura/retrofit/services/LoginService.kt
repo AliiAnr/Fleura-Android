@@ -30,4 +30,7 @@ interface LoginService {
     @POST("api/buyer/address")
     suspend fun addUserAddress(@Body request: AddAddressRequest): Response<PersonalizeResponse>
 
+    @GET("api/buyer/auth/google/login")
+    suspend fun googleLogin(): Response<LoginResponse>
+
 }

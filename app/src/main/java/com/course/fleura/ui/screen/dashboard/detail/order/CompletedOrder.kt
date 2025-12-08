@@ -1,6 +1,7 @@
 package com.course.fleura.ui.screen.dashboard.detail.order
 
 import android.util.Log
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -22,12 +23,15 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -62,8 +66,10 @@ import com.course.fleura.ui.common.parseDateTime
 import com.course.fleura.ui.components.CartItem
 import com.course.fleura.ui.components.CartOrder
 import com.course.fleura.ui.components.CustomButton
+import com.course.fleura.ui.components.CustomPopUpDialog
 import com.course.fleura.ui.components.CustomTopAppBar
 import com.course.fleura.ui.components.OrderItem
+import com.course.fleura.ui.screen.dashboard.cart.PaymentMethod
 import com.course.fleura.ui.screen.dashboard.home.HomeViewModel
 import com.course.fleura.ui.screen.dashboard.order.OrderViewModel
 import com.course.fleura.ui.screen.navigation.FleuraSurface
@@ -86,7 +92,7 @@ fun CompletedOrder(
     selectedCompletedOrderItem: OrderDataItem
 ) {
 
-    var showCircularProgress by remember { mutableStateOf(true) }
+    var showCircularProgress by remember { mutableStateOf(false) }
 
     val orderAddressState by orderViewModel.orderAddressState.collectAsStateWithLifecycle(
         initialValue = ResultResponse.None
@@ -98,12 +104,16 @@ fun CompletedOrder(
         initialValue = ResultResponse.None
     )
 
+    val createReviewState by orderViewModel.createReviewState.collectAsStateWithLifecycle(initialValue = ResultResponse.None)
+
     val currentUserReview = remember(productReviewState, userDetailState) {
         orderViewModel.getCurrentUserReview()
     }
 
     var rating by remember { mutableIntStateOf(currentUserReview?.rate ?: 0) }
     var reviewComment by remember { mutableStateOf(currentUserReview?.message ?: "") }
+
+    var showSuccessDialog by remember { mutableStateOf(false) }
 
     val hasReviewed = currentUserReview != null
 
@@ -153,6 +163,28 @@ fun CompletedOrder(
 //        }
 //    }
 
+    LaunchedEffect(createReviewState) {
+        when (createReviewState) {
+            is ResultResponse.Success -> {
+                showCircularProgress = false
+                showSuccessDialog = true
+                Log.e("Show success dialog", "true")
+            }
+
+            is ResultResponse.Loading -> {
+                showCircularProgress = true
+
+            }
+
+            is ResultResponse.Error -> {
+                showCircularProgress = false
+            }
+
+            else -> {}
+
+        }
+    }
+
 
     val isLoading = orderAddressState is ResultResponse.Loading ||
             productReviewState is ResultResponse.Loading ||
@@ -184,11 +216,18 @@ fun CompletedOrder(
         rating = rating,
         reviewComment = reviewComment,
         hasReviewed = hasReviewed,
-        showCircularProgress = isLoading,
+        isLoading = isLoading,
+        showCircularProgress = showCircularProgress,
+        showSuccessDialog = showSuccessDialog,
         onBackClick = onBackClick,
         completedOrderAddressData = completedOrderAddressData,
         completedOrderData = selectedCompletedOrderItem,
-        onAddReviewClick = {productId, rating, message ->
+        onSuccessDialogDismiss = {
+            orderViewModel.loadInitialData()
+            showSuccessDialog = false
+            onBackClick()
+        },
+        onAddReviewClick = { productId, rating, message ->
             orderViewModel.createProductReview(
                 productId = productId,
                 rate = rating,
@@ -205,7 +244,10 @@ private fun CompletedOrder(
     reviewComment: String,
     hasReviewed: Boolean,
     onBackClick: () -> Unit,
+    onSuccessDialogDismiss: () -> Unit,
+    isLoading: Boolean,
     showCircularProgress: Boolean,
+    showSuccessDialog: Boolean,
     completedOrderAddressData: OrderAddressData,
     completedOrderData: OrderDataItem,
     onAddReviewClick: (String, Int, String) -> Unit
@@ -218,6 +260,8 @@ private fun CompletedOrder(
     val isDelivery = completedOrderData.takenMethod == "delivery"
 
     val currentStatus = completedOrderData.status
+
+    var showConfirmDialog by remember { mutableStateOf(false) }
 
     FleuraSurface(
         modifier = modifier.fillMaxSize(),
@@ -245,7 +289,7 @@ private fun CompletedOrder(
                     showNavigationIcon = true,
                     onBackClick = onBackClick
                 )
-                if (showCircularProgress) {
+                if (isLoading) {
                     Box(
                         contentAlignment = Alignment.Center,
                         modifier = Modifier
@@ -400,17 +444,109 @@ private fun CompletedOrder(
                             text = if (hasReviewed) "You already reviewed" else "Add Review",
                             onClick = {
                                 if (!hasReviewed) {
-                                    onAddReviewClick(
-                                        completedOrderData.orderItems.first().product.id,
-                                        ratingValue,
-                                        reviewCommentValue
-                                    )
+                                    showConfirmDialog = true
                                 }
                             },
                             isAvailable = !hasReviewed && ratingValue > 0 && reviewCommentValue.isNotEmpty()
                         )
                     }
                 }
+            }
+
+            if (showCircularProgress) {
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.3f))
+                        .clickable(
+                            indication = null,
+                            interactionSource = remember { MutableInteractionSource() }
+                        ) {
+                            // Do nothing - this prevents clicks from passing through
+                        }
+                ) {
+                    CircularProgressIndicator(color = primaryLight)
+                }
+            }
+
+            if (showSuccessDialog) {
+                CustomPopUpDialog(
+                    onDismiss = {
+                            onSuccessDialogDismiss()
+                    },
+                    isShowIcon = true,
+                    isShowTitle = true,
+                    isShowDescription = true,
+                    isShowButton = false,
+                    icon = {
+                        Box(
+                            modifier = Modifier
+                                .size(80.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ceklist),
+                                contentDescription = null,
+                                tint = Color.Unspecified,
+                            )
+                        }
+                    },
+                    title = "Add Review Successful",
+                    description = "Your review has been added successfully.",
+                )
+            }
+
+            if (showConfirmDialog) {
+                CustomPopUpDialog(
+                    onDismiss = { showConfirmDialog = false },
+                    isShowIcon = true,
+                    isShowTitle = true,
+                    isShowDescription = false,
+                    isShowButton = true,
+                    icon = {
+
+                        Icon(
+                            painter = painterResource(id = R.drawable.think),
+                            contentDescription = null,
+                            tint = Color.Unspecified,
+                            modifier = Modifier.height(150.dp)
+                        )
+                    },
+                    title = "Are you sure you want to add this review?",
+                    buttons = {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceEvenly
+                        ) {
+                            OutlinedButton(
+                                onClick = { showConfirmDialog = false },
+                                border = BorderStroke(1.dp, primaryLight),
+                                shape = RoundedCornerShape(28.dp),
+                                modifier = Modifier.weight(1f).padding(end = 6.dp)
+                            ) {
+                                Text("Cancel", color = primaryLight)
+                            }
+                            Button(
+                                onClick = {
+                                    onAddReviewClick(
+                                        completedOrderData.orderItems.first().product.id,
+                                        ratingValue,
+                                        reviewCommentValue
+                                    )
+                                    showConfirmDialog = false
+                                },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = primaryLight
+                                ),
+                                shape = RoundedCornerShape(28.dp),
+                                modifier = Modifier.weight(1f).padding(start = 6.dp)
+                            ) {
+                                Text("Confirm", color = Color.White)
+                            }
+                        }
+                    }
+                )
             }
         }
     }

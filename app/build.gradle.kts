@@ -119,6 +119,9 @@ dependencies {
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.messaging)
 
+    implementation(libs.androidx.credentials)
+    implementation(libs.androidx.credentials.play.services.auth)
+    implementation(libs.googleid)
     // di module build.gradle
     implementation("io.socket:socket.io-client:2.1.2") {
         // required untuk OkHttp

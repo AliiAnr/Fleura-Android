@@ -44,6 +44,26 @@ class LoginRepository private constructor(
 
     }.flowOn(Dispatchers.IO)
 
+    fun loginGoogleUser(): Flow<ResultResponse<LoginResponse>> = flow {
+        emit(ResultResponse.Loading)
+
+        try {
+            val response = loginService.googleLogin()
+            if (response.isSuccessful) {
+                response.body()?.let {
+                    dataStoreManager.saveUserToken(it.data.accessToken)
+                    dataStoreManager.setUserLoggedIn(true)
+                    emit(ResultResponse.Success(it))
+                } ?: emit(ResultResponse.Error("Empty response body"))
+            } else {
+                emit(ResultResponse.Error("Error: ${response.errorBody()?.string() ?: "Unknown error"}"))
+            }
+        } catch (e: Exception) {
+            emit(ResultResponse.Error(e.localizedMessage ?: "Network error"))
+        }
+
+    }.flowOn(Dispatchers.IO)
+
     fun getUser(): Flow<ResultResponse<GetUserResponse>> = flow {
         emit(ResultResponse.Loading)
 

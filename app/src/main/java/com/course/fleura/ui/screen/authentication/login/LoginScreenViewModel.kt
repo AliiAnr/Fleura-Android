@@ -168,6 +168,34 @@ class LoginScreenViewModel(
         }
     }
 
+    fun loginGoogleUser() {
+            viewModelScope.launch {
+                try {
+                    _loginState.value = ResultResponse.Loading
+                    loginRepository.loginGoogleUser()
+                        .collect { result ->
+                            if(result is ResultResponse.Success) {
+                                // Sync FCM token after successful login
+                                saveToken()
+                            }
+                            _loginState.value = result
+                        }
+//                    delay(2000)
+//                    _loginState.value =
+//                        ResultResponse.Success(LoginResponse(
+//                            data = Data(
+//                                "wakoak"
+//                            ),
+//                            message = "Success",
+//                            statusCode = 200,
+//                            timestamp = "owkeake"
+//                        ))
+                } catch (e: Exception) {
+                    _loginState.value = ResultResponse.Error("Registration failed: ${e.message}")
+                }
+            }
+    }
+
     fun inputUsername() {
         if (usernameValue.isNotEmpty() && validateUsername()) {
             viewModelScope.launch {

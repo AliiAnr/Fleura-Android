@@ -1,6 +1,9 @@
 package com.course.fleura.ui.screen.authentication.login
 
+import android.app.Activity
 import android.util.Log
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -35,6 +38,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
@@ -45,7 +49,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.credentials.CredentialManager
+import androidx.credentials.CustomCredential
+import androidx.credentials.GetCredentialRequest
+import androidx.credentials.GetCredentialResponse
+import androidx.credentials.exceptions.GetCredentialException
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.course.fleura.R
 import com.course.fleura.ui.common.ResultResponse
 import com.course.fleura.ui.components.CustomButton
@@ -54,7 +64,13 @@ import com.course.fleura.ui.components.CustomTopAppBar
 import com.course.fleura.ui.screen.navigation.FleuraSurface
 import com.course.fleura.ui.screen.navigation.MainDestinations
 import com.course.fleura.ui.theme.primaryLight
+import com.google.android.gms.common.api.ApiException
+import com.google.android.libraries.identity.googleid.GetGoogleIdOption
+import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @Composable
 fun LoginScreen(
@@ -205,6 +221,38 @@ private fun LoginScreen(
 
     }
 
+    val context = LocalContext.current
+
+    val credentialManager = remember {
+        CredentialManager.create(context)
+    }
+
+    fun launchGoogleSignIn() {
+        val googleIdOption = GetGoogleIdOption.Builder()
+            .setFilterByAuthorizedAccounts(false) // true kalau cuma akun yg sudah pernah login
+            .setServerClientId(
+                context.getString(R.string.google_web_client_id)
+            ) // Web client ID dari GCC
+            .build()
+
+        val request = GetCredentialRequest.Builder()
+            .addCredentialOption(googleIdOption)
+            .build()
+
+        CoroutineScope(Dispatchers.Main).launch {
+            try {
+                val result = credentialManager.getCredential(
+                    request = request,
+                    context = context
+                )
+                handleCredentialResult(result)
+            } catch (e: GetCredentialException) {
+                Log.e("GoogleLoginScreen", "getCredential failed", e)
+//                viewModel.onGoogleIdTokenReceived("") // atau expose error khusus
+            }
+        }
+    }
+
     FleuraSurface(modifier = modifier.fillMaxSize()) {
         Box(modifier = Modifier.fillMaxSize()) {
             Column(
@@ -320,7 +368,8 @@ private fun LoginScreen(
                     outlinedColor = Color.Gray,
                     icon = painterResource(id = R.drawable.google_ic),
                     onClick = {
-                        // Handle Google login action
+//                        loginViewModel.loginGoogleUser()
+//                        launchGoogleSignIn()
                     },
                     modifier = Modifier
                         .padding(bottom = 16.dp)
@@ -389,6 +438,28 @@ private fun LoginScreen(
                     CircularProgressIndicator(color = primaryLight)
                 }
             }
+        }
+    }
+}
+
+private fun handleCredentialResult(
+    result: GetCredentialResponse,
+) {
+    when (val credential = result.credential) {
+        is CustomCredential -> {
+            if (credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
+                val googleIdTokenCredential =
+                    GoogleIdTokenCredential.createFrom(credential.data)
+                val idToken = googleIdTokenCredential.idToken
+                Log.d("GoogleLoginScreen", "Google ID Token: $idToken")
+
+                // loginViewModel dan passing id
+            } else {
+                Log.e("GoogleLoginScreen", "Unexpected credential type: ${credential.type}")
+            }
+        }
+        else -> {
+            Log.e("GoogleLoginScreen", "Unsupported credential: $credential")
         }
     }
 }
