@@ -21,6 +21,8 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -77,6 +79,7 @@ import com.course.fleura.ui.theme.base500
 import com.course.fleura.ui.theme.primaryLight
 import com.course.fleura.ui.theme.secColor
 import network.chaintech.kmp_date_time_picker.ui.datepicker.WheelDatePickerView
+import kotlin.compareTo
 
 @Composable
 fun FlowerDetail(
@@ -283,6 +286,10 @@ private fun DescFlower(
     onBackClick: () -> Unit
 ) {
 
+    val pictures = item.picture
+    val pagerState = rememberPagerState { maxOf(pictures.size, 1) }
+
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -293,24 +300,51 @@ private fun DescFlower(
                 .fillMaxWidth()
                 .height(250.dp)
         ) {
-            if (item.picture.isNullOrEmpty()) {
-                Image(
-                    painter = painterResource(id = R.drawable.placeholder),
-                    contentDescription = "Store Image",
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .fillMaxSize()
-                )
-            } else {
+            HorizontalPager(
+                state = pagerState,
+                modifier = Modifier.fillMaxSize()
+            ) { page ->
+                val imageUrl = pictures.getOrNull(page)?.path
+                if (imageUrl.isNullOrEmpty()) {
+                    Image(
+                        painter = painterResource(id = R.drawable.placeholder),
+                        contentDescription = "Store Image",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                } else {
+                    AsyncImage(
+                        model = imageUrl,
+                        contentDescription = null,
+                        placeholder = painterResource(R.drawable.placeholder),
+                        error = painterResource(R.drawable.placeholder),
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                }
+            }
 
-                AsyncImage(
-                    model = item.picture.firstOrNull()?.path,
-                    contentDescription = null,
-                    placeholder = painterResource(R.drawable.placeholder),
-                    error = painterResource(R.drawable.placeholder),
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize(),
-                )
+            if (pictures.size > 1) {
+                Row(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(bottom = 12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    repeat(pictures.size) { index ->
+                        Box(
+                            modifier = Modifier
+                                .width(if (pagerState.currentPage == index) 18.dp else 8.dp)
+                                .height(8.dp)
+                                .clip(RoundedCornerShape(4.dp))
+                                .background(
+                                    if (pagerState.currentPage == index) primaryLight else Color.White.copy(
+                                        alpha = 0.6f
+                                    )
+                                )
+                        )
+                    }
+                }
             }
 
             // Ikon di atas gambar
@@ -501,6 +535,8 @@ fun StoreItemLogo(
     item: StoreProduct,
     onStoreClick: (String, String) -> Unit
 ) {
+    val logo = item.store.logo.orEmpty()
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -508,40 +544,33 @@ fun StoreItemLogo(
             .padding(20.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Row (
-            modifier = Modifier
-                .clickable(
-                    onClick = {
-                        onStoreClick(item.store.id, item.name)
-                    },
-                    indication = null,
-                    interactionSource = remember { MutableInteractionSource() }
-                ),
+        Row(
+            modifier = Modifier.clickable(
+                onClick = { onStoreClick(item.store.id, item.name) },
+                indication = null,
+                interactionSource = remember { MutableInteractionSource() }
+            ),
             verticalAlignment = Alignment.CenterVertically
-        ){
-            if (item.picture.isEmpty()) {
+        ) {
+            if (logo.isBlank()) {
                 Image(
                     painter = painterResource(id = R.drawable.placeholder),
                     contentDescription = "Store Image",
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
                         .size(50.dp)
-                        .clip(
-                            RoundedCornerShape(50.dp)
-                        )
+                        .clip(RoundedCornerShape(50.dp))
                 )
             } else {
                 AsyncImage(
-                    model = item.picture.firstOrNull()?.path,
+                    model = logo,
                     contentDescription = null,
                     placeholder = painterResource(R.drawable.placeholder),
                     error = painterResource(R.drawable.placeholder),
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
                         .size(50.dp)
-                        .clip(
-                            RoundedCornerShape(50.dp)
-                        ),
+                        .clip(RoundedCornerShape(50.dp))
                 )
             }
             Spacer(modifier = Modifier.width(14.dp))
@@ -549,10 +578,9 @@ fun StoreItemLogo(
                 text = item.store.name,
                 color = base500,
                 fontSize = 16.sp,
-                fontWeight = FontWeight.Bold,
+                fontWeight = FontWeight.Bold
             )
         }
-
     }
 }
 
