@@ -80,6 +80,7 @@ import com.course.fleura.ui.theme.primaryLight
 import com.course.fleura.ui.theme.secColor
 import network.chaintech.kmp_date_time_picker.ui.datepicker.WheelDatePickerView
 import kotlin.compareTo
+import kotlin.text.category
 
 @Composable
 fun FlowerDetail(
@@ -422,7 +423,9 @@ private fun DescFlower(
                     color = Color.Black,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(bottom = 8.dp)
+                    modifier = Modifier
+                        .padding(bottom = 8.dp)
+                        .weight(1f),
                 )
 
                 Row(
@@ -490,8 +493,10 @@ private fun DescFlower(
                 modifier = Modifier.padding(bottom = 8.dp)
             )
 
+            val categoryName = item.category?.name.orEmpty()
+
             Text(
-                text = "Category: ${item.category.name}",
+                text = if (categoryName.isNullOrBlank()) "Category: -" else "Category: $categoryName",
                 color = base500,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.W700,
