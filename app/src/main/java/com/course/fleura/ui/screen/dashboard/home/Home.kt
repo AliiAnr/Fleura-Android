@@ -84,7 +84,9 @@ import com.course.fleura.ui.components.Common
 import com.course.fleura.ui.components.CommonItem
 import com.course.fleura.ui.components.FlowerItem
 import com.course.fleura.ui.components.ListStoreItem
+import com.course.fleura.ui.components.SearchBarForNavigation
 import com.course.fleura.ui.screen.dashboard.profile.ProfileViewModel
+import com.course.fleura.ui.screen.navigation.DetailDestinations
 import com.course.fleura.ui.theme.base20
 import com.course.fleura.ui.theme.base60
 import com.course.fleura.ui.theme.primaryLight
@@ -96,6 +98,7 @@ fun Home(
     onSnackClick: (Long, String) -> Unit,
     onStoreClick: (String, String) -> Unit,
     onFlowerClick: (String, String) -> Unit,
+    onSearchDetail: (String) -> Unit,
     homeViewModel: HomeViewModel,
     profileViewModel: ProfileViewModel
 ) {
@@ -260,6 +263,7 @@ fun Home(
         isLoding = isLoading,
         onStoreClick = onStoreClick,
         onFlowerClick = onFlowerClick,
+        onSearchDetail = onSearchDetail,
         setSelectedProduct = homeViewModel::setSelectedProduct,
         pullToRefreshState = pullToRefreshState,
         isRefreshing = isRefreshing,
@@ -274,6 +278,7 @@ private fun Home(
     onStoreClick: (String, String) -> Unit,
     onFlowerClick: (String, String) -> Unit,
     setSelectedProduct: (StoreProduct) -> Unit,
+    onSearchDetail: (String) -> Unit,
     userData: Detail?,
     productData: List<StoreProduct>,
     storeData: List<StoreItem>,
@@ -290,7 +295,6 @@ private fun Home(
 //        Box(
 //            modifier = Modifier.fillMaxSize()
 //        ) {
-
         PullToRefreshBox(
             isRefreshing = isRefreshing,
             onRefresh = onRefresh,
@@ -322,13 +326,19 @@ private fun Home(
                     Spacer(modifier = Modifier.height(12.dp))
                 }
                 item {
-                    SearchBar(
-                        query = textState,
-                        onQueryChange = {
-                            textState = it
-                        },
-                        onSearch = {
-                            // call API
+//                    SearchBar(
+//                        query = textState,
+//                        onQueryChange = {
+//                            textState = it
+//                        },
+//                        onSearch = {
+//                            // call API
+//                        }
+//                    )
+
+                    SearchBarForNavigation(
+                        onNavigate = {
+                            onSearchDetail(DetailDestinations.SEARCH_PRODUCT)
                         }
                     )
                 }

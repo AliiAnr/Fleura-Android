@@ -63,3 +63,46 @@ fun EmptyCart(
         }
     }
 }
+
+
+@Composable
+fun EmptyProduct(
+    modifier: Modifier = Modifier,
+    title: String = "You have not added any product yet",
+    icon: Int = R.drawable.empty_product,
+    description: String = "Start adding your product now!"
+) {
+    Box(
+        modifier = modifier
+            .fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Icon(
+                painter = painterResource(id = icon),
+                contentDescription = "Empty Product",
+                tint = Color.Unspecified,
+                modifier = Modifier.width(250.dp)
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = title,
+                color = Color.Black,
+                fontWeight = FontWeight.Bold,
+                fontSize = 16.sp,
+                textAlign = TextAlign.Center
+            )
+            Text(
+                text = description,
+                color = base100,
+                fontWeight = FontWeight.Bold,
+                fontSize = 14.sp,
+                textAlign = TextAlign.Center
+            )
+        }
+    }
+}

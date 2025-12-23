@@ -45,6 +45,7 @@ object DetailDestinations {
     const val DETAIL_FLOWER = "flowerDetail"
     const val DETAIL_CONFIRM_ORDER = "confirmOrder"
     const val DETAIL_TRANSFER_ORDER = "orderDetail"
+    const val SEARCH_PRODUCT = "searchProduk"
     const val DETAIL_QR_ORDER = "qrOrder"
     const val DETAIL_QR_CREATED_ORDER = "qrCreatedOrder"
     const val DETAIL_CASH_ORDER = "cashOrder"
@@ -105,6 +106,12 @@ class FleuraNavController(
     fun navigateToStoreDetail(id: String, origin: String, from: NavBackStackEntry) {
         if (from.lifecycleIsResumed()) {
             navController.navigate("${DetailDestinations.DETAIL_MERCHANT}/$id?origin=$origin")
+        }
+    }
+
+    fun navigateToSearchDetail(to: String, from: NavBackStackEntry) {
+        if (from.lifecycleIsResumed()) {
+            navController.navigate(to)
         }
     }
 

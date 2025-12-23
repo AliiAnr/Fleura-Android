@@ -2,6 +2,8 @@ package com.course.fleura.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -22,7 +24,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.onKeyEvent
@@ -33,13 +38,16 @@ import androidx.compose.ui.unit.sp
 import com.course.fleura.R
 import com.course.fleura.ui.theme.FleuraTheme
 import com.course.fleura.ui.theme.base80
+import com.course.fleura.ui.theme.primaryLight
 
 @Composable
 fun SearchBar(
+    modifier: Modifier = Modifier,
     query: String,
+    placeholder: String = "Search your desired flower",
     onQueryChange: (String) -> Unit,
     onSearch: (String) -> Unit,
-    modifier: Modifier = Modifier
+    focusRequester: FocusRequester? = null,
 ) {
     var textState by remember { mutableStateOf(query) }
 
@@ -67,10 +75,14 @@ fun SearchBar(
                     textState = it
                     onQueryChange(it)
                 },
+                cursorBrush = SolidColor(primaryLight),
                 singleLine = true,
                 textStyle = LocalTextStyle.current.copy(fontSize = 16.sp, color = Color.Gray),
                 modifier = Modifier
                     .weight(1f)
+                    .then(
+                        if (focusRequester != null) Modifier.focusRequester(focusRequester) else Modifier
+                    )
                     .onKeyEvent {
                         if (it.nativeKeyEvent.keyCode.toLong() == Key.Enter.keyCode) {
                             onSearch(textState)
@@ -82,13 +94,52 @@ fun SearchBar(
                 decorationBox = { innerTextField ->
                     if (textState.isEmpty()) {
                         Text(
-                            text = "Search your desired flower",
+                            text = placeholder,
                             fontSize = 16.sp,
                             color = Color.Gray
                         )
                     }
                     innerTextField()
                 }
+            )
+        }
+    }
+}
+
+
+@Composable
+fun SearchBarForNavigation(
+    modifier: Modifier = Modifier,
+    placeholder: String = "Search your desired flower",
+    onNavigate: () -> Unit,
+) {
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(50.dp)
+            .padding(horizontal = 20.dp)
+            .clip(RoundedCornerShape(10.dp))
+            .background(Color.White)
+            .border(1.dp, base80, RoundedCornerShape(10.dp))
+            .padding(horizontal = 16.dp, vertical = 12.dp)
+            .clickable(
+                onClick = onNavigate,
+                indication = null,
+                interactionSource = remember { MutableInteractionSource() }
+            ),
+        contentAlignment = Alignment.CenterStart
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(
+                imageVector = ImageVector.vectorResource(id = R.drawable.search),
+                contentDescription = "Search",
+                tint = base80
+            )
+            Spacer(modifier = Modifier.width(14.dp))
+            Text(
+                text = placeholder,
+                fontSize = 16.sp,
+                color = Color.Gray
             )
         }
     }

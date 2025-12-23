@@ -57,6 +57,7 @@ import com.course.fleura.ui.screen.dashboard.cart.CartViewModel
 import com.course.fleura.ui.screen.dashboard.detail.history.OrderHistory
 import com.course.fleura.ui.screen.dashboard.detail.home.DetailTest
 import com.course.fleura.ui.screen.dashboard.detail.home.Merchant
+import com.course.fleura.ui.screen.dashboard.detail.home.SearchFlower
 import com.course.fleura.ui.screen.dashboard.detail.order.CompletedOrder
 import com.course.fleura.ui.screen.dashboard.detail.order.ConfirmOrder
 import com.course.fleura.ui.screen.dashboard.detail.order.DetailTransferOrder
@@ -247,6 +248,7 @@ fun FleuraApp() {
                             onCreatedOrderDetail = fleuraNavController::navigateToCreatedOrder,
                             onProfileDetail = fleuraNavController::navigateToProfileDetail,
                             onOrderHistroy = fleuraNavController::navigateToOrderHistory,
+                            onSearchDetail = fleuraNavController::navigateToSearchDetail,
                             homeViewModel = homeViewModel,
                             cartViewModel = cartViewModel,
                             orderViewModel = orderViewModel,
@@ -335,6 +337,18 @@ fun FleuraApp() {
                                 )
                             )
 //                            onFlowerClick
+                        )
+                    }
+
+                    composableWithCompositionLocal(
+                        route = DetailDestinations.SEARCH_PRODUCT
+                    ) { backStackEntry ->
+                        SearchFlower(
+                            homeViewModel = homeViewModel,
+                            onBackClick = fleuraNavController::upPress,
+                            onFlowerClick = { id, origin ->
+                                fleuraNavController.navigateToFlowerDetail(id = id, origin = origin, from = backStackEntry)
+                            }
                         )
                     }
 
@@ -775,6 +789,7 @@ fun MainContainer(
     onCreatedOrderDetail: (String, String, NavBackStackEntry) -> Unit,
     onProfileDetail: (String, NavBackStackEntry) -> Unit,
     onOrderHistroy: (NavBackStackEntry) -> Unit,
+    onSearchDetail: (String, NavBackStackEntry) -> Unit,
     homeViewModel: HomeViewModel,
     cartViewModel: CartViewModel,
     orderViewModel: OrderViewModel,
@@ -832,6 +847,7 @@ fun MainContainer(
                 onCreatedOrderDetail = onCreatedOrderDetail,
                 onProfileDetail = onProfileDetail,
                 onOrderHistory = onOrderHistroy,
+                onSearchDetail = onSearchDetail,
                 homeViewModel = homeViewModel,
                 cartViewModel = cartViewModel,
                 orderViewModel = orderViewModel,

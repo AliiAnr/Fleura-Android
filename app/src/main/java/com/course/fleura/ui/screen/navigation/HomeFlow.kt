@@ -93,6 +93,7 @@ fun NavGraphBuilder.addHomeGraph(
     onCreatedOrderDetail: (String, String, NavBackStackEntry) -> Unit,
     onProfileDetail: (String, NavBackStackEntry) -> Unit,
     onOrderHistory: (NavBackStackEntry) -> Unit,
+    onSearchDetail: (String, NavBackStackEntry) -> Unit,
     homeViewModel: HomeViewModel,
     cartViewModel: CartViewModel,
     orderViewModel: OrderViewModel,
@@ -109,6 +110,9 @@ fun NavGraphBuilder.addHomeGraph(
             },
             onFlowerClick = { flowerId, origin ->
                 onFlowerClick(flowerId, origin, from)
+            },
+            onSearchDetail = { to ->
+                onSearchDetail(to, from)
             },
             homeViewModel = homeViewModel,
             profileViewModel = profileViewModel,
