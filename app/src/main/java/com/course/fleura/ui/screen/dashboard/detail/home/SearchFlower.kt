@@ -148,7 +148,7 @@ private fun SearchFlower (
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 CustomTopAppBar(
-                    title = "Search",
+                    title = "Search Product",
                     showNavigationIcon = true,
                     onBackClick = {
                         onBackClick()
