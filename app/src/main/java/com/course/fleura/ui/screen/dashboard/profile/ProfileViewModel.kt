@@ -6,9 +6,11 @@ import com.course.fleura.data.model.remote.AddAddressResponse
 import com.course.fleura.data.model.remote.AddressItem
 import com.course.fleura.data.model.remote.Detail
 import com.course.fleura.data.model.remote.ListAddressResponse
+import com.course.fleura.data.model.remote.LogoutResponse
 import com.course.fleura.data.repository.HomeRepository
 import com.course.fleura.data.repository.ProfileRepository
 import com.course.fleura.ui.common.ResultResponse
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -32,6 +34,11 @@ class ProfileViewModel(
         MutableStateFlow<ResultResponse<Detail?>>(ResultResponse.None)
     val profileDetailState: StateFlow<ResultResponse<Detail?>> = _profileDetailState
 
+    private val _logoutState: MutableStateFlow<ResultResponse<LogoutResponse>> =
+        MutableStateFlow(ResultResponse.None)
+    val logoutState: StateFlow<ResultResponse<LogoutResponse>> = _logoutState.asStateFlow()
+
+
     private val _addAddressState =
         MutableStateFlow<ResultResponse<AddAddressResponse>>(ResultResponse.None)
     val addAddressState: StateFlow<ResultResponse<AddAddressResponse>> = _addAddressState
@@ -54,6 +61,15 @@ class ProfileViewModel(
 
     fun setSelectedAddress(address: AddressItem) {
         _selectedAddressItem.value = address
+    }
+
+    fun logout() {
+        viewModelScope.launch {
+            _logoutState.value = ResultResponse.Loading
+//            profileRepository.logout()
+            delay(1500)
+            _logoutState.value = ResultResponse.Success(LogoutResponse(success = true))
+        }
     }
 
     fun getSelectedCartAddress(): AddressItem?{
@@ -84,6 +100,10 @@ class ProfileViewModel(
                     ResultResponse.Error("Failed to generate OTP: ${e.message}")
             }
         }
+    }
+
+    fun resetLogoutState() {
+        _logoutState.value = ResultResponse.None
     }
 
     fun addUserAddress(

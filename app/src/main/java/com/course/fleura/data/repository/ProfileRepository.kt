@@ -67,6 +67,10 @@ class ProfileRepository private constructor(
         }
     }.flowOn(Dispatchers.IO)
 
+    suspend fun logout() {
+        dataStoreManager.clearUserDataExceptOnboarding()
+    }
+
     fun getUserAddressList(): Flow<ResultResponse<ListAddressResponse>> = flow {
 
         emit(ResultResponse.Loading)

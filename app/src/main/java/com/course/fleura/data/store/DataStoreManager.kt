@@ -56,6 +56,18 @@ class DataStoreManager(private val context: Context) {
         }
     }
 
+    suspend fun clearUserDataExceptOnboarding() {
+        val keepOnboarding = onboardingCompleted.first()
+        context.dataStore.edit { prefs ->
+            prefs.remove(USER_LOGGED_IN_KEY)
+            prefs.remove(USER_TOKEN_KEY)
+            prefs.remove(USER_DATA_KEY)
+            prefs.remove(PERSONALIZED_KEY)
+            prefs.remove(ADDRESSES_KEY)
+            prefs[ONBOARDING_COMPLETED_KEY] = keepOnboarding
+        }
+    }
+
     val personalizedFilled: Flow<Boolean> = context.dataStore.data
         .map { preferences -> preferences[PERSONALIZED_KEY] ?: false }
 

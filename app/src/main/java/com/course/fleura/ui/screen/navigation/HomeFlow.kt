@@ -92,6 +92,7 @@ fun NavGraphBuilder.addHomeGraph(
     onOrderDetail: (String, String, NavBackStackEntry) -> Unit,
     onCreatedOrderDetail: (String, String, NavBackStackEntry) -> Unit,
     onProfileDetail: (String, NavBackStackEntry) -> Unit,
+    onNavigateOut : (String, Boolean) -> Unit,
     onOrderHistory: (NavBackStackEntry) -> Unit,
     onSearchDetail: (String, NavBackStackEntry) -> Unit,
     homeViewModel: HomeViewModel,
@@ -151,6 +152,7 @@ fun NavGraphBuilder.addHomeGraph(
     composable(HomeSections.Profile.route) { from ->
         Profile(
             modifier = modifier,
+            onNavigateOut = onNavigateOut,
             onProfileDetailClick = { location ->
                 onProfileDetail(location, from)
             },
