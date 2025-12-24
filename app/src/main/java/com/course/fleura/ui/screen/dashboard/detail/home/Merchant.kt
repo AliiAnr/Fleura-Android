@@ -62,6 +62,7 @@ import com.course.fleura.ui.theme.base20
 import com.course.fleura.ui.theme.base40
 import com.course.fleura.ui.theme.base500
 import com.course.fleura.ui.theme.primaryLight
+import kotlin.text.category
 
 @Composable
 fun Merchant(
@@ -168,19 +169,16 @@ private fun Merchant(
     onBackClick: () -> Unit,
     onFlowerClick: (String, String) -> Unit
 ) {
-
     val groupedByCat = remember(productData) {
-        productData?.groupBy { it.category.name }?.toSortedMap() ?: sortedMapOf()
+        productData
+            ?.takeIf { it.isNotEmpty() }
+            ?.groupBy { it.category?.name.orEmpty() }
+            ?.toSortedMap()
+            ?: sortedMapOf<String, List<StoreProduct>>()
     }
 
-    FleuraSurface(
-        modifier = modifier.fillMaxSize(),
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
+    FleuraSurface(modifier = modifier.fillMaxSize()) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -189,7 +187,6 @@ private fun Merchant(
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 if (isLoading) {
-                    // Show empty state when there's no data and not loading
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
@@ -198,10 +195,7 @@ private fun Merchant(
                         verticalArrangement = Arrangement.Center
                     ) {}
                 } else {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize()
-                    ) {
-
+                    LazyColumn(modifier = Modifier.fillMaxSize()) {
                         item {
                             DescMerchant(
                                 storeData = storeData,
@@ -209,45 +203,59 @@ private fun Merchant(
                             )
                         }
 
-                        groupedByCat.forEach { (categoryName, itemsInCat) ->
-                            // Header kategori
-                            item(key = "header-$categoryName") {
-                                Spacer(modifier = Modifier.height(8.dp))
+                        if (groupedByCat.isEmpty()) {
+                            item {
                                 Text(
-                                    text = categoryName,
-                                    fontSize = 18.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color.Black,
+                                    text = "No products available",
+                                    color = base500,
+                                    fontSize = 14.sp,
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .background(Color.White)
-                                        .padding(start = 20.dp, top = 20.dp, end = 20.dp)
+                                        .padding(20.dp)
                                 )
                             }
-
-                            items(
-                                items = itemsInCat,
-                                key = { it.id }
-                            ) { product ->
-                                Column(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .background(Color.White)
-                                        .padding(horizontal = 20.dp)
-                                ) {
-                                    MerchantFlowerItem(
-                                        item = product,
-                                        onFlowerClick = {
-                                            homeViewModel.setSelectedProduct(product)
-                                            onFlowerClick(
-                                                product.id,
-                                                DetailDestinations.DETAIL_MERCHANT
-                                            )
-                                        }
+                        } else {
+                            groupedByCat.forEach { (categoryName, itemsInCat) ->
+                                if (itemsInCat.isEmpty()) return@forEach
+                                val safeCategory = categoryName.ifBlank { "Uncategorized" }
+                                item(key = "header-$safeCategory") {
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Text(
+                                        text = safeCategory,
+                                        fontSize = 18.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color.Black,
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .background(Color.White)
+                                            .padding(start = 20.dp, top = 20.dp, end = 20.dp)
                                     )
-                                    // Divider kecuali item terakhir
-                                    if (product != itemsInCat.last()) {
-                                        HorizontalDivider(color = base40)
+                                }
+
+                                items(
+                                    items = itemsInCat,
+                                    key = { it.id }
+                                ) { product ->
+                                    Column(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .background(Color.White)
+                                            .padding(horizontal = 20.dp)
+                                    ) {
+                                        MerchantFlowerItem(
+                                            item = product,
+                                            onFlowerClick = {
+                                                homeViewModel.setSelectedProduct(product)
+                                                onFlowerClick(
+                                                    product.id,
+                                                    DetailDestinations.DETAIL_MERCHANT
+                                                )
+                                            }
+                                        )
+                                        if (product != itemsInCat.last()) {
+                                            HorizontalDivider(color = base40)
+                                        }
                                     }
                                 }
                             }
@@ -261,54 +269,13 @@ private fun Merchant(
                                     .background(Color.White)
                             )
                         }
-
-//                        data.categories.forEach { category ->
-//                            // Header untuk kategori
-//                            item {
-//                                Spacer(modifier = Modifier.height(8.dp))
-//                                Text(
-//                                    text = category.title,
-//                                    fontSize = 18.sp,
-//                                    fontWeight = FontWeight.Bold,
-//                                    color = Color.Black,
-//                                    modifier = Modifier
-//                                        .fillMaxWidth()
-//                                        .background(Color.White)
-//                                        .padding(start = 20.dp, top = 20.dp, end = 20.dp)
-//                                )
-//                            }
-//
-//                            itemsIndexed(category.items) { index, item ->
-//                                val isLastItem = index == category.items.size - 1
-//                                Column(
-//                                    modifier = Modifier
-//                                        .fillMaxWidth()
-//                                        .background(Color.White)
-//                                        .padding(horizontal = 20.dp)
-//                                ) {
-//                                    MerchantFlowerItem(
-//                                        item = item,
-//                                        onFlowerClick = { _, _ ->
-//
-//                                        }
-//                                    )
-//                                    if (!isLastItem) {
-//                                        HorizontalDivider(
-//                                            color = base40,
-//                                        )
-//                                    }
-//                                }
-//
-//                            }
-//                        }
                     }
                 }
             }
             if (isLoading) {
                 Box(
                     contentAlignment = Alignment.Center,
-                    modifier = Modifier
-                        .fillMaxSize()
+                    modifier = Modifier.fillMaxSize()
                 ) {
                     CircularProgressIndicator(color = primaryLight)
                 }
@@ -316,52 +283,42 @@ private fun Merchant(
         }
     }
 }
-
 @Composable
+
 private fun DescMerchant(
     modifier: Modifier = Modifier,
     storeData: DetailStoreData?,
     onBackClick: () -> Unit
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-    ) {
-        // Header Image with Icons
+    val addressText = storeData?.address?.toFormattedAddress().orEmpty()
+    val phoneText = storeData?.phone?.takeIf { it.isNotBlank() } ?: "Phone not available"
+    val hoursDay = storeData?.operationalDay?.takeIf { it.isNotBlank() } ?: "Not specified"
+    val hoursTime = storeData?.operationalHour?.takeIf { it.isNotBlank() } ?: "Not specified"
+    val imageUrl = storeData?.picture?.takeIf { it.isNotBlank() }
+
+    Column(modifier = Modifier.fillMaxSize()) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(250.dp)
         ) {
-
-            if (storeData?.picture.isNullOrEmpty()) {
-                Log.e("WOIII KOSONG", "${storeData?.picture}")
+            if (imageUrl == null) {
                 Image(
-                    painter = painterResource(id = R.drawable.placeholder),  // Use a placeholder image
+                    painter = painterResource(id = R.drawable.placeholder),
                     contentDescription = "Store Image",
                     contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .fillMaxSize()
+                    modifier = Modifier.fillMaxSize()
                 )
             } else {
-                Log.e("WOIII ADA", "${storeData?.picture}")
                 AsyncImage(
-//                    model = ImageRequest.Builder(LocalContext.current)
-//                        .data(storeData?.picture)
-//                        .crossfade(true)
-//                        .build(),
-                    model = storeData?.picture,
+                    model = imageUrl,
                     contentDescription = "Store Image",
                     contentScale = ContentScale.Crop,
                     placeholder = painterResource(id = R.drawable.placeholder),
                     error = painterResource(id = R.drawable.placeholder),
-                    modifier = Modifier
-                        .fillMaxSize()
+                    modifier = Modifier.fillMaxSize()
                 )
             }
-            // Gambar Header
-
-            // Ikon di atas gambar
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -371,10 +328,7 @@ private fun DescMerchant(
                 Box(
                     modifier = Modifier
                         .size(40.dp)
-                        .background(
-                            Color.White,
-                            shape = RoundedCornerShape(50.dp)
-                        )
+                        .background(Color.White, shape = RoundedCornerShape(50.dp))
                         .clickable(
                             onClick = { onBackClick() },
                             indication = null,
@@ -395,10 +349,7 @@ private fun DescMerchant(
                 Box(
                     modifier = Modifier
                         .size(40.dp)
-                        .background(
-                            Color.White,
-                            shape = RoundedCornerShape(50.dp)
-                        )
+                        .background(Color.White, shape = RoundedCornerShape(50.dp))
                         .clickable(
                             onClick = { },
                             indication = null,
@@ -410,86 +361,80 @@ private fun DescMerchant(
                         imageVector = ImageVector.vectorResource(id = R.drawable.share),
                         contentDescription = null,
                         tint = Color.Black,
-                        modifier = Modifier
-                            .size(20.dp)
+                        modifier = Modifier.size(20.dp)
                     )
                 }
             }
         }
 
-        // Konten di bawah gambar
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(Color.White)
                 .padding(20.dp)
         ) {
-            // Nama Toko
             Text(
-                text = storeData?.name ?: "STORE NAME",
+                text = storeData?.name?.takeIf { it.isNotBlank() } ?: "STORE NAME",
                 color = Color.Black,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
 
-            // Deskripsi
             Text(
                 text = storeData?.description
-                    ?: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+                    ?.takeIf { it.isNotBlank() }
+                    ?: "No description available.",
                 color = base500,
                 fontSize = 12.sp,
                 lineHeight = 18.sp,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
 
-            // Lokasi
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(bottom = 4.dp)
             ) {
                 Icon(
                     painter = painterResource(id = R.drawable.loc),
-                    contentDescription = "Rating",
+                    contentDescription = "Location",
                     tint = Color.Unspecified,
                     modifier = Modifier.size(18.dp)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = storeData?.address?.toFormattedAddress() ?: "Address not available",
+                    text = addressText.ifBlank { "Address not available" },
                     color = base500,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.W700
                 )
             }
 
-            // Nomor Telepon
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
                     painter = painterResource(id = R.drawable.bubble_chat),
-                    contentDescription = "Rating",
+                    contentDescription = "Phone",
                     tint = Color.Unspecified,
                     modifier = Modifier.size(18.dp)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = storeData?.phone ?: "Phone not available",
+                    text = phoneText,
                     color = base500,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.W700
                 )
             }
         }
+
         Spacer(modifier = Modifier.height(8.dp))
+
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(Color.White)
                 .padding(20.dp)
         ) {
-            // Nama Toko
             Text(
                 text = "Opening Hours",
                 color = Color.Black,
@@ -498,39 +443,35 @@ private fun DescMerchant(
                 modifier = Modifier.padding(bottom = 8.dp)
             )
 
-            // Lokasi
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(bottom = 4.dp)
             ) {
                 Icon(
                     painter = painterResource(id = R.drawable.calendar),
-                    contentDescription = "Rating",
+                    contentDescription = "Operational Day",
                     tint = Color.Unspecified,
                     modifier = Modifier.size(18.dp)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = storeData?.operationalDay ?: "Not specified",
+                    text = hoursDay,
                     color = base500,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.W700
                 )
             }
 
-            // Nomor Telepon
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
                     painter = painterResource(id = R.drawable.clock),
-                    contentDescription = "Rating",
+                    contentDescription = "Operational Hour",
                     tint = Color.Unspecified,
                     modifier = Modifier.size(18.dp)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = storeData?.operationalHour ?: "Not specified",
+                    text = hoursTime,
                     color = base500,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.W700

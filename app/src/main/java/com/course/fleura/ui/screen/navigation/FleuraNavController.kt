@@ -46,6 +46,7 @@ object DetailDestinations {
     const val DETAIL_CONFIRM_ORDER = "confirmOrder"
     const val DETAIL_TRANSFER_ORDER = "orderDetail"
     const val SEARCH_PRODUCT = "searchProduct"
+    const val SEARCH_STORE = "searchStore"
     const val SEARCH_BEST_PRODUCT = "searchBestProduct"
     const val DETAIL_QR_ORDER = "qrOrder"
     const val DETAIL_QR_CREATED_ORDER = "qrCreatedOrder"

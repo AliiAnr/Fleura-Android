@@ -194,7 +194,7 @@ private fun SearchFlower (
                             .fillMaxSize()
                             .background(Color.White)
                             .padding(start = 20.dp, end = 20.dp, top = 10.dp, bottom = 20.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                        verticalArrangement = Arrangement.spacedBy(14.dp)
                     ) {
                         itemsIndexed(filtered) { index, product ->
                             SearchMerchantFlowerItem(
@@ -205,7 +205,7 @@ private fun SearchFlower (
                                     homeViewModel.setSelectedProduct(storeProduct = product)
                                 }
                             )
-                            Spacer(modifier = Modifier.height(10.dp))
+                            Spacer(modifier = Modifier.height(14.dp))
                             if (index < filtered.lastIndex) {
                                 HorizontalDivider(color = base40)
                             }

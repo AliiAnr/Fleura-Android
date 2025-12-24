@@ -21,6 +21,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -28,9 +29,11 @@ import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.course.fleura.R
+import com.course.fleura.data.model.remote.StoreItem
 import com.course.fleura.ui.screen.navigation.MainDestinations
 import com.course.fleura.ui.theme.FleuraTheme
 import com.course.fleura.ui.theme.base500
+import com.course.fleura.ui.theme.secColor
 
 @Composable
 fun ListStoreItem(
@@ -57,7 +60,7 @@ fun ListStoreItem(
         Column(modifier = Modifier.fillMaxWidth()) {
             if (imageUrl.isNullOrEmpty()) {
                 Image(
-                    painter = painterResource(id = R.drawable.store_1),  // Use a placeholder image
+                    painter = painterResource(id = R.drawable.placeholder),  // Use a placeholder image
                     contentDescription = "Store Image",
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
@@ -113,6 +116,105 @@ fun ListStoreItem(
                     text = openingHours,
                     fontSize = 12.sp,
                     color = base500
+                )
+            }
+        }
+    }
+}
+
+
+@Composable
+fun SearchListStoreItem(
+    modifier: Modifier = Modifier,
+    store: StoreItem,
+    onStoreClick: (String, String) -> Unit
+) {
+
+    val picture = store.picture.orEmpty()
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(
+                onClick = {
+                    onStoreClick(store.id, MainDestinations.DASHBOARD_ROUTE)
+                },
+                indication = null,
+                interactionSource = remember { MutableInteractionSource() }
+            ),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        if (picture.isBlank()) {
+            Image(
+                painter = painterResource(id = R.drawable.placeholder),
+                contentDescription = null,
+                modifier = Modifier
+                    .size(110.dp)
+                    .clip(RoundedCornerShape(10.dp)),
+                contentScale = ContentScale.Crop
+            )
+        } else {
+            AsyncImage(
+                model = picture,
+                contentDescription = null,
+                placeholder = painterResource(R.drawable.placeholder),
+                error = painterResource(R.drawable.placeholder),
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .size(110.dp)
+                    .clip(RoundedCornerShape(10.dp))
+            )
+        }
+
+        Spacer(modifier = Modifier.width(10.dp))
+
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Text(
+                text = store.name ?: "dbao",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.Black,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(bottom = 4.dp)
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.calendar),
+                    contentDescription = "Rating",
+                    tint = Color.Unspecified,
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = store?.operationalDay ?: "Not specified",
+                    color = base500,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.W700
+                )
+            }
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.clock),
+                    contentDescription = "Rating",
+                    tint = Color.Unspecified,
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = store?.operationalHour ?: "Not specified",
+                    color = base500,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.W700
                 )
             }
         }

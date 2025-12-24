@@ -388,7 +388,7 @@ private fun Home(
                         ListStores(
                             storeList = storeData,
                             onNavigate = {
-                                // call
+                                onSearchDetail(DetailDestinations.SEARCH_STORE)
                             },
                             onStoreClick = { storeId, origin ->
                                 onStoreClick(storeId, origin)

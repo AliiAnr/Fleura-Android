@@ -28,16 +28,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.course.fleura.data.model.remote.StoreProduct
-import com.course.fleura.data.model.remote.StoreProductResponse
+import com.course.fleura.data.model.remote.ListStoreResponse
+import com.course.fleura.data.model.remote.StoreItem
 import com.course.fleura.ui.common.ResultResponse
 import com.course.fleura.ui.components.CustomTopAppBar
 import com.course.fleura.ui.components.EmptyProduct
 import com.course.fleura.ui.components.SearchBar
-import com.course.fleura.ui.components.SearchMerchantFlowerItem
+import com.course.fleura.ui.components.SearchListStoreItem
 import com.course.fleura.ui.screen.dashboard.home.HomeViewModel
 import com.course.fleura.ui.screen.navigation.FleuraSurface
-import com.course.fleura.ui.screen.navigation.MainDestinations
 import com.course.fleura.ui.theme.base20
 import com.course.fleura.ui.theme.base40
 import com.course.fleura.ui.theme.primaryLight
@@ -45,106 +44,68 @@ import kotlinx.coroutines.delay
 
 
 @Composable
-fun SearchBestRatings (
+fun SearchStore(
     modifier: Modifier = Modifier,
     homeViewModel: HomeViewModel,
-    onFlowerClick: (String, String) -> Unit,
+    onStoreClick: (String, String) -> Unit,
     onBackClick: () -> Unit
 ) {
-
-    val storeProductState by homeViewModel.productListState.collectAsStateWithLifecycle()
-
+    val storeState by homeViewModel.storeListState.collectAsStateWithLifecycle()
     var showCircularProgress by remember { mutableStateOf(false) }
 
-    LaunchedEffect(storeProductState) {
-        when (storeProductState) {
-            is ResultResponse.Success -> {
-                showCircularProgress = false
-            }
-            is ResultResponse.Loading -> {
-                showCircularProgress = true
-            }
-            is ResultResponse.Error -> {
-                showCircularProgress = false
-            }
-            else -> {}
-        }
+    LaunchedEffect(storeState) {
+        showCircularProgress = storeState is ResultResponse.Loading
     }
 
-    val productData: List<StoreProduct> = when (storeProductState) {
-        is ResultResponse.Success -> {
-            (storeProductState as ResultResponse.Success<StoreProductResponse>).data.data
-        }
-
-        else -> {
-            emptyList()
-        }
+    val storeData: List<StoreItem> = when (storeState) {
+        is ResultResponse.Success -> (storeState as ResultResponse.Success<ListStoreResponse>).data.data
+        else -> emptyList()
     }
 
-    SearchBestRatings (
+    SearchStoreContent(
         modifier = modifier,
         showCircularProgress = showCircularProgress,
-        productData = productData,
-        homeViewModel = homeViewModel,
-        onFlowerClick = onFlowerClick,
+        storeData = storeData,
+        onStoreClick = onStoreClick,
         onBackClick = onBackClick
     )
-
 }
 
 @Composable
-private fun SearchBestRatings(
+private fun SearchStoreContent(
     modifier: Modifier = Modifier,
     showCircularProgress: Boolean,
-    productData: List<StoreProduct>,
-    homeViewModel: HomeViewModel,
-    onFlowerClick: (String, String) -> Unit,
+    storeData: List<StoreItem>,
+    onStoreClick: (String, String) -> Unit,
     onBackClick: () -> Unit
 ) {
-
-    val bestRatedProducts by remember(productData) {
-        mutableStateOf(
-            productData.sortedWith(
-                compareByDescending<StoreProduct> { it.rating }
-                    .thenByDescending { it.reviewCount }
-            )
-        )
-    }
-
     val focusManager = LocalFocusManager.current
     var query by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(false) }
-    var filtered by remember { mutableStateOf(bestRatedProducts) }
+    var filtered by remember { mutableStateOf(storeData) }
     val focusRequester = remember { FocusRequester() }
-
 
     LaunchedEffect(Unit) {
         focusRequester.requestFocus()
     }
 
-    LaunchedEffect(query, bestRatedProducts) {
+    LaunchedEffect(query, storeData) {
         isLoading = true
-        delay(1500)
+        delay(500)
         filtered = if (query.isBlank()) {
-            bestRatedProducts
+            storeData
         } else {
-            bestRatedProducts.filter { product ->
-                product.name?.contains(query, ignoreCase = true) == true
-            }
+            storeData.filter { it.name.contains(query, ignoreCase = true) }
         }
         isLoading = false
     }
 
-    FleuraSurface(
-        modifier = modifier.fillMaxSize(),
-    ) {
+    FleuraSurface(modifier = modifier.fillMaxSize()) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .clickable(
-                    onClick = {
-                        focusManager.clearFocus()
-                    },
+                    onClick = { focusManager.clearFocus() },
                     indication = null,
                     interactionSource = remember { MutableInteractionSource() }
                 )
@@ -159,14 +120,13 @@ private fun SearchBestRatings(
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 CustomTopAppBar(
-                    title = "Best Ratings",
+                    title = "Search Store",
                     showNavigationIcon = true,
                     onBackClick = {
                         onBackClick()
                         focusManager.clearFocus()
                     }
                 )
-
 
                 Column(
                     modifier = Modifier
@@ -177,54 +137,52 @@ private fun SearchBestRatings(
                     SearchBar(
                         query = query,
                         onSearch = {},
-                        onQueryChange = {
-                            query = it
-                        },
+                        onQueryChange = { query = it },
                         focusRequester = focusRequester
                     )
                 }
 
-                if (showCircularProgress || isLoading) {
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(if (isLoading) Color.White else base20)
-                    ) {
-                        CircularProgressIndicator(color = primaryLight)
+                when {
+                    showCircularProgress || isLoading -> {
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(if (isLoading) Color.White else base20)
+                        ) {
+                            CircularProgressIndicator(color = primaryLight)
+                        }
                     }
-                } else if (filtered.isEmpty()) {
-                    EmptyProduct(
-                        title = "No product found",
-                        description = "Try another keyword"
-                    )
-                }
-                else {
-                    LazyColumn(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(Color.White)
-                            .padding(start = 20.dp, end = 20.dp, top = 10.dp, bottom = 20.dp),
-                        verticalArrangement = Arrangement.spacedBy(14.dp)
-                    ) {
-                        itemsIndexed(filtered) { index, product ->
-                            SearchMerchantFlowerItem(
-                                item = product,
-                                onFlowerClick = {
-//                                    onFlowerDetail(product.id)
-                                    onFlowerClick(product.id, MainDestinations.DASHBOARD_ROUTE)
-                                    homeViewModel.setSelectedProduct(storeProduct = product)
+                    filtered.isEmpty() -> {
+                        EmptyProduct(
+                            title = "No store found",
+                            description = "Try another keyword"
+                        )
+                    }
+                    else -> {
+                        LazyColumn(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(Color.White)
+                                .padding(start = 20.dp, end = 20.dp, top = 10.dp, bottom = 20.dp),
+                            verticalArrangement = Arrangement.spacedBy(14.dp)
+                        ) {
+                            itemsIndexed(filtered) { index, store ->
+                                SearchListStoreItem(
+                                    store = store,
+                                    onStoreClick = { storeId, origin ->
+                                        onStoreClick(storeId, origin )
+                                    }
+                                )
+                                Spacer(modifier = Modifier.height(14.dp))
+                                if (index < filtered.lastIndex) {
+                                    HorizontalDivider(color = base40)
                                 }
-                            )
-                            Spacer(modifier = Modifier.height(14.dp))
-                            if (index < filtered.lastIndex) {
-                                HorizontalDivider(color = base40)
                             }
                         }
                     }
                 }
             }
-
         }
     }
 }
