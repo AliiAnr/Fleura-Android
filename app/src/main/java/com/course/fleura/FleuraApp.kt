@@ -57,6 +57,7 @@ import com.course.fleura.ui.screen.dashboard.cart.CartViewModel
 import com.course.fleura.ui.screen.dashboard.detail.history.OrderHistory
 import com.course.fleura.ui.screen.dashboard.detail.home.DetailTest
 import com.course.fleura.ui.screen.dashboard.detail.home.Merchant
+import com.course.fleura.ui.screen.dashboard.detail.home.SearchBestRatings
 import com.course.fleura.ui.screen.dashboard.detail.home.SearchFlower
 import com.course.fleura.ui.screen.dashboard.detail.order.CompletedOrder
 import com.course.fleura.ui.screen.dashboard.detail.order.ConfirmOrder
@@ -345,6 +346,18 @@ fun FleuraApp() {
                         route = DetailDestinations.SEARCH_PRODUCT
                     ) { backStackEntry ->
                         SearchFlower(
+                            homeViewModel = homeViewModel,
+                            onBackClick = fleuraNavController::upPress,
+                            onFlowerClick = { id, origin ->
+                                fleuraNavController.navigateToFlowerDetail(id = id, origin = origin, from = backStackEntry)
+                            }
+                        )
+                    }
+
+                    composableWithCompositionLocal(
+                        route = DetailDestinations.SEARCH_BEST_PRODUCT
+                    ) { backStackEntry ->
+                        SearchBestRatings (
                             homeViewModel = homeViewModel,
                             onBackClick = fleuraNavController::upPress,
                             onFlowerClick = { id, origin ->

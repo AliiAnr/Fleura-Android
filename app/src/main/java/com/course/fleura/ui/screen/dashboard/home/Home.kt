@@ -289,6 +289,15 @@ private fun Home(
 ) {
     var textState by remember { mutableStateOf("") } // Menggunakan remember untuk state
 
+    val bestRatedProducts by remember(productData) {
+        mutableStateOf(
+            productData.sortedWith(
+                compareByDescending<StoreProduct> { it.rating }
+                    .thenByDescending { it.reviewCount }
+            )
+        )
+    }
+
     FleuraSurface(
         modifier = modifier.fillMaxSize()
     ) {
@@ -397,9 +406,9 @@ private fun Home(
                         ProductListLoading()
                     } else {
                         ListFlowers(
-                            flowerList = productData,
+                            flowerList = bestRatedProducts,
                             onNavigate = {
-                                // call API
+                                onSearchDetail(DetailDestinations.SEARCH_BEST_PRODUCT)
                             },
                             setSelectedProduct = setSelectedProduct,
                             onFlowerClick = { productId, origin ->
