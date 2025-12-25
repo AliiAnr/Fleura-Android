@@ -99,6 +99,7 @@ fun Home(
     onStoreClick: (String, String) -> Unit,
     onFlowerClick: (String, String) -> Unit,
     onSearchDetail: (String) -> Unit,
+    onCategoryDetail: (String) -> Unit,
     homeViewModel: HomeViewModel,
     profileViewModel: ProfileViewModel
 ) {
@@ -264,6 +265,7 @@ fun Home(
         onStoreClick = onStoreClick,
         onFlowerClick = onFlowerClick,
         onSearchDetail = onSearchDetail,
+        onCategoryDetail = onCategoryDetail,
         setSelectedProduct = homeViewModel::setSelectedProduct,
         pullToRefreshState = pullToRefreshState,
         isRefreshing = isRefreshing,
@@ -279,6 +281,7 @@ private fun Home(
     onFlowerClick: (String, String) -> Unit,
     setSelectedProduct: (StoreProduct) -> Unit,
     onSearchDetail: (String) -> Unit,
+    onCategoryDetail: (String) -> Unit,
     userData: Detail?,
     productData: List<StoreProduct>,
     storeData: List<StoreItem>,
@@ -357,9 +360,7 @@ private fun Home(
 
                 item {
                     ListCategory(
-                        onCategoryClick = { id, name ->
-                            // call API
-                        },
+                        onCategoryClick = onCategoryDetail,
                         listCategory = FakeCategory.categories
                     )
                 }
@@ -496,7 +497,7 @@ private fun Header(
 @Composable
 private fun ListCategory(
     modifier: Modifier = Modifier,
-    onCategoryClick: (Long, String) -> Unit,
+    onCategoryClick: (String) -> Unit,
     listCategory: List<Category>
 ) {
     LazyRow(

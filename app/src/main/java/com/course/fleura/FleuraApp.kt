@@ -55,6 +55,7 @@ import com.course.fleura.ui.screen.authentication.username.UsernameScreen
 import com.course.fleura.ui.screen.authentication.welcome.WelcomeScreen
 import com.course.fleura.ui.screen.dashboard.cart.CartViewModel
 import com.course.fleura.ui.screen.dashboard.detail.history.OrderHistory
+import com.course.fleura.ui.screen.dashboard.detail.home.CategoryDetail
 import com.course.fleura.ui.screen.dashboard.detail.home.DetailTest
 import com.course.fleura.ui.screen.dashboard.detail.home.Merchant
 import com.course.fleura.ui.screen.dashboard.detail.home.SearchBestRatings
@@ -251,6 +252,7 @@ fun FleuraApp() {
                             onProfileDetail = fleuraNavController::navigateToProfileDetail,
                             onOrderHistroy = fleuraNavController::navigateToOrderHistory,
                             onSearchDetail = fleuraNavController::navigateToSearchDetail,
+                            onCategoryDetail = fleuraNavController::navigateToCategoryDetail,
                             onNavigateOut = fleuraNavController::navigateToNonBottomBarRoute,
                             homeViewModel = homeViewModel,
                             cartViewModel = cartViewModel,
@@ -511,6 +513,24 @@ fun FleuraApp() {
                         AuthAddress(
                             navigateToRoute = fleuraNavController::navigateToNonBottomBarRoute,
                             loginViewModel = loginViewModel
+                        )
+                    }
+
+                    composableWithCompositionLocal(
+                        route = "${DetailDestinations.CATEGORY_DETAIL}/" + "{${MainDestinations.FLOWER_ID_KEY}}",
+                        arguments = listOf(
+                            navArgument(MainDestinations.FLOWER_ID_KEY) {
+                                type = NavType.StringType
+                            }
+                        ),
+                    ) { backStackEntry ->
+
+                        val arguments = requireNotNull(backStackEntry.arguments)
+                        val title = arguments.getString(MainDestinations.FLOWER_ID_KEY)
+
+                        CategoryDetail(
+                            title = title ?: "Unknown Category",
+                            onBackClick = fleuraNavController::upPress
                         )
                     }
 
@@ -814,6 +834,7 @@ fun MainContainer(
     onFlowerSelected: (String, String, NavBackStackEntry) -> Unit,
     onOrderDetail: (String, String, NavBackStackEntry) -> Unit,
     onCreatedOrderDetail: (String, String, NavBackStackEntry) -> Unit,
+    onCategoryDetail: (String, NavBackStackEntry) -> Unit,
     onProfileDetail: (String, NavBackStackEntry) -> Unit,
     onOrderHistroy: (NavBackStackEntry) -> Unit,
     onSearchDetail: (String, NavBackStackEntry) -> Unit,
@@ -877,6 +898,7 @@ fun MainContainer(
                 onProfileDetail = onProfileDetail,
                 onOrderHistory = onOrderHistroy,
                 onSearchDetail = onSearchDetail,
+                onCategoryDetail = onCategoryDetail,
                 homeViewModel = homeViewModel,
                 cartViewModel = cartViewModel,
                 orderViewModel = orderViewModel,

@@ -95,6 +95,7 @@ fun NavGraphBuilder.addHomeGraph(
     onNavigateOut : (String, Boolean) -> Unit,
     onOrderHistory: (NavBackStackEntry) -> Unit,
     onSearchDetail: (String, NavBackStackEntry) -> Unit,
+    onCategoryDetail: (String, NavBackStackEntry) -> Unit,
     homeViewModel: HomeViewModel,
     cartViewModel: CartViewModel,
     orderViewModel: OrderViewModel,
@@ -114,6 +115,9 @@ fun NavGraphBuilder.addHomeGraph(
             },
             onSearchDetail = { to ->
                 onSearchDetail(to, from)
+            },
+            onCategoryDetail = { title ->
+                onCategoryDetail(title, from)
             },
             homeViewModel = homeViewModel,
             profileViewModel = profileViewModel,

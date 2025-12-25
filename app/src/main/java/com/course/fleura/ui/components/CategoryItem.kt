@@ -32,7 +32,7 @@ import com.course.fleura.ui.theme.categ
 fun CategoryItem(
     modifier: Modifier = Modifier,
     category: Category,
-    onCategoryClick: (Long, String) -> Unit
+    onCategoryClick: (String) -> Unit
 ) {
     FleuraSurface(
         modifier = Modifier.fillMaxSize()
@@ -41,7 +41,7 @@ fun CategoryItem(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier
                 .clickable {
-                    onCategoryClick(category.id, "home")
+                    onCategoryClick(category.name)
                 }
         ) {
             Box(
@@ -73,13 +73,13 @@ fun CategoryItem(
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun CategoryItemPreview() {
-    CategoryItem(
-        category = Category(1, "All Variants", R.drawable.category_1),
-        onCategoryClick = {
-            id, name -> println("CategoryItemPreview: $id, $name")
-        }
-    )
-}
+//@Preview(showBackground = true)
+//@Composable
+//fun CategoryItemPreview() {
+//    CategoryItem(
+//        category = Category(1, "All Variants", R.drawable.category_1),
+//        onCategoryClick = {
+//            id, name -> println("CategoryItemPreview: $id, $name")
+//        }
+//    )
+//}
