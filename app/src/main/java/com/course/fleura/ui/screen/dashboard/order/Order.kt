@@ -17,7 +17,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.course.fleura.R
@@ -25,13 +24,9 @@ import com.course.fleura.data.model.remote.OrderDataItem
 import com.course.fleura.data.model.remote.OrderListResponse
 import com.course.fleura.ui.common.ResultResponse
 import com.course.fleura.ui.components.CreatedOrderSummary
-import com.course.fleura.ui.components.CustomTopAppBar
 import com.course.fleura.ui.components.EmptyCart
-import com.course.fleura.ui.components.FakeCategory
 import com.course.fleura.ui.components.HistoryTopBar
 import com.course.fleura.ui.components.HomeSections
-import com.course.fleura.ui.components.Order
-import com.course.fleura.ui.components.OrderSummary
 import com.course.fleura.ui.screen.navigation.FleuraSurface
 import com.course.fleura.ui.theme.base20
 import com.course.fleura.ui.theme.primaryLight
