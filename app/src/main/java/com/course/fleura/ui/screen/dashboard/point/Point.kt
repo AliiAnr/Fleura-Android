@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -27,17 +26,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.course.fleura.R
 import com.course.fleura.ui.common.formatNumber
-import com.course.fleura.ui.common.getScreenHeightInDp
-import com.course.fleura.ui.components.Common
 import com.course.fleura.ui.components.CustomTopAppBar
-import com.course.fleura.ui.components.EmptyCart
 import com.course.fleura.ui.components.FakeCategory
-import com.course.fleura.ui.components.HistoryTopBar
 import com.course.fleura.ui.components.PointCard
 import com.course.fleura.ui.components.RewardItem
 import com.course.fleura.ui.screen.navigation.FleuraSurface
