@@ -2,7 +2,6 @@ package com.course.fleura.ui.screen.dashboard.profile
 
 import android.util.Log
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -22,7 +21,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Divider
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -42,7 +40,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -61,7 +58,6 @@ import com.course.fleura.ui.components.CustomButton
 import com.course.fleura.ui.components.CustomPopUpDialog
 import com.course.fleura.ui.components.CustomTopAppBar
 import com.course.fleura.ui.components.FakeCategory
-import com.course.fleura.ui.components.Profile
 import com.course.fleura.ui.components.TEMP_ID
 import com.course.fleura.ui.screen.dashboard.home.SectionText
 import com.course.fleura.ui.screen.navigation.FleuraSurface
