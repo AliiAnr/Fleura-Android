@@ -55,7 +55,6 @@ fun Order(
                     "ORDER SCREEN",
                     "SUGSESS ORDER: ${(orderListState as ResultResponse.Success).data}"
                 )
-//                navigateToRoute(MainDestinations.LOGIN_ROUTE, true)
             }
 
             is ResultResponse.Loading -> {
