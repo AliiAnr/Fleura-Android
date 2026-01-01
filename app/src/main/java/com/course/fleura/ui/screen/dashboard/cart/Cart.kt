@@ -17,23 +17,18 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.course.fleura.R
-//import com.course.fleura.data.model.remote.CartItem
 import com.course.fleura.data.model.remote.CartListResponse
 import com.course.fleura.data.model.remote.DataCartItem
-import com.course.fleura.data.model.remote.Detail
 import com.course.fleura.ui.common.ResultResponse
 import com.course.fleura.ui.components.CartSummary
 import com.course.fleura.ui.components.CustomTopAppBar
 import com.course.fleura.ui.components.EmptyCart
-import com.course.fleura.ui.components.FakeCategory
 import com.course.fleura.ui.components.HomeSections
 import com.course.fleura.ui.screen.dashboard.profile.ProfileViewModel
 import com.course.fleura.ui.screen.navigation.FleuraSurface
-import com.course.fleura.ui.screen.navigation.MainDestinations
 import com.course.fleura.ui.theme.base20
 import com.course.fleura.ui.theme.primaryLight
 import kotlinx.datetime.LocalDate
@@ -54,7 +49,6 @@ fun Cart(
     var showCircularProgress by remember { mutableStateOf(true) }
 
     LaunchedEffect(Unit) {
-        // This ensures the API calls happen after the composable is fully set up
 //        delay(3000)
         profileViewModel.getSelectedCartAddress()?.let { cartViewModel.setSelectedCartAddress(it) }
         cartViewModel.setAddressList(profileViewModel.getAddressList())
