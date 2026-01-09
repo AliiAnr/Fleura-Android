@@ -36,9 +36,6 @@ interface HomeService {
     @GET("api/product/review/product/{productId}")
     suspend fun getProductReview(@Path("productId") productId: String): Response<ProductReviewResponse>
 
-    //    @GET("/api/product")
-//    suspend fun getProductList(): Response<ListProductResponse>
-//
     @GET("api/product")
     suspend fun getProductList(): Response<StoreProductResponse>
 
