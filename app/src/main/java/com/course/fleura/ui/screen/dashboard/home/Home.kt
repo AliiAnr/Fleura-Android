@@ -310,7 +310,9 @@ private fun Home(
             onRefresh = onRefresh,
             state = pullToRefreshState,
             modifier = Modifier
-                .fillMaxSize(),
+                .fillMaxSize()
+                .statusBarsPadding()
+            ,
             indicator = {
                 PullToRefreshDefaults.Indicator(
                     modifier = Modifier.align(Alignment.TopCenter),
@@ -449,7 +451,8 @@ private fun Header(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 20.dp),
+            .padding(horizontal = 20.dp)
+            .padding(top = 16.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Column {
