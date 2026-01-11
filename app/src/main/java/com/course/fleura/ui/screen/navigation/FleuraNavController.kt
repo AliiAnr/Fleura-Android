@@ -172,6 +172,12 @@ class FleuraNavController(
         }
     }
 
+    fun navigateToNewPassword(from: NavBackStackEntry) {
+        if (from.lifecycleIsResumed()) {
+            navController.navigate(MainDestinations.NEW_PASSWORD_ROUTE)
+        }
+    }
+
     fun navigateToCreatedOrder(id: String, origin: String, from: NavBackStackEntry) {
         if (from.lifecycleIsResumed()) {
             navController.navigate("${DetailDestinations.DETAIL_TRANSFER_ORDER}/$id?origin=$origin")

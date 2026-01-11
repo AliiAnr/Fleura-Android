@@ -27,21 +27,25 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.course.fleura.ui.components.CustomButton
 import com.course.fleura.ui.components.CustomTextField
+import com.course.fleura.ui.components.CustomTopAppBar
 import com.course.fleura.ui.screen.navigation.FleuraSurface
 import com.course.fleura.ui.theme.base300
 
 @Composable
 fun NewPasswordScreen(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onBackClick: () -> Unit
 ) {
     NewPasswordScreen(
         id = 0,
+        onBackClick = onBackClick
     )
 }
 
 @Composable
 private fun NewPasswordScreen(
     modifier: Modifier = Modifier,
+    onBackClick: () -> Unit,
     id: Int = 0,
 ) {
     val focusManager = LocalFocusManager.current
@@ -59,7 +63,9 @@ private fun NewPasswordScreen(
                     interactionSource = remember { MutableInteractionSource() }
                 ) {
                     focusManager.clearFocus()
-                },
+                }
+                .statusBarsPadding()
+                .padding(horizontal = 20.dp),
             contentAlignment = Alignment.Center
         ) {
             Column(
@@ -69,9 +75,16 @@ private fun NewPasswordScreen(
                     .background(Color.White),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
+                CustomTopAppBar(
+                    title = "",
+                    showNavigationIcon = true,
+                    horizontalPadding = 0.dp,
+                    onBackClick = {
+                        onBackClick()
+                    }
+                )
                 Column(
                     modifier = Modifier
-                        .padding(horizontal = 20.dp)
                 ) {
                     Text(
                         text = "Create New Password",
@@ -116,6 +129,7 @@ private fun NewPasswordScreen(
                 CustomButton(
                     text = "Reset Password",
                     isOutlined = false,
+                    isAvailable = (passwordValue.value.isNotEmpty() && confirmPasswordValue.value.isNotEmpty()) && (passwordValue.value == confirmPasswordValue.value),
                     outlinedColor = Color.Black,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,

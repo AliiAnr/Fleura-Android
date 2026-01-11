@@ -237,7 +237,9 @@ fun FleuraApp() {
                     composableWithCompositionLocal(
                         route = MainDestinations.NEW_PASSWORD_ROUTE
                     ) { backStackEntry ->
-                        NewPasswordScreen()
+                        NewPasswordScreen(
+                            onBackClick = fleuraNavController::upPress
+                        )
                     }
 
                     composableWithCompositionLocal(
