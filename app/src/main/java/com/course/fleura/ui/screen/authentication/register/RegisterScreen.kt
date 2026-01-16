@@ -2,6 +2,7 @@ package com.course.fleura.ui.screen.authentication.register
 
 import android.net.Uri
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -32,6 +33,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
@@ -58,6 +60,7 @@ import com.course.fleura.ui.screen.navigation.MainDestinations
 import com.course.fleura.ui.screen.navigation.QueryKeys
 import com.course.fleura.ui.screen.onboarding.OnBoardingViewModel
 import com.course.fleura.ui.theme.primaryLight
+import org.json.JSONObject
 
 @Composable
 fun RegisterScreen(
@@ -92,6 +95,8 @@ private fun Register(
     navigateToRoute: (String, Boolean) -> Unit,
     onBackClick: () -> Unit
 ) {
+
+    val context = LocalContext.current
 
 
     val emailValue = Uri.encode(registerViewModel.emailValue)
@@ -129,9 +134,20 @@ private fun Register(
 
             is ResultResponse.Error -> {
                 showCircularProgress = false
-                Log.e("RegisterScreen", "Registration error: ${(registerState as ResultResponse.Error).error}")
+                Log.e("RegisterScreen", "Registration error: ${registerState.error}")
                 // Display error message to the user
-                // Toast.makeText(context, registerState.message, Toast.LENGTH_SHORT).show()
+                val rawError = registerState.error.removePrefix("Error: ").trim()
+
+                // Parse JSON to extract the "message" field
+                val errorMessage = try {
+                    val jsonObject = JSONObject(rawError)
+                    jsonObject.optString("message", rawError)
+                } catch (e: Exception) {
+                    // Fallback to original string if not valid JSON
+                    registerState.error
+                }
+
+                Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
             }
 
             else -> {}
