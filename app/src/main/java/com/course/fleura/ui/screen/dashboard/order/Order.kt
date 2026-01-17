@@ -105,7 +105,7 @@ private fun Order(
     onOrderHistory: () -> Unit,
 ) {
 
-    val validOrderList = orderList.filter { it.orderItems.isNotEmpty() && it.status != "completed" }
+    val validOrderList = orderList.filter { it.orderItems.isNotEmpty() && it.status != "completed" }.sortedByDescending { it.createdAt }
 
     FleuraSurface(
         modifier = modifier.fillMaxSize(),

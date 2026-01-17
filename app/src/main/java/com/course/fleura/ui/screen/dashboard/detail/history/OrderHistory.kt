@@ -121,7 +121,7 @@ private fun OrderHistory(
     onCompletedOrderClick: (String) -> Unit,
 ) {
 
-    val validOrderList = orderList.filter { it.status == "completed" }
+    val validOrderList = orderList.filter { it.status == "completed" }.sortedByDescending { it.createdAt }
 
     FleuraSurface(
         modifier = modifier.fillMaxSize(),
