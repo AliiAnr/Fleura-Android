@@ -146,18 +146,12 @@ private fun QrOrder(
     nowProvider: () -> Instant = { Clock.System.now() },
     onBack: () -> Unit = {}
 ) {
-    val tz = TimeZone.currentSystemDefault() // Asia/Jakarta
-
-    // 1) Parse order.qrisExpiredAt sebagai LocalDateTime (buang 'Z')
     val expiredInstant = remember(order.qrisExpiredAt) {
         try {
-            val withoutZ = order.qrisExpiredAt.removeSuffix("Z")
-            val ldt = LocalDateTime.parse(withoutZ)
-            // 2) Convert ke Instant, menganggap ldt itu di zona Asia/Jakarta
-            ldt.toInstant(tz)
+            Instant.parse(order.qrisExpiredAt).minus(7.hours)
         } catch (e: Exception) {
-            // fallback kalau parse gagal
-            Clock.System.now() + 15.minutes
+            // Fallback: Jika gagal parse, anggap expired 15 menit dari sekarang (sangat jarang terjadi)
+            nowProvider().plus(15.minutes)
         }
     }
 
@@ -417,18 +411,12 @@ private fun QrCreatedOrder(
     onBack: () -> Unit = {},
     id: String,
 ) {
-    val tz = TimeZone.currentSystemDefault() // Asia/Jakarta
-
-    // 1) Parse order.qrisExpiredAt sebagai LocalDateTime (buang 'Z')
     val expiredInstant = remember(order.payment.qrisExpiredAt) {
         try {
-            val withoutZ = order.payment.qrisExpiredAt.removeSuffix("Z")
-            val ldt = LocalDateTime.parse(withoutZ)
-            // 2) Convert ke Instant, menganggap ldt itu di zona Asia/Jakarta
-            ldt.toInstant(tz)
+            Instant.parse(order.payment.qrisExpiredAt).minus(7.hours)
         } catch (e: Exception) {
-            // fallback kalau parse gagal
-            Clock.System.now() + 15.minutes
+            // Fallback: Jika gagal parse, anggap expired 15 menit dari sekarang (sangat jarang terjadi)
+            nowProvider().plus(15.minutes)
         }
     }
 
