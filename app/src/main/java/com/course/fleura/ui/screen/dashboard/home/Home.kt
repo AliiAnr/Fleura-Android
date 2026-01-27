@@ -2,6 +2,7 @@ package com.course.fleura.ui.screen.dashboard.home
 
 import android.util.Log
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -88,6 +89,8 @@ import com.course.fleura.ui.screen.navigation.FleuraSurface
 import com.course.fleura.ui.theme.FleuraTheme
 import com.course.fleura.ui.theme.base60
 import com.course.fleura.ui.theme.primaryLight
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -528,26 +531,26 @@ private fun Corousel(
 
     var scrollDirection by remember { mutableIntStateOf(1) }
 
-//    LaunchedEffect(isUserDragging) {
-//        coroutineScope.launch {
-//            while (true) {
-//                delay(2000)
-//
-//                val nextPage = pagerState.currentPage + scrollDirection
-//
-//                if (nextPage >= pagerState.pageCount) {
-//                    scrollDirection = -1
-//                } else if (nextPage < 0) {
-//                    scrollDirection = 1
-//                }
-//
-//                pagerState.animateScrollToPage(
-//                    page = pagerState.currentPage + scrollDirection,
-//                    animationSpec = tween(durationMillis = 1000)
-//                )
-//            }
-//        }
-//    }
+    LaunchedEffect(isUserDragging) {
+        coroutineScope.launch {
+            while (true) {
+                delay(2000)
+
+                val nextPage = pagerState.currentPage + scrollDirection
+
+                if (nextPage >= pagerState.pageCount) {
+                    scrollDirection = -1
+                } else if (nextPage < 0) {
+                    scrollDirection = 1
+                }
+
+                pagerState.animateScrollToPage(
+                    page = pagerState.currentPage + scrollDirection,
+                    animationSpec = tween(durationMillis = 1000)
+                )
+            }
+        }
+    }
 
 
     Column(
